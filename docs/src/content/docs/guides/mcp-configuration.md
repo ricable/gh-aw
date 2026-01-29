@@ -306,7 +306,9 @@ network:
 
 ```aw wrap
 ---
-on: weekly on monday
+on:
+  schedule:
+    - cron: "0 0 * * 1"  # Every Monday at midnight
 permissions:
   contents: read
   security-events: read

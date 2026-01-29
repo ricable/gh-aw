@@ -144,7 +144,7 @@ permissions:
 engine: claude
 tools:
   github:
-   toolsets: [default, actions]
+    toolsets: [default, actions]
   cache-memory: true
   timeout: 600
 safe-outputs:
@@ -235,7 +235,6 @@ tools:
     description: "Historical audit data and patterns"
     file-glob: ["memory/audit-workflows/*.json", "memory/audit-workflows/*.jsonl"]
     max-file-size: 102400
-  timeout: 300
 steps:
   - name: Download logs from last 24 hours
     env:
@@ -324,7 +323,9 @@ network:
 ---
 name: Weekly Security Report
 description: Generate security report and notify Slack
-on: weekly on monday
+on:
+  schedule:
+    - cron: "0 9 * * 1"  # Every Monday at 9 AM
 permissions:
   contents: read
   security-events: read

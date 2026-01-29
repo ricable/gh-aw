@@ -627,9 +627,10 @@ network:
 ```
 
 **Additional steps for private Docker registries:**
-1. Configure Docker authentication in your workflow
-2. Use GitHub Container Registry (GHCR) when possible
-3. Ensure registry tokens have correct permissions
+1. Add a pre-step to authenticate Docker: `docker login registry.company.com -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_TOKEN }}`
+2. Use GitHub Container Registry (GHCR) when possible for easier authentication with `GITHUB_TOKEN`
+3. Ensure registry tokens have read permissions for the images
+4. See [GitHub's Docker publishing guide](https://docs.github.com/en/actions/publishing-packages/publishing-docker-images) for detailed authentication setup
 
 ## Performance and Timeout Issues
 
@@ -699,12 +700,18 @@ MCP server consuming too many resources.
 **Solutions:**
 
 **For Docker containers:**
+
+Docker resource limits are not directly configurable in workflow frontmatter. Consider these approaches:
+
+1. **Optimize the MCP server**: Reduce memory usage in the server implementation
+2. **Use smaller datasets**: Limit the amount of data processed in a single workflow run
+3. **Batch processing**: Split large operations into multiple workflow runs
+4. **Container optimization**: Use Alpine-based images which have lower memory footprint
+
 ```yaml wrap
 mcp-servers:
   resource-heavy:
-    container: "mcp/server:latest"
-    # Note: Resource limits not directly configurable in frontmatter
-    # Consider using a smaller dataset or optimizing the server
+    container: "mcp/server:alpine"  # Use Alpine for lower memory usage
     allowed: ["*"]
 ```
 
@@ -786,10 +793,10 @@ echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | npx -y packa
 # Test server is accessible
 curl -I https://api.example.com/mcp
 
-# Test MCP protocol
+# Test MCP initialize call
 curl -X POST https://api.example.com/mcp \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}'
 ```
 
 ### Use MCP Debug Mode
