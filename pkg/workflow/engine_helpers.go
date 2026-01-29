@@ -457,11 +457,13 @@ func GetToolBinsEnvArg() []string {
 //   - string: Shell command that outputs space-separated --mount arguments
 //
 // Example output:
-//   /opt/gh-aw/scripts/detect-library-deps.sh --cache-file=/tmp/gh-aw-lib-deps-cache.txt --format=awf-mounts /usr/bin/curl /usr/bin/jq 2>/dev/null || echo ''
+//
+//	/opt/gh-aw/scripts/detect-library-deps.sh --cache-file=/tmp/gh-aw-lib-deps-cache.txt --format=awf-mounts /usr/bin/curl /usr/bin/jq 2>/dev/null || echo ''
 //
 // Usage in AWF command:
-//   LIB_MOUNTS="$(generate_library_mount_args_command)"
-//   sudo -E awf $awfArgs $LIB_MOUNTS -- command...
+//
+//	LIB_MOUNTS="$(generate_library_mount_args_command)"
+//	sudo -E awf $awfArgs $LIB_MOUNTS -- command...
 func GenerateLibraryMountArgsCommand(binaries []string) string {
 	if len(binaries) == 0 {
 		return "echo ''"
