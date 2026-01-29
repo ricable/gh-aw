@@ -385,6 +385,37 @@ const PULL_REQUEST_CONFIG = {
   displayNameCapitalizedPlural: "Pull Requests",
 };
 
+/**
+ * Close a GitHub Issue using REST API
+ * @param {any} github - GitHub REST API instance
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {Object} [options] - Optional parameters
+ * @param {string} [options.state_reason] - State reason ("completed" or "not_planned")
+ * @returns {Promise<{number: number, html_url: string}>} Issue details
+ */
+async function closeIssue(github, owner, repo, issueNumber, options = {}) {
+  const updateParams = {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    state: "closed",
+  };
+
+  // Add state_reason if provided
+  if (options.state_reason) {
+    updateParams.state_reason = options.state_reason;
+  }
+
+  const { data: issue } = await github.rest.issues.update(updateParams);
+
+  return {
+    number: issue.number,
+    html_url: issue.html_url,
+  };
+}
+
 module.exports = {
   processCloseEntityItems,
   generateCloseEntityStagedPreview,
@@ -394,6 +425,7 @@ module.exports = {
   resolveEntityNumber,
   buildCommentBody,
   escapeMarkdownTitle,
+  closeIssue,
   ISSUE_CONFIG,
   PULL_REQUEST_CONFIG,
 };

@@ -6,6 +6,7 @@
  */
 
 const { getErrorMessage } = require("./error_helpers.cjs");
+const { closeIssue } = require("./close_entity_helpers.cjs");
 
 /**
  * Get issue details using REST API
@@ -47,25 +48,6 @@ async function addIssueComment(github, owner, repo, issueNumber, message) {
   });
 
   return comment;
-}
-
-/**
- * Close a GitHub Issue using REST API
- * @param {any} github - GitHub REST API instance
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @param {number} issueNumber - Issue number
- * @returns {Promise<{number: number, html_url: string, title: string}>} Issue details
- */
-async function closeIssue(github, owner, repo, issueNumber) {
-  const { data: issue } = await github.rest.issues.update({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    state: "closed",
-  });
-
-  return issue;
 }
 
 /**
@@ -185,7 +167,7 @@ async function main(config = {}) {
         success: true,
         number: issueNumber,
         url: closedIssue.html_url,
-        title: closedIssue.title,
+        title: issue.title,
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);

@@ -1,7 +1,8 @@
 // @ts-check
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { closeOlderIssues, searchOlderIssues, addIssueComment, closeIssueAsNotPlanned, getCloseOlderIssueMessage, MAX_CLOSE_COUNT } from "./close_older_issues.cjs";
+import { closeOlderIssues, searchOlderIssues, addIssueComment, getCloseOlderIssueMessage, MAX_CLOSE_COUNT } from "./close_older_issues.cjs";
+import { closeIssue } from "./close_entity_helpers.cjs";
 
 // Mock globals
 global.core = {
@@ -153,31 +154,6 @@ describe("close_older_issues", () => {
         repo: "repo",
         issue_number: 123,
         body: "Test comment",
-      });
-    });
-  });
-
-  describe("closeIssueAsNotPlanned", () => {
-    it("should close issue as not planned", async () => {
-      mockGithub.rest.issues.update.mockResolvedValue({
-        data: {
-          number: 123,
-          html_url: "https://github.com/owner/repo/issues/123",
-        },
-      });
-
-      const result = await closeIssueAsNotPlanned(mockGithub, "owner", "repo", 123);
-
-      expect(result).toEqual({
-        number: 123,
-        html_url: "https://github.com/owner/repo/issues/123",
-      });
-      expect(mockGithub.rest.issues.update).toHaveBeenCalledWith({
-        owner: "owner",
-        repo: "repo",
-        issue_number: 123,
-        state: "closed",
-        state_reason: "not_planned",
       });
     });
   });

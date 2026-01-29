@@ -3,6 +3,7 @@
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { EXPIRATION_PATTERN, extractExpirationDate } = require("./ephemerals.cjs");
+const { closeIssue } = require("./close_entity_helpers.cjs");
 
 /**
  * Maximum number of issues to update per run
@@ -152,26 +153,6 @@ async function addIssueComment(github, owner, repo, issueNumber, message) {
   return result.data;
 }
 
-/**
- * Close a GitHub Issue using REST API
- * @param {any} github - GitHub REST instance
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @param {number} issueNumber - Issue number
- * @returns {Promise<any>} Issue details
- */
-async function closeIssue(github, owner, repo, issueNumber) {
-  const result = await github.rest.issues.update({
-    owner: owner,
-    repo: repo,
-    issue_number: issueNumber,
-    state: "closed",
-    state_reason: "not_planned",
-  });
-
-  return result.data;
-}
-
 async function main() {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
@@ -289,7 +270,7 @@ async function main() {
 
       // Then close the issue as not planned
       core.info(`  Closing issue #${issue.number} as not planned`);
-      await closeIssue(github, owner, repo, issue.number);
+      await closeIssue(github, owner, repo, issue.number, { state_reason: "not_planned" });
       core.info(`  ✓ Issue closed successfully`);
 
       closedIssues.push({

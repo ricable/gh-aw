@@ -3,6 +3,7 @@
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { getWorkflowIdMarkerContent } = require("./generate_footer.cjs");
+const { closeIssue } = require("./close_entity_helpers.cjs");
 
 /**
  * Maximum number of older issues to close
@@ -136,34 +137,6 @@ async function addIssueComment(github, owner, repo, issueNumber, message) {
 }
 
 /**
- * Close a GitHub Issue as "not planned" using REST API
- * @param {any} github - GitHub REST API instance
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @param {number} issueNumber - Issue number
- * @returns {Promise<{number: number, html_url: string}>} Issue details
- */
-async function closeIssueAsNotPlanned(github, owner, repo, issueNumber) {
-  core.info(`Closing issue #${issueNumber} in ${owner}/${repo} as "not planned"`);
-
-  const result = await github.rest.issues.update({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    state: "closed",
-    state_reason: "not_planned",
-  });
-
-  core.info(`  ✓ Issue #${result.data.number} closed successfully`);
-  core.info(`  Issue URL: ${result.data.html_url}`);
-
-  return {
-    number: result.data.number,
-    html_url: result.data.html_url,
-  };
-}
-
-/**
  * Generate closing message for older issues
  * @param {object} params - Parameters for the message
  * @param {string} params.newIssueUrl - URL of the new issue
@@ -258,7 +231,10 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
       await addIssueComment(github, owner, repo, issue.number, closingMessage);
 
       // Then close the issue as "not planned"
-      await closeIssueAsNotPlanned(github, owner, repo, issue.number);
+      core.info(`Closing issue #${issue.number} in ${owner}/${repo} as "not planned"`);
+      const closedIssue = await closeIssue(github, owner, repo, issue.number, { state_reason: "not_planned" });
+      core.info(`  ✓ Issue #${closedIssue.number} closed successfully`);
+      core.info(`  Issue URL: ${closedIssue.html_url}`);
 
       closedIssues.push({
         number: issue.number,
@@ -300,7 +276,6 @@ module.exports = {
   closeOlderIssues,
   searchOlderIssues,
   addIssueComment,
-  closeIssueAsNotPlanned,
   getCloseOlderIssueMessage,
   MAX_CLOSE_COUNT,
   API_DELAY_MS,

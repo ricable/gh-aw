@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const mockCore = { debug: vi.fn(), info: vi.fn(), warning: vi.fn(), error: vi.fn(), setFailed: vi.fn(), setOutput: vi.fn(), summary: { addRaw: vi.fn().mockReturnThis(), write: vi.fn().mockResolvedValue() } },
   mockContext = { eventName: "issues", runId: 12345, repo: { owner: "testowner", repo: "testrepo" }, payload: { issue: { number: 42 }, pull_request: { number: 100 }, repository: { html_url: "https://github.com/testowner/testrepo" } } };
 ((global.core = mockCore), (global.context = mockContext));
-const { checkLabelFilter, checkTitlePrefixFilter, parseEntityConfig, resolveEntityNumber, escapeMarkdownTitle, ISSUE_CONFIG, PULL_REQUEST_CONFIG } = require("./close_entity_helpers.cjs");
+const { checkLabelFilter, checkTitlePrefixFilter, parseEntityConfig, resolveEntityNumber, escapeMarkdownTitle, closeIssue, ISSUE_CONFIG, PULL_REQUEST_CONFIG } = require("./close_entity_helpers.cjs");
 describe("close_entity_helpers", () => {
   (beforeEach(() => {
     (vi.clearAllMocks(),
@@ -182,6 +182,118 @@ describe("close_entity_helpers", () => {
         }),
         it("should have correct URL path", () => {
           expect(PULL_REQUEST_CONFIG.urlPath).toBe("pull");
+        }));
+    }),
+    describe("closeIssue", () => {
+      (it("should close issue without state_reason when not provided", async () => {
+        const mockGithub = {
+          rest: {
+            issues: {
+              update: vi.fn().mockResolvedValue({
+                data: {
+                  number: 123,
+                  html_url: "https://github.com/testowner/testrepo/issues/123",
+                },
+              }),
+            },
+          },
+        };
+
+        const result = await closeIssue(mockGithub, "testowner", "testrepo", 123);
+
+        (expect(mockGithub.rest.issues.update).toHaveBeenCalledWith({
+          owner: "testowner",
+          repo: "testrepo",
+          issue_number: 123,
+          state: "closed",
+        }),
+          expect(result).toEqual({
+            number: 123,
+            html_url: "https://github.com/testowner/testrepo/issues/123",
+          }));
+      }),
+        it("should close issue with state_reason when provided", async () => {
+          const mockGithub = {
+            rest: {
+              issues: {
+                update: vi.fn().mockResolvedValue({
+                  data: {
+                    number: 456,
+                    html_url: "https://github.com/testowner/testrepo/issues/456",
+                  },
+                }),
+              },
+            },
+          };
+
+          const result = await closeIssue(mockGithub, "testowner", "testrepo", 456, { state_reason: "not_planned" });
+
+          (expect(mockGithub.rest.issues.update).toHaveBeenCalledWith({
+            owner: "testowner",
+            repo: "testrepo",
+            issue_number: 456,
+            state: "closed",
+            state_reason: "not_planned",
+          }),
+            expect(result).toEqual({
+              number: 456,
+              html_url: "https://github.com/testowner/testrepo/issues/456",
+            }));
+        }),
+        it("should handle state_reason 'completed'", async () => {
+          const mockGithub = {
+            rest: {
+              issues: {
+                update: vi.fn().mockResolvedValue({
+                  data: {
+                    number: 789,
+                    html_url: "https://github.com/testowner/testrepo/issues/789",
+                  },
+                }),
+              },
+            },
+          };
+
+          const result = await closeIssue(mockGithub, "testowner", "testrepo", 789, { state_reason: "completed" });
+
+          (expect(mockGithub.rest.issues.update).toHaveBeenCalledWith({
+            owner: "testowner",
+            repo: "testrepo",
+            issue_number: 789,
+            state: "closed",
+            state_reason: "completed",
+          }),
+            expect(result).toEqual({
+              number: 789,
+              html_url: "https://github.com/testowner/testrepo/issues/789",
+            }));
+        }),
+        it("should normalize return value to only include number and html_url", async () => {
+          const mockGithub = {
+            rest: {
+              issues: {
+                update: vi.fn().mockResolvedValue({
+                  data: {
+                    number: 100,
+                    html_url: "https://github.com/testowner/testrepo/issues/100",
+                    title: "Test Issue",
+                    state: "closed",
+                    body: "Issue body",
+                  },
+                }),
+              },
+            },
+          };
+
+          const result = await closeIssue(mockGithub, "testowner", "testrepo", 100);
+
+          (expect(result).toEqual({
+            number: 100,
+            html_url: "https://github.com/testowner/testrepo/issues/100",
+          }),
+            expect(result).not.toHaveProperty("title"),
+            expect(result).not.toHaveProperty("state"),
+            expect(result).not.toHaveProperty("body"));
         }));
     }));
 });
