@@ -167,7 +167,7 @@ shared/python-dataviz.md → 9KB
 2. **Large analysis prompts** - These are justified
    - `daily-code-metrics` (55KB prompt) contains complete Python analysis pipeline
    - `security-alert-burndown` (49KB prompt) has detailed security analysis logic
-   - This is domain-specific complexity, not bloat
+   - This is domain-specific complexity, not size overhead
 
 3. **Smoke tests size** - Document as expected
    - 100-112KB is normal for comprehensive integration tests
@@ -192,7 +192,7 @@ Split into separate tool files so workflows import only needed tools.
 - daily-performance-summary, daily-regulatory (use specific queries)
 
 #### Priority 2: Document Workflow Size Guidelines
-**Effort**: Low | **Impact**: High (prevents future bloat)
+**Effort**: Low | **Impact**: High (prevents future size overhead)
 
 Create documentation:
 1. Expected size ranges by workflow category
