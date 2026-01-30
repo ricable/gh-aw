@@ -31,7 +31,9 @@ package cli
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/githubnext/gh-aw/pkg/console"
 	"github.com/githubnext/gh-aw/pkg/logger"
@@ -143,6 +145,92 @@ func updateGitAttributes(successCount int, actionCache *workflow.ActionCache, ve
 	}
 
 	return nil
+}
+
+// ensureGitAttributes ensures that .gitattributes contains the entry to mark .lock.yml files as generated
+func ensureGitAttributes() error {
+	compilePostProcessingLog.Print("Ensuring .gitattributes is updated")
+	gitRoot, err := findGitRoot()
+	if err != nil {
+		return err // Not in a git repository, skip
+	}
+
+	gitAttributesPath := filepath.Join(gitRoot, ".gitattributes")
+	lockYmlEntry := ".github/workflows/*.lock.yml linguist-generated=true merge=ours"
+	requiredEntries := []string{lockYmlEntry}
+
+	// Read existing .gitattributes file if it exists
+	var lines []string
+	if content, err := os.ReadFile(gitAttributesPath); err == nil {
+		lines = strings.Split(string(content), "\n")
+		compilePostProcessingLog.Printf("Read existing .gitattributes with %d lines", len(lines))
+	} else {
+		compilePostProcessingLog.Print("No existing .gitattributes file found")
+	}
+
+	modified := false
+	for _, required := range requiredEntries {
+		found := false
+		for i, line := range lines {
+			trimmedLine := strings.TrimSpace(line)
+			if trimmedLine == required {
+				found = true
+				break
+			}
+			// Check for old format entries that need updating
+			if strings.HasPrefix(trimmedLine, ".github/workflows/*.lock.yml") && required == lockYmlEntry {
+				compilePostProcessingLog.Print("Updating old .gitattributes entry format")
+				lines[i] = lockYmlEntry
+				found = true
+				modified = true
+				break
+			}
+		}
+
+		if !found {
+			compilePostProcessingLog.Printf("Adding new .gitattributes entry: %s", required)
+			if len(lines) > 0 && lines[len(lines)-1] != "" {
+				lines = append(lines, "")
+			}
+			lines = append(lines, required)
+			modified = true
+		}
+	}
+
+	// Remove old campaign.g.md entries if they exist (they're now in .gitignore)
+	for i := len(lines) - 1; i >= 0; i-- {
+		trimmedLine := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(trimmedLine, ".github/workflows/*.campaign.g.md") {
+			compilePostProcessingLog.Print("Removing obsolete .campaign.g.md .gitattributes entry")
+			lines = append(lines[:i], lines[i+1:]...)
+			modified = true
+		}
+	}
+
+	if !modified {
+		compilePostProcessingLog.Print(".gitattributes already contains required entries")
+		return nil
+	}
+
+	// Write back to file with owner-only read/write permissions (0600) for security best practices
+	content := strings.Join(lines, "\n")
+	if err := os.WriteFile(gitAttributesPath, []byte(content), 0600); err != nil {
+		compilePostProcessingLog.Printf("Failed to write .gitattributes: %v", err)
+		return fmt.Errorf("failed to write .gitattributes: %w", err)
+	}
+
+	compilePostProcessingLog.Print("Successfully updated .gitattributes")
+	return nil
+}
+
+// stageGitAttributesIfChanged stages .gitattributes if it was modified
+func stageGitAttributesIfChanged() error {
+	gitRoot, err := findGitRoot()
+	if err != nil {
+		return err
+	}
+	gitAttributesPath := filepath.Join(gitRoot, ".gitattributes")
+	return exec.Command("git", "-C", gitRoot, "add", gitAttributesPath).Run()
 }
 
 // saveActionCache saves the action cache after all compilations
