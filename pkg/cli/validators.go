@@ -2,6 +2,9 @@ package cli
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -44,5 +47,44 @@ func ValidateWorkflowIntent(s string) error {
 		return errors.New("please provide at least 20 characters of instructions")
 	}
 	validatorsLog.Printf("Workflow intent validated successfully: %d chars", len(trimmed))
+	return nil
+}
+
+// validateActionYml validates that an action.yml file exists and contains required fields.
+//
+// This validates GitHub Actions custom action structure:
+//   - action.yml file exists in the action directory
+//   - Required fields are present (name, description, runs)
+//   - Runtime is either 'node20' or 'composite'
+func validateActionYml(actionPath string) error {
+	ymlPath := filepath.Join(actionPath, "action.yml")
+
+	if _, err := os.Stat(ymlPath); os.IsNotExist(err) {
+		return fmt.Errorf("action.yml not found")
+	}
+
+	content, err := os.ReadFile(ymlPath)
+	if err != nil {
+		return fmt.Errorf("failed to read action.yml: %w", err)
+	}
+
+	contentStr := string(content)
+
+	// Check required fields
+	requiredFields := []string{"name:", "description:", "runs:"}
+	for _, field := range requiredFields {
+		if !strings.Contains(contentStr, field) {
+			return fmt.Errorf("missing required field '%s'", strings.TrimSuffix(field, ":"))
+		}
+	}
+
+	// Check that it's either a node20 or composite action
+	isNode20 := strings.Contains(contentStr, "using: 'node20'") || strings.Contains(contentStr, "using: \"node20\"")
+	isComposite := strings.Contains(contentStr, "using: 'composite'") || strings.Contains(contentStr, "using: \"composite\"")
+
+	if !isNode20 && !isComposite {
+		return fmt.Errorf("action must use either 'node20' or 'composite' runtime")
+	}
+
 	return nil
 }

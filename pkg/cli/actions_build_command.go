@@ -147,52 +147,6 @@ func getActionDirectories(actionsDir string) ([]string, error) {
 	return dirs, nil
 }
 
-// validateActionYml validates that an action.yml file exists and contains required fields.
-//
-// This validation function is co-located with the actions build command because:
-//   - It's specific to GitHub Actions custom action structure
-//   - It's only called during the actions build process
-//   - It validates action metadata before bundling JavaScript
-//
-// The function validates:
-//   - action.yml file exists in the action directory
-//   - Required fields are present (name, description, runs)
-//   - Basic action metadata structure is valid
-//
-// This follows the principle that domain-specific validation belongs in domain files.
-func validateActionYml(actionPath string) error {
-	ymlPath := filepath.Join(actionPath, "action.yml")
-
-	if _, err := os.Stat(ymlPath); os.IsNotExist(err) {
-		return fmt.Errorf("action.yml not found")
-	}
-
-	content, err := os.ReadFile(ymlPath)
-	if err != nil {
-		return fmt.Errorf("failed to read action.yml: %w", err)
-	}
-
-	contentStr := string(content)
-
-	// Check required fields
-	requiredFields := []string{"name:", "description:", "runs:"}
-	for _, field := range requiredFields {
-		if !strings.Contains(contentStr, field) {
-			return fmt.Errorf("missing required field '%s'", strings.TrimSuffix(field, ":"))
-		}
-	}
-
-	// Check that it's either a node20 or composite action
-	isNode20 := strings.Contains(contentStr, "using: 'node20'") || strings.Contains(contentStr, "using: \"node20\"")
-	isComposite := strings.Contains(contentStr, "using: 'composite'") || strings.Contains(contentStr, "using: \"composite\"")
-
-	if !isNode20 && !isComposite {
-		return fmt.Errorf("action must use either 'node20' or 'composite' runtime")
-	}
-
-	return nil
-}
-
 // buildAction builds a single action by bundling its dependencies
 func buildAction(actionsDir, actionName string) error {
 	actionsBuildLog.Printf("Building action: %s", actionName)
