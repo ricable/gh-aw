@@ -21,6 +21,7 @@ tools:
   cache-memory:
   edit:
   bash:
+project: https://github.com/orgs/githubnext/projects/144
 safe-outputs:
   add-labels:
     allowed:

@@ -79,6 +79,13 @@ func (c *Compiler) setupEngineAndImports(result *parser.FrontmatterResult, clean
 	// This ensures strict mode doesn't leak to other workflows being compiled
 	c.strictMode = initialStrictMode
 
+	// Validate campaign orchestrator project requirements (applies to all workflows, not just strict mode)
+	orchestratorEngineLog.Print("Validating campaign orchestrator project requirements")
+	if err := c.validateCampaignProject(result.Frontmatter); err != nil {
+		orchestratorEngineLog.Printf("Campaign project validation failed: %v", err)
+		return nil, err
+	}
+
 	// Override with command line AI engine setting if provided
 	if c.engineOverride != "" {
 		originalEngineSetting := engineSetting
