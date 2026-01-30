@@ -152,8 +152,6 @@ func stageWorkflowChanges() {
 	}
 }
 
-
-
 // ensureLogsGitignore ensures that .github/aw/logs/.gitignore exists to ignore log files
 func ensureLogsGitignore() error {
 	gitLog.Print("Ensuring .github/aw/logs/.gitignore exists")

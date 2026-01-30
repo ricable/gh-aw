@@ -187,4 +187,3 @@ func CompileWorkflowDataWithValidation(compiler *workflow.Compiler, workflowData
 
 	return nil
 }
-
