@@ -82,7 +82,7 @@ func (e *CodexEngine) GetInstallationSteps(workflowData *WorkflowData) []GitHubA
 		// When using parallel installation, only return secret validation step
 		// CLI installation will be handled by the parallel installation step
 		codexEngineLog.Print("Using parallel installation, only adding secret validation")
-		
+
 		var steps []GitHubActionStep
 		secretValidation := GenerateMultiSecretValidationStep(
 			[]string{"CODEX_API_KEY", "OPENAI_API_KEY"},
