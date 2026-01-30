@@ -508,3 +508,48 @@ func (b *InteractiveWorkflowBuilder) compileWorkflow(verbose bool) error {
 
 	return nil
 }
+
+// confirmPushOperation prompts the user to confirm push operation (skips in CI)
+func confirmPushOperation(verbose bool) error {
+	interactiveLog.Print("Checking if user confirmation is needed for push operation")
+
+	// Skip confirmation in CI environments
+	if IsRunningInCI() {
+		interactiveLog.Print("Running in CI, skipping user confirmation")
+		if verbose {
+			fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Running in CI - skipping confirmation prompt"))
+		}
+		return nil
+	}
+
+	// Prompt user for confirmation
+	interactiveLog.Print("Prompting user for push confirmation")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, console.FormatWarningMessage("This will commit and push changes to the remote repository."))
+
+	var confirmed bool
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Do you want to proceed with commit and push?").
+				Description("This will stage all changes, commit them, and push to the remote repository").
+				Value(&confirmed),
+		),
+	).WithAccessible(console.IsAccessibleMode())
+
+	if err := form.Run(); err != nil {
+		interactiveLog.Printf("Confirmation prompt failed: %v", err)
+		return fmt.Errorf("confirmation prompt failed: %w", err)
+	}
+
+	if !confirmed {
+		interactiveLog.Print("User declined push operation")
+		return fmt.Errorf("push operation cancelled by user")
+	}
+
+	interactiveLog.Print("User confirmed push operation")
+	if verbose {
+		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("✓ Push operation confirmed"))
+	}
+	return nil
+}

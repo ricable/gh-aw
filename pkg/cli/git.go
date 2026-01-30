@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/charmbracelet/huh"
 	"github.com/githubnext/gh-aw/pkg/console"
 	"github.com/githubnext/gh-aw/pkg/logger"
 )
@@ -627,46 +626,3 @@ func checkOnDefaultBranch(verbose bool) error {
 }
 
 // confirmPushOperation prompts the user to confirm push operation (skips in CI)
-func confirmPushOperation(verbose bool) error {
-	gitLog.Print("Checking if user confirmation is needed for push operation")
-
-	// Skip confirmation in CI environments
-	if IsRunningInCI() {
-		gitLog.Print("Running in CI, skipping user confirmation")
-		if verbose {
-			fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Running in CI - skipping confirmation prompt"))
-		}
-		return nil
-	}
-
-	// Prompt user for confirmation
-	gitLog.Print("Prompting user for push confirmation")
-	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, console.FormatWarningMessage("This will commit and push changes to the remote repository."))
-
-	var confirmed bool
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Do you want to proceed with commit and push?").
-				Description("This will stage all changes, commit them, and push to the remote repository").
-				Value(&confirmed),
-		),
-	).WithAccessible(console.IsAccessibleMode())
-
-	if err := form.Run(); err != nil {
-		gitLog.Printf("Confirmation prompt failed: %v", err)
-		return fmt.Errorf("confirmation prompt failed: %w", err)
-	}
-
-	if !confirmed {
-		gitLog.Print("User declined push operation")
-		return fmt.Errorf("push operation cancelled by user")
-	}
-
-	gitLog.Print("User confirmed push operation")
-	if verbose {
-		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("✓ Push operation confirmed"))
-	}
-	return nil
-}
