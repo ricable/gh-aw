@@ -50,7 +50,7 @@ concurrency:
   group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
 
-run-name: "Smoke Claude"
+run-name: "Smoke Claude Temp"
 
 jobs:
   activation:
