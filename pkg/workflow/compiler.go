@@ -94,6 +94,9 @@ func (c *Compiler) CompileWorkflow(markdownPath string) error {
 // CompileWorkflowData compiles a workflow from already-parsed WorkflowData
 // This avoids re-parsing when the data has already been parsed
 func (c *Compiler) CompileWorkflowData(workflowData *WorkflowData, markdownPath string) error {
+	// Store markdownPath for use in dynamic tool generation and prompt generation
+	c.markdownPath = markdownPath
+
 	// Track compilation time for performance monitoring
 	startTime := time.Now()
 	defer func() {
