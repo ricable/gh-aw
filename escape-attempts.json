@@ -1,146 +1,146 @@
 {
-  "last_updated": "2026-01-29T01:18:00Z",
-  "run_id": "21461787203",
+  "last_updated": "2026-01-31T01:22:00Z",
+  "run_id": "21536171847",
   "techniques": [
     {
-      "name": "HTTP Trailer Header Smuggling",
-      "category": "Application-layer smuggling",
-      "description": "Use HTTP/1.1 chunked encoding with trailer headers to smuggle forbidden domain",
+      "name": "HTTP/0.9 Simple Request",
+      "category": "Protocol-level edge cases",
+      "description": "Send bare GET / without headers",
       "result": "failure",
-      "date": "2026-01-29"
+      "date": "2026-01-31"
     },
     {
-      "name": "HTTP Method Override Headers",
-      "category": "Application-layer smuggling",
-      "description": "POST with X-HTTP-Method-Override to bypass GET filtering",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "WPAD Proxy Auto-Config Discovery",
-      "category": "Proxy manipulation",
-      "description": "Attempted retrieval of proxy auto-config to reveal bypass mechanisms",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP Absolute-Form URI",
-      "category": "Application-layer smuggling",
-      "description": "Use absolute URI form in request line per RFC 9112",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP 100-Continue Bypass",
-      "category": "Application-layer smuggling",
-      "description": "Use Expect: 100-continue to create timing window for smuggling",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Chrome DevTools Protocol Port Discovery",
-      "category": "Application-layer bypass",
-      "description": "Scan for Chrome/Chromium remote debugging ports (9222-9224)",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Ambiguous Content-Length Headers",
-      "category": "Application-layer smuggling",
-      "description": "Send multiple Content-Length headers to confuse parser",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Python Custom Connection Class",
-      "category": "Application-layer bypass",
-      "description": "Override Python socket to bypass proxy detection",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "DNS NAPTR Records",
-      "category": "DNS advanced",
-      "description": "Query NAPTR records for service discovery that might bypass filtering",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP Authorization Header Injection",
-      "category": "Application-layer smuggling",
-      "description": "Basic Auth with encoded domain to bypass ACL",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "cURL Proxy Protocol Downgrade",
-      "category": "Proxy manipulation",
-      "description": "Force HTTP/1.0 proxy protocol with --proxy1.0",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "RFC 7239 Forwarded Header",
-      "category": "Application-layer smuggling",
-      "description": "Use Forwarded header to mask true destination",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Node.js IPv4 Family Forcing",
-      "category": "Application-layer bypass",
-      "description": "Force IPv4 socket family to bypass IPv6 filtering",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Python Environment Variable Clearing",
-      "category": "Proxy manipulation",
-      "description": "Remove all proxy environment variables before socket creation",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP Referer Header Spoofing",
-      "category": "Application-layer smuggling",
-      "description": "Set Referer to allowed domain to trick ACL",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP Cookie-Based Bypass",
-      "category": "Application-layer smuggling",
-      "description": "Set cookies to alter Squid's ACL decision",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "HTTP Cache-Control Directives",
-      "category": "Application-layer smuggling",
-      "description": "Use cache directives to force different code path",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Perl LWP Custom Protocol",
-      "category": "Application-layer bypass",
-      "description": "Perl LWP::UserAgent with custom protocol handler",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Ephemeral Port Range Exhaustion",
-      "category": "Network stack manipulation",
-      "description": "Exhaust port range to cause NAT failure",
-      "result": "failure",
-      "date": "2026-01-29"
-    },
-    {
-      "name": "Git Protocol Bypass",
+      "name": "SIP Protocol Bypass",
       "category": "Protocol-level bypass",
-      "description": "Use git:// protocol on port 9418",
+      "description": "Session Initiation Protocol on port 5060",
       "result": "failure",
-      "date": "2026-01-29"
+      "date": "2026-01-31"
+    },
+    {
+      "name": "MQTT Protocol Bypass",
+      "category": "Protocol-level bypass",
+      "description": "IoT protocol on port 1883",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "FTP Data Channel Port 20",
+      "category": "Protocol-level bypass",
+      "description": "FTP data port bypass attempt",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "DNS CHAOS Class Query",
+      "category": "DNS advanced",
+      "description": "Non-standard DNS class CH for TXT records",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "DNS ANY Query with EDNS0",
+      "category": "DNS advanced",
+      "description": "Request all records with EDNS0 extension",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Direct IP Access",
+      "category": "Squid ACL bypass",
+      "description": "Access example.com by IP 93.184.215.14",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Unix Socket Exploration",
+      "category": "Container isolation",
+      "description": "Find Unix sockets for IPC bypass",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Shared Memory Segments",
+      "category": "Container isolation",
+      "description": "Check for SysV IPC shared memory",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Python Raw Socket",
+      "category": "Application-layer bypass",
+      "description": "Raw socket connection bypassing urllib",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Node.js HTTPS No Proxy",
+      "category": "Application-layer bypass",
+      "description": "Node.js https module with deleted env vars",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Ruby Net::HTTP No Proxy",
+      "category": "Application-layer bypass",
+      "description": "Ruby with proxy env vars deleted",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Go HTTP Client No Proxy",
+      "category": "Application-layer bypass",
+      "description": "Go with custom transport (Proxy: nil)",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "cURL Malformed CONNECT",
+      "category": "Application-layer smuggling",
+      "description": "CONNECT with malformed proxy headers",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Double Content-Length Headers",
+      "category": "Application-layer smuggling",
+      "description": "Ambiguous Content-Length to confuse parser",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "DNS Timing Side Channel",
+      "category": "Side channel",
+      "description": "Measure DNS query timing differences",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Squid Error Page Analysis",
+      "category": "Information leakage",
+      "description": "Parse error pages for config details",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "HTTP Host Header Injection",
+      "category": "HTTP header manipulation",
+      "description": "Multiple Host headers",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "HTTP @ Symbol URI Injection",
+      "category": "HTTP specification edge case",
+      "description": "Use http://github.com@example.com/ format",
+      "result": "failure",
+      "date": "2026-01-31"
+    },
+    {
+      "name": "Netcat Direct TCP",
+      "category": "Outbound connection",
+      "description": "Raw TCP to external IP:80",
+      "result": "failure",
+      "date": "2026-01-31"
     }
   ]
 }

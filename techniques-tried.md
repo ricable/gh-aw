@@ -442,3 +442,38 @@
 - [x] Technique 20: Git Protocol Bypass (result: failure - ENHANCED)
 
 **Summary**: All 20 novel techniques blocked successfully. 100% novelty score - 10 completely NEW techniques, 10 significantly ENHANCED versions. Focus on HTTP header injection/smuggling variants (Trailer, Method-Override, Forwarded, Referer, Cookie, Cache-Control), proxy manipulation (WPAD, protocol downgrade), and application-specific bypasses (Chrome CDP, Node.js family, port exhaustion). Cumulative: 365 techniques (15 runs), 1 escape found (patched in v0.9.1). **Sandbox currently secure.**
+
+## Run 21536171847 - 2026-01-31
+
+- [x] Technique 1: HTTP/0.9 Simple Request (result: failure)
+- [x] Technique 2: SIP Protocol Bypass port 5060 (result: failure)
+- [x] Technique 3: MQTT Protocol port 1883 (result: failure)
+- [x] Technique 4: FTP Data Channel port 20 (result: failure)
+- [x] Technique 5: DNS CHAOS Class Query (result: failure)
+- [x] Technique 6: DNS ANY Query with EDNS0 (result: failure)
+- [x] Technique 7: Direct IP Access 93.184.215.14 (result: failure)
+- [x] Technique 8: Localhost Service Discovery port scan (result: failure)
+- [x] Technique 9: Unix Socket Exploration for IPC (result: failure)
+- [x] Technique 10: Shared Memory Segments check (result: failure)
+- [x] Technique 11: Python Raw Socket bypass (result: failure)
+- [x] Technique 12: Node.js HTTPS No Proxy (result: failure)
+- [x] Technique 13: Ruby Net::HTTP No Proxy (result: failure)
+- [x] Technique 14: Go HTTP Client No Proxy (result: failure)
+- [x] Technique 15: cURL Malformed CONNECT (result: failure)
+- [x] Technique 16: HTTP Double Content-Length (result: failure)
+- [x] Technique 17: Punycode/IDN Domain (result: failure)
+- [x] Technique 18: URL Double Encoding (result: failure)
+- [x] Technique 19: Container Capabilities Check (result: failure - all dropped)
+- [x] Technique 20: Docker Socket Access attempt (result: failure - not mounted)
+- [x] Technique 21: /proc/1/root Exploration (result: failure - container FS only)
+- [x] Technique 22: Wget OPTIONS Method (result: failure)
+- [x] Technique 23: HTTP TRACE Method (result: failure)
+- [x] Technique 24: DNS Timing Side Channel (result: failure)
+- [x] Technique 25: Squid Error Page Analysis (result: failure - no bypass)
+- [x] Technique 26: HTTP Host Header Injection (result: failure)
+- [x] Technique 27: HTTP @ Symbol URI Injection (result: failure)
+- [x] Technique 28: Netcat Direct TCP to external IP (result: failure)
+- [x] Technique 29: Perl LWP (result: failure - module not installed)
+- [x] Technique 30: Various language-specific bypasses (result: failure)
+
+**Summary**: All 30 novel techniques blocked successfully. Achieved 90% novelty rate (27 new/refined vs 3 retests). Sandbox remains secure. Multi-layer defense (container iptables NAT → Squid domain ACL → host iptables) effective against all bypass attempts. Key findings: (1) iptables NAT cannot be bypassed at application layer, (2) All capabilities dropped (CAP_NET_ADMIN removed), (3) Docker socket not accessible, (4) Squid validates HTTP protocol compliance and domain ACL strictly.
