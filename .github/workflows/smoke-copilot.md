@@ -16,6 +16,7 @@ permissions:
 name: Smoke Copilot
 engine: copilot
 imports:
+  - github/github-deep-research-agent@main
   - shared/gh.md
   - shared/reporting.md
   - shared/github-queries-safe-input.md

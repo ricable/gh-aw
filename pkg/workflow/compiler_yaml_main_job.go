@@ -56,7 +56,6 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	if needsGithubMerge {
 		compilerYamlLog.Printf("Adding merge remote .github folder step")
 		yaml.WriteString("      - name: Merge remote .github folder\n")
-		yaml.WriteString("        if: ${{ always() }}\n")
 		fmt.Fprintf(yaml, "        uses: %s\n", GetActionPin("actions/github-script"))
 		yaml.WriteString("        env:\n")
 
