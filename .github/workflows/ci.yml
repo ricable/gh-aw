@@ -50,8 +50,8 @@ jobs:
         run: |
           echo "## Go Environment Configuration" >> $GITHUB_STEP_SUMMARY
           echo "- GOPROXY: $GOPROXY" >> $GITHUB_STEP_SUMMARY
-          echo "- GOPRIVATE: ${GOPRIVATE:-<not set>}" >> $GITHUB_STEP_SUMMARY
-          echo "- GONOPROXY: ${GONOPROXY:-<not set>}" >> $GITHUB_STEP_SUMMARY
+          echo "- GOPRIVATE: ${GOPRIVATE:-<empty>}" >> $GITHUB_STEP_SUMMARY
+          echo "- GONOPROXY: ${GONOPROXY:-<empty>}" >> $GITHUB_STEP_SUMMARY
           echo "- GOSUMDB: $GOSUMDB" >> $GITHUB_STEP_SUMMARY
           
           # Test proxy connectivity by downloading a small module
