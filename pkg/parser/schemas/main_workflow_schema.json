@@ -2394,6 +2394,11 @@
                   "type": "string",
                   "enum": ["localhost", "host.docker.internal"],
                   "description": "Gateway domain for URL generation (default: 'host.docker.internal' when agent is enabled, 'localhost' when disabled)"
+                },
+                "payloadDir": {
+                  "type": "string",
+                  "description": "Directory path for storing large response payloads. When MCP server responses exceed the size threshold, the gateway stores payloads in this directory segmented by session ID. The directory should be mounted as a shared volume between the gateway and agent containers. Default: '/tmp/jq-payloads'",
+                  "examples": ["/tmp/jq-payloads", "/custom/payload/dir"]
                 }
               },
               "required": ["container"],

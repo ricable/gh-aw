@@ -364,17 +364,17 @@ type MCPServerConfig struct {
 // Per MCP Gateway Specification v1.0.0: All stdio-based MCP servers MUST be containerized.
 // Direct command execution is not supported.
 type MCPGatewayRuntimeConfig struct {
-	Container      string            `yaml:"container,omitempty"`      // Container image for the gateway (required)
-	Version        string            `yaml:"version,omitempty"`        // Optional version/tag for the container
-	Entrypoint     string            `yaml:"entrypoint,omitempty"`     // Optional entrypoint override for the container
-	Args           []string          `yaml:"args,omitempty"`           // Arguments for docker run
-	EntrypointArgs []string          `yaml:"entrypointArgs,omitempty"` // Arguments passed to container entrypoint
-	Env            map[string]string `yaml:"env,omitempty"`            // Environment variables for the gateway
-	Port           int               `yaml:"port,omitempty"`           // Port for the gateway HTTP server (default: 8080)
-	APIKey         string            `yaml:"api-key,omitempty"`        // API key for gateway authentication
-	Domain         string            `yaml:"domain,omitempty"`         // Domain for gateway URL (localhost or host.docker.internal)
-	Mounts         []string          `yaml:"mounts,omitempty"`         // Volume mounts for the gateway container (format: "source:dest:mode")
-	PayloadDir     string            `yaml:"payloadDir,omitempty"`     // Directory for large response payloads (default: /tmp/jq-payloads)
+	Container      string            `yaml:"container,omitempty" json:"container,omitempty"`           // Container image for the gateway (required)
+	Version        string            `yaml:"version,omitempty" json:"version,omitempty"`               // Optional version/tag for the container
+	Entrypoint     string            `yaml:"entrypoint,omitempty" json:"entrypoint,omitempty"`         // Optional entrypoint override for the container
+	Args           []string          `yaml:"args,omitempty" json:"args,omitempty"`                     // Arguments for docker run
+	EntrypointArgs []string          `yaml:"entrypointArgs,omitempty" json:"entrypointArgs,omitempty"` // Arguments passed to container entrypoint
+	Env            map[string]string `yaml:"env,omitempty" json:"env,omitempty"`                       // Environment variables for the gateway
+	Port           int               `yaml:"port,omitempty" json:"port,omitempty"`                     // Port for the gateway HTTP server (default: 8080)
+	APIKey         string            `yaml:"api-key,omitempty" json:"apiKey,omitempty"`                // API key for gateway authentication
+	Domain         string            `yaml:"domain,omitempty" json:"domain,omitempty"`                 // Domain for gateway URL (localhost or host.docker.internal)
+	Mounts         []string          `yaml:"mounts,omitempty" json:"mounts,omitempty"`                 // Volume mounts for the gateway container (format: "source:dest:mode")
+	PayloadDir     string            `yaml:"payloadDir,omitempty" json:"payloadDir,omitempty"`         // Directory for large response payloads (default: /tmp/jq-payloads)
 }
 
 // HasTool checks if a tool is present in the configuration

@@ -432,6 +432,13 @@ func (c *Compiler) extractMCPGatewayConfig(mcpVal any) *MCPGatewayRuntimeConfig 
 		}
 	}
 
+	// Extract payloadDir (directory for large response payloads)
+	if payloadDirVal, hasPayloadDir := mcpObj["payloadDir"]; hasPayloadDir {
+		if payloadDirStr, ok := payloadDirVal.(string); ok {
+			mcpConfig.PayloadDir = payloadDirStr
+		}
+	}
+
 	return mcpConfig
 }
 

@@ -38,24 +38,24 @@ const (
 // Legacy format: "default"|"sandbox-runtime" or { type, config }
 type SandboxConfig struct {
 	// New fields
-	Agent *AgentSandboxConfig      `yaml:"agent,omitempty"` // Agent sandbox configuration
-	MCP   *MCPGatewayRuntimeConfig `yaml:"mcp,omitempty"`   // MCP gateway configuration
+	Agent *AgentSandboxConfig      `yaml:"agent,omitempty" json:"agent,omitempty"` // Agent sandbox configuration
+	MCP   *MCPGatewayRuntimeConfig `yaml:"mcp,omitempty" json:"mcp,omitempty"`     // MCP gateway configuration
 
 	// Legacy fields (for backward compatibility)
-	Type   SandboxType           `yaml:"type,omitempty"`   // Sandbox type: "default" or "sandbox-runtime"
-	Config *SandboxRuntimeConfig `yaml:"config,omitempty"` // Custom SRT config (optional)
+	Type   SandboxType           `yaml:"type,omitempty" json:"type,omitempty"`     // Sandbox type: "default" or "sandbox-runtime"
+	Config *SandboxRuntimeConfig `yaml:"config,omitempty" json:"config,omitempty"` // Custom SRT config (optional)
 }
 
 // AgentSandboxConfig represents the agent sandbox configuration
 type AgentSandboxConfig struct {
-	ID       string                `yaml:"id,omitempty"`      // Agent ID: "awf" or "srt" (replaces Type in new object format)
-	Type     SandboxType           `yaml:"type,omitempty"`    // Sandbox type: "awf" or "srt" (legacy, use ID instead)
-	Disabled bool                  `yaml:"-"`                 // True when agent is explicitly set to false (disables firewall). This is a runtime flag, not serialized to YAML.
-	Config   *SandboxRuntimeConfig `yaml:"config,omitempty"`  // Custom SRT config (optional)
-	Command  string                `yaml:"command,omitempty"` // Custom command to replace AWF or SRT installation
-	Args     []string              `yaml:"args,omitempty"`    // Additional arguments to append to the command
-	Env      map[string]string     `yaml:"env,omitempty"`     // Environment variables to set on the step
-	Mounts   []string              `yaml:"mounts,omitempty"`  // Container mounts to add for AWF (format: "source:dest:mode")
+	ID       string                `yaml:"id,omitempty" json:"id,omitempty"`           // Agent ID: "awf" or "srt" (replaces Type in new object format)
+	Type     SandboxType           `yaml:"type,omitempty" json:"type,omitempty"`       // Sandbox type: "awf" or "srt" (legacy, use ID instead)
+	Disabled bool                  `yaml:"-" json:"-"`                                 // True when agent is explicitly set to false (disables firewall). This is a runtime flag, not serialized to YAML.
+	Config   *SandboxRuntimeConfig `yaml:"config,omitempty" json:"config,omitempty"`   // Custom SRT config (optional)
+	Command  string                `yaml:"command,omitempty" json:"command,omitempty"` // Custom command to replace AWF or SRT installation
+	Args     []string              `yaml:"args,omitempty" json:"args,omitempty"`       // Additional arguments to append to the command
+	Env      map[string]string     `yaml:"env,omitempty" json:"env,omitempty"`         // Environment variables to set on the step
+	Mounts   []string              `yaml:"mounts,omitempty" json:"mounts,omitempty"`   // Container mounts to add for AWF (format: "source:dest:mode")
 }
 
 // SandboxRuntimeConfig represents the Anthropic Sandbox Runtime configuration
