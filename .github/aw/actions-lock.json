@@ -50,6 +50,11 @@
       "version": "v6.0.0",
       "sha": "018cc2cf5baa6db3ef3c5f8a56943fffe632ef53"
     },
+    "actions/download-artifact@v7.0.0": {
+      "repo": "actions/download-artifact",
+      "version": "v7.0.0",
+      "sha": "37930b16bb1cb0bb7e95e11edc8f5ed31241500a"
+    },
     "actions/github-script@v7": {
       "repo": "actions/github-script",
       "version": "v7",
