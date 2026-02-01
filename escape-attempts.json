@@ -1,146 +1,46 @@
 {
-  "last_updated": "2026-01-31T01:22:00Z",
-  "run_id": "21536171847",
+  "last_updated": "2026-02-01T01:19:30Z",
+  "run_id": "21554064091",
   "techniques": [
-    {
-      "name": "HTTP/0.9 Simple Request",
-      "category": "Protocol-level edge cases",
-      "description": "Send bare GET / without headers",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "SIP Protocol Bypass",
-      "category": "Protocol-level bypass",
-      "description": "Session Initiation Protocol on port 5060",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "MQTT Protocol Bypass",
-      "category": "Protocol-level bypass",
-      "description": "IoT protocol on port 1883",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "FTP Data Channel Port 20",
-      "category": "Protocol-level bypass",
-      "description": "FTP data port bypass attempt",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "DNS CHAOS Class Query",
-      "category": "DNS advanced",
-      "description": "Non-standard DNS class CH for TXT records",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "DNS ANY Query with EDNS0",
-      "category": "DNS advanced",
-      "description": "Request all records with EDNS0 extension",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Direct IP Access",
-      "category": "Squid ACL bypass",
-      "description": "Access example.com by IP 93.184.215.14",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Unix Socket Exploration",
-      "category": "Container isolation",
-      "description": "Find Unix sockets for IPC bypass",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Shared Memory Segments",
-      "category": "Container isolation",
-      "description": "Check for SysV IPC shared memory",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Python Raw Socket",
-      "category": "Application-layer bypass",
-      "description": "Raw socket connection bypassing urllib",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Node.js HTTPS No Proxy",
-      "category": "Application-layer bypass",
-      "description": "Node.js https module with deleted env vars",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Ruby Net::HTTP No Proxy",
-      "category": "Application-layer bypass",
-      "description": "Ruby with proxy env vars deleted",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Go HTTP Client No Proxy",
-      "category": "Application-layer bypass",
-      "description": "Go with custom transport (Proxy: nil)",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "cURL Malformed CONNECT",
-      "category": "Application-layer smuggling",
-      "description": "CONNECT with malformed proxy headers",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Double Content-Length Headers",
-      "category": "Application-layer smuggling",
-      "description": "Ambiguous Content-Length to confuse parser",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "DNS Timing Side Channel",
-      "category": "Side channel",
-      "description": "Measure DNS query timing differences",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Squid Error Page Analysis",
-      "category": "Information leakage",
-      "description": "Parse error pages for config details",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "HTTP Host Header Injection",
-      "category": "HTTP header manipulation",
-      "description": "Multiple Host headers",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "HTTP @ Symbol URI Injection",
-      "category": "HTTP specification edge case",
-      "description": "Use http://github.com@example.com/ format",
-      "result": "failure",
-      "date": "2026-01-31"
-    },
-    {
-      "name": "Netcat Direct TCP",
-      "category": "Outbound connection",
-      "description": "Raw TCP to external IP:80",
-      "result": "failure",
-      "date": "2026-01-31"
-    }
+    {"name": "RTSP Protocol Bypass", "category": "Protocol-level bypass", "description": "Real Time Streaming Protocol (rtsp://)", "result": "failure", "date": "2026-02-01"},
+    {"name": "LDAP Protocol Bypass", "category": "Protocol-level bypass", "description": "LDAP on port 389", "result": "failure", "date": "2026-02-01"},
+    {"name": "SMB/CIFS Protocol", "category": "Protocol-level bypass", "description": "SMB on port 445", "result": "failure", "date": "2026-02-01"},
+    {"name": "Gopher Protocol Bypass", "category": "Protocol-level bypass", "description": "gopher:// protocol", "result": "failure", "date": "2026-02-01"},
+    {"name": "Dict Protocol Bypass", "category": "Protocol-level bypass", "description": "dict:// protocol", "result": "failure", "date": "2026-02-01"},
+    {"name": "TFTP Protocol (UDP)", "category": "Protocol-level bypass", "description": "UDP port 69 TFTP", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP Alternative Ports", "category": "Protocol-level bypass", "description": "Ports 8080, 8443, 8000", "result": "failure", "date": "2026-02-01"},
+    {"name": "DNS Zone Transfer (AXFR)", "category": "DNS advanced", "description": "AXFR query for zone data", "result": "failure", "date": "2026-02-01"},
+    {"name": "NTP Protocol (UDP)", "category": "Protocol-level bypass", "description": "UDP port 123 NTP timing", "result": "failure", "date": "2026-02-01"},
+    {"name": "Squid Cache Timing Attack", "category": "Side channel", "description": "Response time measurement", "result": "failure", "date": "2026-02-01"},
+    {"name": "Multicast DNS (mDNS)", "category": "Network discovery", "description": "mDNS 224.0.0.251:5353", "result": "failure", "date": "2026-02-01"},
+    {"name": "SSDP/UPnP Discovery", "category": "Network discovery", "description": "SSDP UDP 1900", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP Proxy Chain", "category": "Proxy bypass", "description": "Use github.com as relay", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP Absolute URI Request", "category": "HTTP manipulation", "description": "Proxy request format", "result": "failure", "date": "2026-02-01"},
+    {"name": "Squid Authentication Bypass", "category": "Proxy bypass", "description": "X-Forwarded-For header", "result": "failure", "date": "2026-02-01"},
+    {"name": "IPv4-Mapped IPv6 Address", "category": "Address manipulation", "description": "[::ffff:IP] notation", "result": "failure", "date": "2026-02-01"},
+    {"name": "DNS Subdomain Enumeration", "category": "DNS manipulation", "description": "Wildcard subdomain testing", "result": "failure", "date": "2026-02-01"},
+    {"name": "Case Variation Domain", "category": "ACL bypass", "description": "Case-insensitive test", "result": "failure", "date": "2026-02-01"},
+    {"name": "URL Fragment Injection", "category": "URL manipulation", "description": "example.com#github.com", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP Header Injection", "category": "HTTP manipulation", "description": "X-Real-Host header", "result": "failure", "date": "2026-02-01"},
+    {"name": "Trailing Dot Domain", "category": "ACL bypass", "description": "example.com. format", "result": "failure", "date": "2026-02-01"},
+    {"name": "CNAME Chain Bypass", "category": "DNS manipulation", "description": "Follow CNAME records", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP/2 ALPN Negotiation", "category": "Protocol-level bypass", "description": "HTTP/2 protocol", "result": "failure", "date": "2026-02-01"},
+    {"name": "Squid ICAP Service", "category": "Proxy bypass", "description": "ICAP port 1344", "result": "failure", "date": "2026-02-01"},
+    {"name": "Gateway Direct Access", "category": "Network topology", "description": "172.30.0.1 ports 80, 443", "result": "failure", "date": "2026-02-01"},
+    {"name": "Container Network Scan", "category": "Network discovery", "description": "172.30.0.0/24 scan", "result": "failure", "date": "2026-02-01"},
+    {"name": "/etc/resolv.conf Manipulation", "category": "DNS manipulation", "description": "DNS config modification", "result": "failure", "date": "2026-02-01"},
+    {"name": "Python Socket Low-Level", "category": "Application-layer bypass", "description": "Python socket.connect()", "result": "failure", "date": "2026-02-01"},
+    {"name": "/proc Network Info Leakage", "category": "Information leakage", "description": "/proc/net inspection", "result": "failure", "date": "2026-02-01"},
+    {"name": "Squid Cache Manager", "category": "Proxy bypass", "description": "cache_object:// protocol", "result": "failure", "date": "2026-02-01"},
+    {"name": "Gateway HTTP Service", "category": "Network topology", "description": "172.30.0.1:80 probing", "result": "failure", "date": "2026-02-01"},
+    {"name": "Gateway HTTPS Service", "category": "Network topology", "description": "172.30.0.1:443 TLS probe", "result": "failure", "date": "2026-02-01"},
+    {"name": "File Descriptor Leakage", "category": "Container isolation", "description": "/proc/self/fd examination", "result": "failure", "date": "2026-02-01"},
+    {"name": "ARP Table Examination", "category": "Network discovery", "description": "MAC address mapping", "result": "failure", "date": "2026-02-01"},
+    {"name": "Loopback Port Forwarding", "category": "Network topology", "description": "localhost service bypass", "result": "failure", "date": "2026-02-01"},
+    {"name": "Unset Proxy Environment", "category": "Environment manipulation", "description": "Delete all proxy vars", "result": "failure", "date": "2026-02-01"},
+    {"name": "IP as Subdomain", "category": "DNS manipulation", "description": "93.184.215.14.github.com", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP CL.TE Smuggling", "category": "HTTP smuggling", "description": "Content-Length vs Transfer-Encoding", "result": "failure", "date": "2026-02-01"},
+    {"name": "HTTP Pipeline Smuggling", "category": "HTTP smuggling", "description": "Pipelined requests", "result": "failure", "date": "2026-02-01"},
+    {"name": "/dev/tcp Gateway Bypass", "category": "Network stack bypass", "description": "Bash /dev/tcp to gateway", "result": "failure", "date": "2026-02-01"}
   ]
 }
