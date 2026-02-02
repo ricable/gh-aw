@@ -121,6 +121,13 @@ func (r *MCPConfigRendererUnified) RenderGitHubMCP(yaml *strings.Builder, github
 	githubType := getGitHubType(githubTool)
 	readOnly := getGitHubReadOnly(githubTool)
 
+	// When sandbox is disabled, force remote mode for GitHub MCP server
+	// Docker-based (local) MCP servers require the sandbox/container runtime to function
+	if isSandboxDisabled(workflowData) && githubType == "local" {
+		mcpRendererLog.Print("Sandbox disabled - forcing GitHub MCP to remote mode (Docker containers not available)")
+		githubType = "remote"
+	}
+
 	// Get lockdown value - use detected value if lockdown wasn't explicitly set
 	lockdown := getGitHubLockdown(githubTool)
 

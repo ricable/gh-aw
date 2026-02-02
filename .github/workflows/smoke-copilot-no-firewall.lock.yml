@@ -27,7 +27,7 @@
 #     - shared/github-queries-safe-input.md
 #     - shared/reporting.md
 #
-# frontmatter-hash: 217f926a577972fd057f03272e8cbe1c0d28c6ff799b25f079b6e8d895208829
+# frontmatter-hash: 4c20aa21c38d2a27bc44cf914db6a7efed75d88022a94df1b67285686bcb387f
 
 name: "Smoke Copilot (No Firewall)"
 "on":
@@ -1057,32 +1057,18 @@ jobs:
           cat > /home/runner/.copilot/mcp-config.json << 'MCPCONFIG_EOF'
           {
             "mcpServers": {
-              "agentic_workflows": {
-                "type": "stdio",
-                "container": "alpine:latest",
-                "entrypoint": "/opt/gh-aw/gh-aw",
-                "entrypointArgs": ["mcp-server"],
-                "mounts": ["/opt/gh-aw:/opt/gh-aw:ro", "${{ github.workspace }}:${{ github.workspace }}:rw", "/tmp/gh-aw:/tmp/gh-aw:rw"],
-                "env": {
-                  "GITHUB_TOKEN": "\${GITHUB_TOKEN}"
-                }
-              },
               "github": {
-                "type": "stdio",
-                "container": "ghcr.io/github/github-mcp-server:v0.30.2",
+                "type": "http",
+                "url": "https://api.githubcopilot.com/mcp/",
+                "headers": {
+                  "Authorization": "Bearer \${GITHUB_PERSONAL_ACCESS_TOKEN}",
+                  "X-MCP-Lockdown": "$([ "$GITHUB_MCP_LOCKDOWN" = "1" ] && echo true || echo false)",
+                  "X-MCP-Readonly": "true",
+                  "X-MCP-Toolsets": "context,repos,issues,pull_requests"
+                },
                 "env": {
-                  "GITHUB_LOCKDOWN_MODE": "$GITHUB_MCP_LOCKDOWN",
-                  "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_MCP_SERVER_TOKEN}",
-                  "GITHUB_READ_ONLY": "1",
-                  "GITHUB_TOOLSETS": "context,repos,issues,pull_requests"
+                  "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_MCP_SERVER_TOKEN}"
                 }
-              },
-              "playwright": {
-                "type": "stdio",
-                "container": "mcr.microsoft.com/playwright/mcp",
-                "args": ["--init", "--network", "host"],
-                "entrypointArgs": ["--output-dir", "/tmp/gh-aw/mcp-logs/playwright", "--allowed-hosts", "localhost;localhost:*;127.0.0.1;127.0.0.1:*;github.com", "--allowed-origins", "localhost;localhost:*;127.0.0.1;127.0.0.1:*;github.com"],
-                "mounts": ["/tmp/gh-aw/mcp-logs:/tmp/gh-aw/mcp-logs:rw"]
               },
               "safeinputs": {
                 "type": "http",
@@ -1097,14 +1083,6 @@ jobs:
                 "headers": {
                   "Authorization": "\${GH_AW_SAFE_OUTPUTS_API_KEY}"
                 }
-              },
-              "serena": {
-                "type": "stdio",
-                "container": "ghcr.io/githubnext/serena-mcp-server:latest",
-                "args": ["--network", "host"],
-                "entrypoint": "serena",
-                "entrypointArgs": ["start-mcp-server", "--context", "codex", "--project", "${{ github.workspace }}"],
-                "mounts": ["${{ github.workspace }}:${{ github.workspace }}:rw"]
               }
             }
           }
@@ -1138,7 +1116,7 @@ jobs:
               allowed_domains: ["defaults","node","github","playwright"],
               firewall_enabled: false,
               awf_version: "",
-              awmg_version: "v0.0.86",
+              awmg_version: "v0.0.90",
               steps: {
                 firewall: ""
               },
