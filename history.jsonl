@@ -418,4 +418,235 @@
       "indicator": "N/A"
     }
   }
+}{
+  "date": "2026-02-02",
+  "timestamp": 1770053200,
+  "metrics": {
+    "size": {
+      "lines_of_code_total": 739613,
+      "total_files": 1759,
+      "by_language": {
+        "Go": {
+          "loc": 385968,
+          "files": 1362,
+          "percentage": 52.2
+        },
+        "YAML": {
+          "loc": 193796,
+          "files": 173,
+          "percentage": 26.2
+        },
+        "Markdown": {
+          "loc": 156262,
+          "files": 670,
+          "percentage": 21.1
+        },
+        "JSON": {
+          "loc": 13545,
+          "files": 24,
+          "percentage": 1.8
+        },
+        "Shell": {
+          "loc": 7474,
+          "files": 52,
+          "percentage": 1.0
+        },
+        "JavaScript": {
+          "loc": 1954,
+          "files": 7,
+          "percentage": 0.3
+        },
+        "TypeScript": {
+          "loc": 1633,
+          "files": 17,
+          "percentage": 0.2
+        },
+        "Python": {
+          "loc": 131,
+          "files": 1,
+          "percentage": 0.0
+        }
+      },
+      "by_directory": [
+        {
+          "path": ".github/workflows",
+          "loc": 235100,
+          "files": 315,
+          "percentage": 31.8
+        },
+        {
+          "path": "pkg/workflow",
+          "loc": 222460,
+          "files": 789,
+          "percentage": 30.1
+        },
+        {
+          "path": "pkg/cli",
+          "loc": 118010,
+          "files": 414,
+          "percentage": 15.9
+        },
+        {
+          "path": "scratchpad",
+          "loc": 32129,
+          "files": 49,
+          "percentage": 4.3
+        },
+        {
+          "path": "pkg/parser",
+          "loc": 27874,
+          "files": 84,
+          "percentage": 3.8
+        },
+        {
+          "path": "docs/src/content/docs/reference",
+          "loc": 15434,
+          "files": 29,
+          "percentage": 2.1
+        },
+        {
+          "path": "pkg/console",
+          "loc": 6717,
+          "files": 27,
+          "percentage": 0.9
+        },
+        {
+          "path": ".github/workflows/shared",
+          "loc": 6233,
+          "files": 38,
+          "percentage": 0.8
+        },
+        {
+          "path": "docs/src/content/docs/guides",
+          "loc": 5653,
+          "files": 21,
+          "percentage": 0.8
+        },
+        {
+          "path": "pkg/cli/workflows",
+          "loc": 4953,
+          "files": 124,
+          "percentage": 0.7
+        }
+      ]
+    },
+    "quality": {
+      "large_files": 189,
+      "avg_file_size": 420,
+      "comment_lines": 40418,
+      "comment_ratio": 10.39,
+      "function_count": 6671
+    },
+    "tests": {
+      "test_files": 879,
+      "test_lines_of_code": 268881,
+      "source_lines_of_code": 120700,
+      "test_to_source_ratio": 2.228
+    },
+    "churn": {
+      "commits_7d": 435,
+      "files_modified_7d": 1744,
+      "lines_added_7d": 126558,
+      "lines_deleted_7d": 131352,
+      "net_change_7d": -4794,
+      "most_active_files": [
+        {
+          "file": ".github/workflows/security-alert-burndown.lock.yml",
+          "changes": 57,
+          "added": 4520,
+          "deleted": 3311
+        },
+        {
+          "file": ".github/workflows/release.lock.yml",
+          "changes": 41,
+          "added": 191,
+          "deleted": 359
+        },
+        {
+          "file": ".github/workflows/poem-bot.lock.yml",
+          "changes": 41,
+          "added": 277,
+          "deleted": 347
+        },
+        {
+          "file": ".github/workflows/smoke-copilot.lock.yml",
+          "changes": 38,
+          "added": 502,
+          "deleted": 511
+        },
+        {
+          "file": ".github/workflows/unbloat-docs.lock.yml",
+          "changes": 37,
+          "added": 184,
+          "deleted": 476
+        },
+        {
+          "file": ".github/workflows/scout.lock.yml",
+          "changes": 37,
+          "added": 459,
+          "deleted": 653
+        },
+        {
+          "file": ".github/workflows/secret-scanning-triage.lock.yml",
+          "changes": 36,
+          "added": 342,
+          "deleted": 512
+        },
+        {
+          "file": ".github/workflows/breaking-change-checker.lock.yml",
+          "changes": 36,
+          "added": 218,
+          "deleted": 404
+        },
+        {
+          "file": ".github/workflows/hourly-ci-cleaner.lock.yml",
+          "changes": 35,
+          "added": 212,
+          "deleted": 300
+        },
+        {
+          "file": ".github/workflows/go-pattern-detector.lock.yml",
+          "changes": 35,
+          "added": 204,
+          "deleted": 348
+        }
+      ]
+    },
+    "workflows": {
+      "total_workflows": 210,
+      "workflow_lock_files": 148,
+      "avg_workflow_size": 1589
+    },
+    "docs": {
+      "doc_files": 115,
+      "doc_loc": 32909,
+      "code_to_docs_ratio": 22.5
+    }
+  },
+  "quality_score": {
+    "total": 74.70015716841806,
+    "components": {
+      "test_coverage": {
+        "score": 30,
+        "max": 30
+      },
+      "code_organization": {
+        "score": 14.255258669698692,
+        "max": 25
+      },
+      "documentation": {
+        "score": 15.0,
+        "max": 20
+      },
+      "churn_stability": {
+        "score": 8.51823183205271,
+        "max": 15
+      },
+      "comment_density": {
+        "score": 6.926666666666667,
+        "max": 10
+      }
+    }
+  },
+  "trends": {}
 }
