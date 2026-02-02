@@ -68,7 +68,7 @@ safe-outputs:
 timeout-minutes: 15
 ---
 
-# Smoke Test: Claude Engine Validation
+# Smoke Test: Claude Engine Validation.
 
 **IMPORTANT: Keep all outputs extremely short and concise. Use single-line responses where possible. No verbose explanations.**
 
