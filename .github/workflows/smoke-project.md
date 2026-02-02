@@ -39,9 +39,14 @@ safe-outputs:
     #  allowed: [smoke-project]
     #remove-labels:
     #  allowed: [smoke-project]
+    # NOTE: Project operations require an existing GitHub Projects v2 board.
+    # Create a test project at https://github.com/orgs/githubnext/projects/new
+    # and update the project number below. The project must be accessible with
+    # the GH_AW_PROJECT_GITHUB_TOKEN secret (requires 'project' scope for classic
+    # PAT or 'Projects: Read and write' for fine-grained PAT).
     update-project:
       max: 20
-      project: "https://github.com/orgs/githubnext/projects/146"
+      project: "https://github.com/orgs/githubnext/projects/144"
       views:
         - name: "Smoke Test Board"
           layout: board
@@ -51,7 +56,7 @@ safe-outputs:
       github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
     create-project-status-update:
       max: 1
-      project: "https://github.com/orgs/githubnext/projects/146"
+      project: "https://github.com/orgs/githubnext/projects/144"
       github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
     messages:
       append-only-comments: true
@@ -72,26 +77,26 @@ strict: true
 1. **Project Operations Testing**: Use project-related safe-output tools to validate multiple project features against the real project configured in the frontmatter. Steps:
 
    a. **Draft Issue Creation**: Call `update_project` with:
-      - `project`: "https://github.com/orgs/githubnext/projects/146"
+      - `project`: "https://github.com/orgs/githubnext/projects/144"
       - `content_type`: "draft_issue"
       - `draft_title`: "Smoke Test Draft Issue - Run ${{ github.run_id }}"
       - `draft_body`: "Test draft issue for smoke test validation"
       - `fields`: `{"Status": "Todo", "Priority": "High"}`
 
    b. **Field Creation with New Fields**: Call `update_project` with draft issue including new custom fields:
-      - `project`: "https://github.com/orgs/githubnext/projects/146"
+      - `project`: "https://github.com/orgs/githubnext/projects/144"
       - `content_type`: "draft_issue"
       - `draft_title`: "Smoke Test Draft Issue with Custom Fields - Run ${{ github.run_id }}"
       - `fields`: `{"Status": "Todo", "Priority": "High", "Team": "Engineering", "Sprint": "Q1-2026"}`
 
    c. **Field Update**: Call `update_project` again with the same draft issue to update fields:
-      - `project`: "https://github.com/orgs/githubnext/projects/146"
+      - `project`: "https://github.com/orgs/githubnext/projects/144"
       - `content_type`: "draft_issue"
       - `draft_title`: "Smoke Test Draft Issue - Run ${{ github.run_id }}"
       - `fields`: `{"Status": "In Progress", "Priority": "Medium"}`
    
    d. **Project Status Update**: Call `create_project_status_update` with:
-      - `project`: "https://github.com/orgs/githubnext/projects/146"
+      - `project`: "https://github.com/orgs/githubnext/projects/144"
       - `body`: "Smoke test project status - Run ${{ github.run_id }}"
       - `status`: "ON_TRACK"
    

@@ -26,7 +26,7 @@
 #     - shared/gh.md
 #     - shared/reporting.md
 #
-# frontmatter-hash: a455dbc6f9efd58fe53f18496559f39f27cf6285ba98edf7970e1baffc4fb505
+# frontmatter-hash: 136c7570517919e1dc27d888bb1b2ab6cf7ab8d5dcbf29493fd07df3d5972c6a
 
 name: "Smoke Project"
 "on":
@@ -1418,8 +1418,8 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"create_project_status_update\":{\"github-token\":\"${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}\",\"max\":1,\"project\":\"https://github.com/orgs/githubnext/projects/146\"},\"missing_data\":{},\"missing_tool\":{},\"update_project\":{\"github-token\":\"${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}\",\"max\":20,\"project\":\"https://github.com/orgs/githubnext/projects/146\",\"views\":[{\"name\":\"Smoke Test Board\",\"layout\":\"board\",\"filter\":\"is:open\"},{\"name\":\"Smoke Test Table\",\"layout\":\"table\"}]}}"
-          GH_AW_PROJECT_URL: "https://github.com/orgs/githubnext/projects/146"
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"create_project_status_update\":{\"github-token\":\"${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}\",\"max\":1,\"project\":\"https://github.com/orgs/githubnext/projects/144\"},\"missing_data\":{},\"missing_tool\":{},\"update_project\":{\"github-token\":\"${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}\",\"max\":20,\"project\":\"https://github.com/orgs/githubnext/projects/144\",\"views\":[{\"name\":\"Smoke Test Board\",\"layout\":\"board\",\"filter\":\"is:open\"},{\"name\":\"Smoke Test Table\",\"layout\":\"table\"}]}}"
+          GH_AW_PROJECT_URL: "https://github.com/orgs/githubnext/projects/144"
           GH_AW_PROJECT_GITHUB_TOKEN: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
