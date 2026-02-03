@@ -88,13 +88,15 @@ func validateSandboxConfig(workflowData *WorkflowData) error {
 
 	sandboxConfig := workflowData.SandboxConfig
 
-	// Check if sandbox: false or sandbox.agent: false was specified
-	// In non-strict mode, this is allowed (with a warning shown at compile time)
-	// The strict mode check happens in validateStrictFirewall()
+	// Reject if sandbox was explicitly disabled
+	// sandbox: false is no longer supported
 	if sandboxConfig.Agent != nil && sandboxConfig.Agent.Disabled {
-		// sandbox: false is allowed in non-strict mode, so we don't error here
-		// The warning is emitted in compiler.go
-		sandboxValidationLog.Print("sandbox: false detected, will be validated by strict mode check")
+		return NewConfigurationError(
+			"sandbox",
+			"false",
+			"disabling the sandbox is no longer supported. The sandbox and MCP gateway provide important security protections.",
+			"Remove 'sandbox: false' from your workflow to use the default sandbox configuration.",
+		)
 	}
 
 	// Validate mounts syntax if specified in agent config
@@ -177,7 +179,7 @@ func validateSandboxConfig(workflowData *WorkflowData) error {
 				"sandbox",
 				"enabled without MCP servers",
 				"agent sandbox requires MCP servers to be configured",
-				"Add MCP tools to your workflow:\n\ntools:\n  github:\n    mode: remote\n  playwright:\n    allowed_domains: [\"example.com\"]\n\nOr disable the sandbox:\nsandbox: false",
+				"Add MCP tools to your workflow:\n\ntools:\n  github:\n    mode: remote\n  playwright:\n    allowed_domains: [\"example.com\"]",
 			)
 		}
 		if hasExplicitSandboxConfig {

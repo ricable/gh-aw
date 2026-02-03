@@ -142,19 +142,9 @@ func (c *Compiler) extractSandboxConfig(frontmatter map[string]any) *SandboxConf
 		return nil
 	}
 
-	// Handle boolean format: sandbox: false (disables all sandbox features)
-	if sandboxBool, ok := sandbox.(bool); ok {
-		if !sandboxBool {
-			frontmatterExtractionSecurityLog.Print("Sandbox explicitly disabled with sandbox: false")
-			// Return a marker config with Disabled flag set
-			return &SandboxConfig{
-				Agent: &AgentSandboxConfig{
-					Disabled: true,
-				},
-			}
-		}
-		// sandbox: true is not meaningful, treat as no configuration
-		frontmatterExtractionSecurityLog.Print("Sandbox: true specified but has no effect, treating as unconfigured")
+	// Boolean format is no longer supported - sandbox: false is not allowed
+	if _, ok := sandbox.(bool); ok {
+		frontmatterExtractionSecurityLog.Print("Sandbox boolean format is not supported")
 		return nil
 	}
 
@@ -186,13 +176,11 @@ func (c *Compiler) extractSandboxConfig(frontmatter map[string]any) *SandboxConf
 	if agentVal, hasAgent := sandboxObj["agent"]; hasAgent {
 		frontmatterExtractionSecurityLog.Print("Extracting agent sandbox configuration")
 
-		// Check if agent is set to false (boolean) - this is no longer supported
-		if agentBool, ok := agentVal.(bool); ok && !agentBool {
-			// Return a marker config that will be caught during validation
+		// Check if agent is set to boolean - this is no longer supported
+		if _, ok := agentVal.(bool); ok {
+			frontmatterExtractionSecurityLog.Print("Sandbox agent boolean format is not supported")
 			return &SandboxConfig{
-				Agent: &AgentSandboxConfig{
-					Disabled: true, // This will be caught by validation
-				},
+				Agent: nil, // Invalid configuration
 			}
 		}
 
@@ -227,9 +215,10 @@ func (c *Compiler) extractSandboxConfig(frontmatter map[string]any) *SandboxConf
 
 // extractAgentSandboxConfig extracts agent sandbox configuration
 func (c *Compiler) extractAgentSandboxConfig(agentVal any) *AgentSandboxConfig {
-	// Handle boolean format: REJECTED - sandbox.agent: false is no longer supported
+	// Boolean format is not supported
 	if _, ok := agentVal.(bool); ok {
 		// Both true and false are invalid - must use string or object format
+		frontmatterExtractionSecurityLog.Print("Sandbox agent boolean format is not supported")
 		return nil
 	}
 
