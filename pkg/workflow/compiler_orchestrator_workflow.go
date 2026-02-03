@@ -23,6 +23,11 @@ func (c *Compiler) ParseWorkflowFile(markdownPath string) (*WorkflowData, error)
 		return nil, err
 	}
 
+	// Validate unsupported sandbox syntaxes early
+	if err := validateUnsupportedSandboxSyntax(parseResult.frontmatterResult.Frontmatter); err != nil {
+		return nil, err
+	}
+
 	// Handle shared workflows
 	if parseResult.isSharedWorkflow {
 		return nil, &SharedWorkflowError{Path: parseResult.cleanPath}

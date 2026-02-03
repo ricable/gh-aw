@@ -20,6 +20,65 @@ import (
 
 var sandboxValidationLog = logger.New("workflow:sandbox_validation")
 
+// validateUnsupportedSandboxSyntax validates that unsupported sandbox syntaxes are not used
+// This should be called early in the parsing process, before extractSandboxConfig
+func validateUnsupportedSandboxSyntax(frontmatter map[string]any) error {
+	sandbox, exists := frontmatter["sandbox"]
+	if !exists {
+		return nil
+	}
+
+	// Check for sandbox: false (boolean false is not supported)
+	if sandboxBool, ok := sandbox.(bool); ok && !sandboxBool {
+		return NewConfigurationError(
+			"sandbox",
+			"false",
+			"'sandbox: false' is not supported. The sandbox is required for security and cannot be disabled.",
+			"Remove the 'sandbox: false' line from your workflow. The agent sandbox is mandatory.",
+		)
+	}
+
+	// Check for sandbox.agent: false (nested boolean false is not supported)
+	if sandboxObj, ok := sandbox.(map[string]any); ok {
+		if agentVal, hasAgent := sandboxObj["agent"]; hasAgent {
+			if agentBool, ok := agentVal.(bool); ok && !agentBool {
+				return NewConfigurationError(
+					"sandbox.agent",
+					"false",
+					"'sandbox.agent: false' is not supported. The agent sandbox is required and cannot be disabled.",
+					"Remove the 'sandbox.agent: false' line. Use 'sandbox.agent: awf' (default) or 'sandbox.agent: srt' instead.",
+				)
+			}
+		}
+
+		// Check for sandbox.gateway: false (this field doesn't exist, but users might try it)
+		if gatewayVal, hasGateway := sandboxObj["gateway"]; hasGateway {
+			if gatewayBool, ok := gatewayVal.(bool); ok && !gatewayBool {
+				return NewConfigurationError(
+					"sandbox.gateway",
+					"false",
+					"'sandbox.gateway: false' is not supported. The MCP gateway cannot be disabled.",
+					"Remove the 'sandbox.gateway: false' line. The MCP gateway is automatically configured.",
+				)
+			}
+		}
+
+		// Check for sandbox.mcp: false (MCP gateway cannot be disabled)
+		if mcpVal, hasMCP := sandboxObj["mcp"]; hasMCP {
+			if mcpBool, ok := mcpVal.(bool); ok && !mcpBool {
+				return NewConfigurationError(
+					"sandbox.mcp",
+					"false",
+					"'sandbox.mcp: false' is not supported. The MCP gateway cannot be disabled.",
+					"Remove the 'sandbox.mcp: false' line. The MCP gateway is automatically configured.",
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
 // validateMountsSyntax validates that mount strings follow the correct syntax
 // Expected format: "source:destination:mode" where mode is either "ro" or "rw"
 func validateMountsSyntax(mounts []string) error {
