@@ -55,31 +55,31 @@ Once your initial run is complete, a new issue will be created in your repositor
 
 ### Going further — Customize your workflow
 
-The report is fully customizable. If you like, you can now customize the workflow by editing the workflow markdown file located at `.github/workflows/daily-repo-status.md` in your repository. You then run
+Your automated agent is fully customizable. If you like, you can customize it now:
 
-```bash
-gh aw compile
-```
+1. Edit the workflow markdown file located at `.github/workflows/daily-repo-status.md` in your repository.
 
-to regenerate the workflow YAML file `.github/workflows/daily-repo-status.lock.yml`, then push to your repository. You can then trigger another run by running:
+2. Regenerate the workflow YAML by running:
 
-```bash
-gh aw run daily-repo-status
-```
+   ```bash
+   gh aw compile
+   ```
 
-or by using the GitHub UX.
+3. Commit and push to your repository.
+
+4. You can now optionally trigger another run by running:
+
+   ```bash
+   gh aw run daily-repo-status
+   ```
 
 Some ideas for customization:
 
 - Adjust the schedule to run more or less frequently
 - Modify the style or content of the report
-- Add additional data sources or metrics to analyze
-- Focus in on specific areas of your repository or project
 - Adjust the instructions to analyze patterns in failed CI runs or test coverage
 - Request analysis of compliance with organizational standards
-- Request analysis of spam or inappropriate content in issues or PRs
 - Request analysis of ways the repository could be modernized or simplified
-- And much more!
 
 ## What's next?
 
