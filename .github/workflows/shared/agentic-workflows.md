@@ -1,15 +1,35 @@
 ---
 # Agentic Workflows Tool Configuration
+#
 # This shared component configures the agentic-workflows MCP tool for workflows
 # that need to compile, validate, audit, or inspect agentic workflow files.
 #
-# Usage in workflows:
+# ## Usage in workflows:
+#
+# Add to your workflow frontmatter:
+#
 #   tools:
 #     agentic-workflows:
 #   imports:
 #     - shared/agentic-workflows.md
 #
-# The tool provides these capabilities:
+# ## How it works:
+#
+# 1. The tools.agentic-workflows field enables the gh-aw MCP server
+# 2. The compiler automatically:
+#    - Installs gh-aw extension via GitHub CLI (if not already installed)
+#    - Copies the binary to /opt/gh-aw for containerization
+#    - Configures the MCP server with stdio transport in Alpine container
+#    - Mounts workspace and temp directories for file access
+#    - Passes GITHUB_TOKEN for GitHub API access
+#
+# 3. Dev mode support:
+#    - Works identically in both dev and release modes
+#    - No manual configuration needed
+#    - Action mode detection is automatic
+#
+# ## Available Tools:
+#
 #   - status: Show status of workflow files
 #   - compile: Compile workflows to GitHub Actions YAML
 #   - logs: Download and analyze workflow logs
@@ -18,6 +38,13 @@
 #   - add: Add workflows from remote repositories
 #   - update: Update workflows from their sources
 #   - fix: Apply automatic codemods to workflow files
+#
+# ## Permissions:
+#
+# This component adds 'actions: read' permission for accessing workflow runs.
+# Your workflow may need additional permissions depending on the tools used
+# (e.g., issues:read, pull-requests:read for GitHub MCP server).
+#
 permissions:
   actions: read
 tools:
