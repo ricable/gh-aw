@@ -414,7 +414,7 @@ func TestGenerateCheckoutActionsFolder(t *testing.T) {
 			if tt.expectCheckout {
 				// Join all step lines into a single string for easier assertion
 				stepsStr := strings.Join(steps, "")
-				
+
 				for _, expected := range tt.expectSteps {
 					if !strings.Contains(stepsStr, expected) {
 						t.Errorf("generateCheckoutActionsFolder() missing %q\nGot:\n%s", expected, stepsStr)
