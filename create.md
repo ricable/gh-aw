@@ -194,6 +194,23 @@ imports:
 
 The compiler merges imported configurations with your workflow's config. See [Packaging & Distribution](/gh-aw/guides/packaging-imports/) for complete details on import behavior and merge semantics.
 
+### Available After Installation
+
+When you run `gh aw init` in a repository, several helper files become available:
+
+**Workflow Prompt Files** (`.github/aw/`)
+- `create-agentic-workflow.md` - Guides creation of new workflows
+- `update-agentic-workflow.md` - Guides updates to existing workflows
+- `debug-agentic-workflow.md` - Helps debug workflow issues
+- `create-shared-agentic-workflow.md` - Creates reusable shared components
+- `upgrade-agentic-workflows.md` - Upgrades workflows to new gh-aw versions
+- `github-agentic-workflows.md` - GitHub Copilot custom instructions
+
+**Agent Files** (`.github/agents/`)
+- `agentic-workflows.agent.md` - Dispatcher agent that routes to appropriate prompts
+
+These files are available for AI assistants to use when helping you create, update, or debug workflows. The `create.md` file (this file) references these prompts and routes you to the appropriate one based on your task.
+
 ### Learn More
 
 - **[Orchestration Guide](/gh-aw/guides/orchestration/)** - Orchestrator/worker pattern for coordinating multiple workflows
