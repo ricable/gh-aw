@@ -388,6 +388,11 @@ func setupEngineSecrets(engine string, verbose bool) error {
 func attemptSetSecret(secretName, repoSlug string, verbose bool) error {
 	initLog.Printf("Attempting to set secret: %s for repo: %s", secretName, repoSlug)
 
+	// Check if secret modifications are allowed in current execution context
+	if err := CheckSecretModificationAllowed(); err != nil {
+		return err
+	}
+
 	// Check if secret already exists
 	exists, err := checkSecretExistsInRepo(secretName, repoSlug)
 	if err != nil {

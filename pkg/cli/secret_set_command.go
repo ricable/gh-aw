@@ -170,6 +170,11 @@ func resolveSecretValueForSet(fromEnv, fromFlag string) (string, error) {
 }
 
 func setRepoSecret(client *api.RESTClient, owner, repo, name, value string) error {
+	// Check if secret modifications are allowed in current execution context
+	if err := CheckSecretModificationAllowed(); err != nil {
+		return err
+	}
+
 	pubKey, err := getRepoPublicKey(client, owner, repo)
 	if err != nil {
 		return fmt.Errorf("get repo public key: %w", err)

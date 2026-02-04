@@ -85,6 +85,10 @@ func runUpgradeCommand(verbose bool, workflowDir string, noFix bool, noCompile b
 	upgradeLog.Printf("Running upgrade command: verbose=%v, workflowDir=%s, noFix=%v, noCompile=%v, push=%v, noActions=%v",
 		verbose, workflowDir, noFix, noCompile, push, noActions)
 
+	// Set execution context to prevent secret modifications during upgrade
+	cleanup := SetUpgradeContext()
+	defer cleanup()
+
 	// Step 0a: If --push is enabled, ensure git status is clean before starting
 	if push {
 		upgradeLog.Print("Checking for clean working directory (--push enabled)")
