@@ -33,36 +33,6 @@ curl -sL https://raw.githubusercontent.com/github/gh-aw/main/install-gh-aw.sh | 
 
 Find available versions at the [releases page](https://github.com/github/gh-aw/releases).
 
-### Manual Binary Installation
-
-If the install script doesn't work in your environment, you can manually download and install the binary:
-
-```bash wrap
-# 1. Create installation directory
-mkdir -p ~/.local/share/gh/extensions/gh-aw
-
-# 2. Download binary for your platform (use "latest" or a specific version)
-# Linux (amd64) - latest
-curl -L -o ~/.local/share/gh/extensions/gh-aw/gh-aw \
-  https://github.com/github/gh-aw/releases/latest/download/linux-amd64
-
-# macOS (arm64) - latest
-curl -L -o ~/.local/share/gh/extensions/gh-aw/gh-aw \
-  https://github.com/github/gh-aw/releases/latest/download/darwin-arm64
-
-# Or specify a version
-curl -L -o ~/.local/share/gh/extensions/gh-aw/gh-aw \
-  https://github.com/github/gh-aw/releases/download/v0.40.0/linux-amd64
-
-# 3. Make executable
-chmod +x ~/.local/share/gh/extensions/gh-aw/gh-aw
-
-# 4. Verify installation
-~/.local/share/gh/extensions/gh-aw/gh-aw version
-```
-
-Available platforms: `linux-amd64`, `linux-arm64`, `darwin-amd64`, `darwin-arm64`, `windows-amd64.exe`
-
 ### Extension Not Found After Installation
 
 If you installed the extension but `gh aw` command is not found:
