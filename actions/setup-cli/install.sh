@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to download and install gh-aw binary for the current OS and architecture
-# Supports: Linux, macOS (Darwin), FreeBSD, Windows (Git Bash/MSYS/Cygwin)
+# Supports: Linux, macOS (Darwin), FreeBSD
 # Usage: ./install-gh-aw.sh [version] [options]
 # If no version is specified, it will use "latest" (GitHub automatically resolves to the latest release)
 # Note: Checksum validation is currently skipped by default (will be enabled in future releases)
@@ -119,12 +119,9 @@ case $OS in
     FreeBSD)
         OS_NAME="freebsd"
         ;;
-    MINGW*|MSYS*|CYGWIN*)
-        OS_NAME="windows"
-        ;;
     *)
         print_error "Unsupported operating system: $OS"
-        print_info "Supported operating systems: Linux, macOS (Darwin), FreeBSD, Windows"
+        print_info "Supported operating systems: Linux, macOS (Darwin), FreeBSD"
         exit 1
         ;;
 esac
@@ -153,12 +150,8 @@ esac
 # Construct platform string
 PLATFORM="${OS_NAME}-${ARCH_NAME}"
 
-# Add .exe extension for Windows
-if [ "$OS_NAME" = "windows" ]; then
-    BINARY_NAME="gh-aw.exe"
-else
-    BINARY_NAME="gh-aw"
-fi
+# Set binary name
+BINARY_NAME="gh-aw"
 
 print_info "Detected OS: $OS -> $OS_NAME"
 print_info "Detected architecture: $ARCH -> $ARCH_NAME"
@@ -271,9 +264,6 @@ else
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/$VERSION/$PLATFORM"
     CHECKSUMS_URL="https://github.com/$REPO/releases/download/$VERSION/checksums.txt"
 fi
-if [ "$OS_NAME" = "windows" ]; then
-    DOWNLOAD_URL="${DOWNLOAD_URL}.exe"
-fi
 INSTALL_DIR="$HOME/.local/share/gh/extensions/gh-aw"
 BINARY_PATH="$INSTALL_DIR/$BINARY_NAME"
 CHECKSUMS_PATH="$INSTALL_DIR/checksums.txt"
@@ -343,9 +333,6 @@ if [ "$SKIP_CHECKSUM" = false ]; then
         
         # Determine the expected filename in the checksums file
         EXPECTED_FILENAME="$PLATFORM"
-        if [ "$OS_NAME" = "windows" ]; then
-            EXPECTED_FILENAME="${PLATFORM}.exe"
-        fi
         
         # Extract the expected checksum from the checksums file
         EXPECTED_CHECKSUM=$(grep "$EXPECTED_FILENAME" "$CHECKSUMS_PATH" | awk '{print $1}')

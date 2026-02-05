@@ -24,7 +24,7 @@ build: sync-action-pins sync-action-scripts
 
 # Build for all platforms
 .PHONY: build-all
-build-all: build-linux build-darwin build-windows
+build-all: build-linux build-darwin
 
 .PHONY: build-linux
 build-linux:
@@ -35,10 +35,6 @@ build-linux:
 build-darwin:
 	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_NAME)-darwin-amd64 ./cmd/gh-aw
 	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BINARY_NAME)-darwin-arm64 ./cmd/gh-aw
-
-.PHONY: build-windows
-build-windows:
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_NAME)-windows-amd64.exe ./cmd/gh-aw
 
 # Test the code (runs both unlabelled unit tests and integration tests and long tests)
 .PHONY: test
