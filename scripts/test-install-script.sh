@@ -33,9 +33,6 @@ test_platform_detection() {
         FreeBSD)
             OS_NAME="freebsd"
             ;;
-        MINGW*|MSYS*|CYGWIN*)
-            OS_NAME="windows"
-            ;;
         *)
             echo "  ✗ FAIL: Unsupported OS: $OS"
             return 1
@@ -111,22 +108,14 @@ echo "Test 3: macOS (Darwin) platform detection"
 test_platform_detection "Darwin" "x86_64" "darwin" "amd64" "darwin-amd64"
 test_platform_detection "Darwin" "arm64" "darwin" "arm64" "darwin-arm64"
 
-# Test 4: Windows platforms
+# Test 4: FreeBSD platforms
 echo ""
-echo "Test 4: FreeBSD platforms"
+echo "Test 4: FreeBSD platform detection"
 test_platform_detection "FreeBSD" "amd64" "freebsd" "amd64" "freebsd-amd64"
 test_platform_detection "FreeBSD" "arm64" "freebsd" "arm64" "freebsd-arm64"
 test_platform_detection "FreeBSD" "i386" "freebsd" "386" "freebsd-386"
 
-# Test 5: Windows platforms
-echo ""
-echo "Test 5: Windows platform detection"
-test_platform_detection "MINGW64_NT-10.0" "x86_64" "windows" "amd64" "windows-amd64"
-test_platform_detection "MINGW32_NT-10.0" "i686" "windows" "386" "windows-386"
-test_platform_detection "MSYS_NT-10.0" "x86_64" "windows" "amd64" "windows-amd64"
-test_platform_detection "CYGWIN_NT-10.0" "x86_64" "windows" "amd64" "windows-amd64"
-
-# Test 6: Binary name detection
+# Test 5: Binary name detection
 echo ""
 echo "Test 6: Binary name detection"
 OS_NAME="linux"
@@ -155,17 +144,14 @@ else
     exit 1
 fi
 
-# Test 7: Verify download URL construction
+# Test 6: Verify download URL construction
 echo ""
-echo "Test 7: Download URL construction"
+echo "Test 6: Download URL construction"
 REPO="github/gh-aw"
 VERSION="v1.0.0"
 OS_NAME="linux"
 PLATFORM="linux-amd64"
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$VERSION/$PLATFORM"
-if [ "$OS_NAME" = "windows" ]; then
-    DOWNLOAD_URL="${DOWNLOAD_URL}.exe"
-fi
 EXPECTED_URL="https://github.com/github/gh-aw/releases/download/v1.0.0/linux-amd64"
 if [ "$DOWNLOAD_URL" = "$EXPECTED_URL" ]; then
     echo "  ✓ PASS: Linux URL is correct: $DOWNLOAD_URL"
@@ -174,21 +160,7 @@ else
     exit 1
 fi
 
-OS_NAME="windows"
-PLATFORM="windows-amd64"
-DOWNLOAD_URL="https://github.com/$REPO/releases/download/$VERSION/$PLATFORM"
-if [ "$OS_NAME" = "windows" ]; then
-    DOWNLOAD_URL="${DOWNLOAD_URL}.exe"
-fi
-EXPECTED_URL="https://github.com/github/gh-aw/releases/download/v1.0.0/windows-amd64.exe"
-if [ "$DOWNLOAD_URL" = "$EXPECTED_URL" ]; then
-    echo "  ✓ PASS: Windows URL is correct: $DOWNLOAD_URL"
-else
-    echo "  ✗ FAIL: Windows URL is incorrect: $DOWNLOAD_URL (expected: $EXPECTED_URL)"
-    exit 1
-fi
-
-# Test 8: Verify fetch_release_data function exists and has correct logic
+# Test 7: Verify fetch_release_data function exists and has correct logic
 echo ""
 echo "Test 8: Verify fetch_release_data function logic"
 

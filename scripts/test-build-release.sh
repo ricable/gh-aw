@@ -62,16 +62,11 @@ for p in "${platforms[@]}"; do
     continue
   fi
   
-  ext=""
-  if [ "$goos" = "windows" ]; then
-    ext=".exe"
-  fi
-  
   echo "Building gh-aw for $p..."
   GOOS="$goos" GOARCH="$goarch" go build \
     -trimpath \
     -ldflags="-s -w -X main.version=${VERSION} -X main.isRelease=true" \
-    -o "dist/${p}${ext}" \
+    -o "dist/${p}" \
     ./cmd/gh-aw
 done
 
