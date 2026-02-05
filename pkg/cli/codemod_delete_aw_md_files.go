@@ -5,7 +5,7 @@ func getDeleteAgenticWorkflowPromptFilesCodemod() Codemod {
 	return Codemod{
 		ID:           "delete-aw-md-files",
 		Name:         "Delete agentic workflow prompt markdown files",
-		Description:  "Deletes .github/aw/*.md files (except github-agentic-workflows.md) which are now downloaded from GitHub on demand",
+		Description:  "Deletes all .github/aw/*.md files which are now downloaded from GitHub on demand",
 		IntroducedIn: "0.7.0",
 		Apply: func(content string, frontmatter map[string]any) (string, bool, error) {
 			// This codemod is handled by the fix command itself (see runFixCommand)

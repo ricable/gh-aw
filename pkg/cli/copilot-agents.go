@@ -348,7 +348,6 @@ func deleteOldAgentFiles(verbose bool) error {
 
 // deleteAgenticWorkflowPromptFiles deletes .github/aw/*.md files that are now downloaded from GitHub
 // These files are no longer stored in the repository as they are fetched on-demand
-// Exception: github-agentic-workflows.md is kept as the source of truth
 func deleteAgenticWorkflowPromptFiles(verbose bool) error {
 	copilotAgentsLog.Print("Deleting agentic workflow prompt files from .github/aw/")
 
@@ -359,12 +358,13 @@ func deleteAgenticWorkflowPromptFiles(verbose bool) error {
 
 	awDir := filepath.Join(gitRoot, ".github", "aw")
 
-	// Files to delete (all .md files in .github/aw/ except github-agentic-workflows.md)
+	// Files to delete (all .md files in .github/aw/)
 	filesToDelete := []string{
 		"agentic-chat.md",
 		"create-agentic-workflow.md",
 		"create-shared-agentic-workflow.md",
 		"debug-agentic-workflow.md",
+		"github-agentic-workflows.md",
 		"orchestration.md",
 		"projects.md",
 		"serena-tool.md",
