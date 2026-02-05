@@ -15,23 +15,22 @@ func selectSerenaContainer(serenaTool any) string {
 	// Extract languages from the serena tool configuration
 	var requestedLanguages []string
 
-	// Handle direct array format (from ToMap conversion of short syntax)
-	if langArray, ok := serenaTool.([]any); ok {
-		for _, lang := range langArray {
+	// Handle different input formats
+	switch tool := serenaTool.(type) {
+	case []any:
+		// Direct array format (from ToMap conversion of short syntax)
+		for _, lang := range tool {
 			if langStr, ok := lang.(string); ok {
 				requestedLanguages = append(requestedLanguages, langStr)
 			}
 		}
-	}
-
-	// Handle []string format (another possible array representation)
-	if langStrArray, ok := serenaTool.([]string); ok {
-		requestedLanguages = append(requestedLanguages, langStrArray...)
-	}
-
-	if toolMap, ok := serenaTool.(map[string]any); ok {
+	case []string:
+		// String array format (another possible array representation)
+		requestedLanguages = append(requestedLanguages, tool...)
+	case map[string]any:
+		// Map format with language configuration
 		// Check for short syntax (array of language names)
-		if langs, ok := toolMap["langs"].([]any); ok {
+		if langs, ok := tool["langs"].([]any); ok {
 			for _, lang := range langs {
 				if langStr, ok := lang.(string); ok {
 					requestedLanguages = append(requestedLanguages, langStr)
@@ -40,18 +39,16 @@ func selectSerenaContainer(serenaTool any) string {
 		}
 
 		// Check for detailed language configuration
-		if langs, ok := toolMap["languages"].(map[string]any); ok {
+		if langs, ok := tool["languages"].(map[string]any); ok {
 			for langName := range langs {
 				requestedLanguages = append(requestedLanguages, langName)
 			}
 		}
-	}
-
-	// If we parsed serena from SerenaToolConfig
-	if serenaConfig, ok := serenaTool.(*SerenaToolConfig); ok {
-		requestedLanguages = append(requestedLanguages, serenaConfig.ShortSyntax...)
-		if serenaConfig.Languages != nil {
-			for langName := range serenaConfig.Languages {
+	case *SerenaToolConfig:
+		// SerenaToolConfig struct format
+		requestedLanguages = append(requestedLanguages, tool.ShortSyntax...)
+		if tool.Languages != nil {
+			for langName := range tool.Languages {
 				requestedLanguages = append(requestedLanguages, langName)
 			}
 		}

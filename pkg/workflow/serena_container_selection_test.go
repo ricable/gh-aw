@@ -104,6 +104,16 @@ func TestSelectSerenaContainer(t *testing.T) {
 			serenaTool:        []string{"go"},
 			expectedContainer: constants.OraiosSerenaContainer,
 		},
+		{
+			name:              "array with mixed types - only extracts strings",
+			serenaTool:        []any{"go", 123, nil, "typescript"},
+			expectedContainer: constants.OraiosSerenaContainer, // Has "go"
+		},
+		{
+			name:              "array with only non-strings - uses default",
+			serenaTool:        []any{123, nil, true},
+			expectedContainer: constants.DefaultSerenaMCPServerContainer,
+		},
 	}
 
 	for _, tt := range tests {
