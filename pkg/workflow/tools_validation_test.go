@@ -261,15 +261,15 @@ func TestValidateGitHubModeConfig(t *testing.T) {
 
 // TestGitHubModeValidationIntegration tests that mode validation works during full workflow compilation
 func TestGitHubModeValidationIntegration(t *testing.T) {
-tests := []struct {
-name      string
-markdown  string
-shouldErr bool
-errMsg    string
-}{
-{
-name: "valid workflow with local mode compiles successfully",
-markdown: `---
+	tests := []struct {
+		name      string
+		markdown  string
+		shouldErr bool
+		errMsg    string
+	}{
+		{
+			name: "valid workflow with local mode compiles successfully",
+			markdown: `---
 on: issues
 permissions:
   issues: read
@@ -283,11 +283,11 @@ tools:
 
 Test workflow with local GitHub mode.
 `,
-shouldErr: false,
-},
-{
-name: "valid workflow with remote mode compiles successfully",
-markdown: `---
+			shouldErr: false,
+		},
+		{
+			name: "valid workflow with remote mode compiles successfully",
+			markdown: `---
 on: issues
 permissions:
   issues: read
@@ -301,11 +301,11 @@ tools:
 
 Test workflow with remote GitHub mode.
 `,
-shouldErr: false,
-},
-{
-name: "invalid mode causes compilation failure",
-markdown: `---
+			shouldErr: false,
+		},
+		{
+			name: "invalid mode causes compilation failure",
+			markdown: `---
 on: issues
 permissions:
   issues: read
@@ -319,12 +319,12 @@ tools:
 
 Test workflow with invalid GitHub mode.
 `,
-shouldErr: true,
+			shouldErr: true,
 			errMsg:    `'local', 'remote'`,
-},
-{
-name: "workflow without mode compiles successfully (defaults to local)",
-markdown: `---
+		},
+		{
+			name: "workflow without mode compiles successfully (defaults to local)",
+			markdown: `---
 on: issues
 permissions:
   issues: read
@@ -337,31 +337,31 @@ tools:
 
 Test workflow without explicit mode.
 `,
-shouldErr: false,
-},
-}
+			shouldErr: false,
+		},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-compiler := NewCompiler()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compiler := NewCompiler()
 
-// Create a temporary test file
-tmpDir := t.TempDir()
-testFile := tmpDir + "/test.md"
-err := os.WriteFile(testFile, []byte(tt.markdown), 0644)
-require.NoError(t, err, "Failed to write test file")
+			// Create a temporary test file
+			tmpDir := t.TempDir()
+			testFile := tmpDir + "/test.md"
+			err := os.WriteFile(testFile, []byte(tt.markdown), 0644)
+			require.NoError(t, err, "Failed to write test file")
 
-// Compile the workflow
-err = compiler.CompileWorkflow(testFile)
+			// Compile the workflow
+			err = compiler.CompileWorkflow(testFile)
 
-if tt.shouldErr {
-assert.Error(t, err, "Expected compilation to fail")
-if tt.errMsg != "" {
-assert.Contains(t, err.Error(), tt.errMsg, "Error message should contain expected text")
-}
-} else {
-assert.NoError(t, err, "Expected compilation to succeed")
-}
-})
-}
+			if tt.shouldErr {
+				require.Error(t, err, "Expected compilation to fail")
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg, "Error message should contain expected text")
+				}
+			} else {
+				assert.NoError(t, err, "Expected compilation to succeed")
+			}
+		})
+	}
 }
