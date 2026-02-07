@@ -107,6 +107,8 @@ Specifies plugins to install before workflow execution. Plugins are installed us
 plugins:
   - github/test-plugin
   - acme/custom-tools
+  - anthropics/claude-code/plugins/explanatory-output-style
+  - pyright-lsp@claude-plugins-official
 ```
 
 **Object format** (with custom token):
@@ -118,6 +120,12 @@ plugins:
   github-token: ${{ secrets.CUSTOM_PLUGIN_TOKEN }}
 ```
 
+**Plugin identifier formats:**
+- **GitHub repository**: `org/repo` (e.g., `github/test-plugin`)
+- **Sub-plugin path**: `org/repo/path/to/plugin` (e.g., `anthropics/claude-code/plugins/explanatory-output-style`)
+- **Marketplace reference**: `plugin-name@marketplace` (e.g., `pyright-lsp@claude-plugins-official`)
+- **Repository with marketplace**: `org/repo@marketplace` (e.g., `anthropics/claude-code@anthropic-plugins`)
+
 **Token precedence** for plugin installation (highest to lowest):
 1. Custom `plugins.github-token` from object format
 2. Custom top-level `github-token`
@@ -125,7 +133,7 @@ plugins:
 4. `${{ secrets.GH_AW_GITHUB_TOKEN }}`
 5. `${{ secrets.GITHUB_TOKEN }}` (default)
 
-Each plugin repository must be specified in `org/repo` format. The compiler generates installation steps that run after the engine CLI is installed but before workflow execution begins.
+The compiler generates installation steps that run after the engine CLI is installed but before workflow execution begins.
 
 ### Runtimes (`runtimes:`)
 

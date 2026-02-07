@@ -2483,10 +2483,11 @@
       ]
     },
     "plugins": {
-      "description": "Plugin configuration for installing plugins before workflow execution. Supports both array format (list of repos) and object format (repos + custom token). Plugin paths can include sub-paths to specific plugins within a repository.",
+      "description": "Plugin configuration for installing plugins before workflow execution. Supports both array format (list of repos) and object format (repos + custom token). Plugin paths can include sub-paths to specific plugins within a repository, or marketplace references using @marketplace syntax.",
       "examples": [
         ["github/copilot-plugin", "acme/custom-tools"],
         ["anthropics/claude-code/plugins/explanatory-output-style"],
+        ["pyright-lsp@claude-plugins-official"],
         {
           "repos": ["github/copilot-plugin", "acme/custom-tools"],
           "github-token": "${{ secrets.CUSTOM_PLUGIN_TOKEN }}"
@@ -2498,8 +2499,8 @@
           "description": "List of plugin repository slugs to install. Each plugin is installed using the engine's plugin installation command with default token resolution.",
           "items": {
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*$",
-            "description": "Plugin repository slug in the format 'org/repo' or 'org/repo/path/to/plugin' (e.g., 'github/example-plugin', 'anthropics/claude-code/plugins/explanatory-output-style')"
+            "pattern": "^([a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)+|[a-zA-Z0-9_-]+)(@[a-zA-Z0-9_-]+)?$",
+            "description": "Plugin identifier in one of these formats: 'org/repo', 'org/repo/path/to/plugin', 'plugin-name@marketplace', or 'org/repo@marketplace' (e.g., 'github/example-plugin', 'anthropics/claude-code/plugins/explanatory-output-style', 'pyright-lsp@claude-plugins-official')"
           }
         },
         {
@@ -2512,8 +2513,8 @@
               "description": "List of plugin repository slugs to install",
               "items": {
                 "type": "string",
-                "pattern": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*$",
-                "description": "Plugin repository slug in the format 'org/repo' or 'org/repo/path/to/plugin' (e.g., 'github/example-plugin', 'anthropics/claude-code/plugins/explanatory-output-style')"
+                "pattern": "^([a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)+|[a-zA-Z0-9_-]+)(@[a-zA-Z0-9_-]+)?$",
+                "description": "Plugin identifier in one of these formats: 'org/repo', 'org/repo/path/to/plugin', 'plugin-name@marketplace', or 'org/repo@marketplace' (e.g., 'github/example-plugin', 'anthropics/claude-code/plugins/explanatory-output-style', 'pyright-lsp@claude-plugins-official')"
               }
             },
             "github-token": {
