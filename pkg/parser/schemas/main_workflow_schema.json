@@ -2497,8 +2497,8 @@
           "description": "List of plugin repository slugs to install. Each plugin is installed using the engine's plugin installation command with default token resolution.",
           "items": {
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$",
-            "description": "Plugin repository slug in the format 'org/repo' (e.g., 'github/example-plugin')"
+            "pattern": "^([a-zA-Z0-9_-]+@)?[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$",
+            "description": "Plugin repository slug in the format 'org/repo' or 'plugin-name@org/repo' (e.g., 'github/example-plugin' or 'explanatory-output-style@anthropics/claude-code')"
           }
         },
         {
@@ -2511,8 +2511,8 @@
               "description": "List of plugin repository slugs to install",
               "items": {
                 "type": "string",
-                "pattern": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$",
-                "description": "Plugin repository slug in the format 'org/repo' (e.g., 'github/example-plugin')"
+                "pattern": "^([a-zA-Z0-9_-]+@)?[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$",
+                "description": "Plugin repository slug in the format 'org/repo' or 'plugin-name@org/repo' (e.g., 'github/example-plugin' or 'explanatory-output-style@anthropics/claude-code')"
               }
             },
             "github-token": {

@@ -14,6 +14,8 @@ permissions:
   actions: read
 name: Smoke Project
 engine: codex
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 imports:
   - shared/gh.md
   - shared/reporting.md

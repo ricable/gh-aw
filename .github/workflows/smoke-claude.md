@@ -19,6 +19,8 @@ engine:
   id: claude
   max-turns: 15
 strict: true
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 imports:
   - shared/mcp-pagination.md
   - shared/gh.md

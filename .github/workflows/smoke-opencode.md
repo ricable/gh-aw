@@ -19,6 +19,8 @@ imports:
   - shared/gh.md
   - shared/github-queries-safe-input.md
 strict: true
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 sandbox:
   mcp:
     container: "ghcr.io/github/gh-aw-mcpg"

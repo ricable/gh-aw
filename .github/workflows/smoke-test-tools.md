@@ -13,6 +13,8 @@ permissions:
 name: Agent Container Smoke Test
 engine: copilot
 strict: true
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 runtimes:
   node:
     version: "20"

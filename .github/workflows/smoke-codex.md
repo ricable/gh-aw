@@ -15,6 +15,8 @@ permissions:
 name: Smoke Codex
 engine: codex
 strict: true
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 imports:
   - shared/gh.md
   - shared/mcp/tavily.md

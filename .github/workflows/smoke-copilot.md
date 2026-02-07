@@ -15,6 +15,8 @@ permissions:
   actions: read
 name: Smoke Copilot
 engine: copilot
+plugins:
+  - explanatory-output-style@anthropics/claude-code
 imports:
   - shared/gh.md
   - shared/reporting.md
