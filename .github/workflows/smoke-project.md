@@ -14,11 +14,6 @@ permissions:
   actions: read
 name: Smoke Project
 engine: codex
-<<<<<<< HEAD
-plugins:
-  - explanatory-output-style@claude-plugins-official
-=======
->>>>>>> origin/main
 imports:
   - shared/mood.md
   - shared/gh.md

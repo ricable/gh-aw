@@ -67,8 +67,6 @@ func TestExtractJobsFromFrontmatter(t *testing.T) {
 }
 
 // ========================================
-<<<<<<< HEAD
-=======
 // Helper Function Tests
 // ========================================
 
@@ -384,7 +382,6 @@ func TestShouldAddCheckoutStep(t *testing.T) {
 }
 
 // ========================================
->>>>>>> origin/main
 // Integration Tests
 // ========================================
 
@@ -899,8 +896,6 @@ Test content`
 		t.Error("Expected 'result' output")
 	}
 }
-<<<<<<< HEAD
-=======
 
 // ========================================
 // Complex Dependency and Ordering Tests
@@ -1971,4 +1966,3 @@ func TestBuildCustomJobsSkipsPreActivationJob(t *testing.T) {
 		t.Error("Expected normal_job to be added")
 	}
 }
->>>>>>> origin/main

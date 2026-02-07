@@ -19,8 +19,6 @@ const (
 	ansiCarriageReturn = "\r"
 )
 
-<<<<<<< HEAD
-=======
 // ClearScreen clears the terminal screen if stderr is a TTY
 // Uses ANSI escape codes for cross-platform compatibility
 func ClearScreen() {
@@ -37,7 +35,6 @@ func ClearLine() {
 	}
 }
 
->>>>>>> origin/main
 // MoveCursorUp moves cursor up n lines if stderr is a TTY.
 // Uses ANSI escape code: \033[nA where n is the number of lines.
 func MoveCursorUp(n int) {

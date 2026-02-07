@@ -40,15 +40,9 @@ steps:
       echo "Artifacts saved to /tmp/ci-artifacts/"
       
       # Summarize downloaded artifacts
-<<<<<<< HEAD
-      echo "## Downloaded Artifacts" >> $GITHUB_STEP_SUMMARY
-      find /tmp/ci-artifacts -type f -name "*.txt" -o -name "*.html" -o -name "*.json" | head -20 | while read -r f; do
-        echo "- $(basename $f)" >> $GITHUB_STEP_SUMMARY
-=======
       echo "## Downloaded Artifacts" >> "$GITHUB_STEP_SUMMARY"
       find /tmp/ci-artifacts -type f -name "*.txt" -o -name "*.html" -o -name "*.json" | head -20 | while read -r f; do
         echo "- $(basename "$f")" >> "$GITHUB_STEP_SUMMARY"
->>>>>>> origin/main
       done
   
   - name: Setup Node.js

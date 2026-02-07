@@ -8,10 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-<<<<<<< HEAD
 	"github.com/stretchr/testify/require"
-=======
->>>>>>> origin/main
 )
 
 func TestGeneratePluginInstallationSteps(t *testing.T) {
@@ -62,11 +59,7 @@ func TestGeneratePluginInstallationSteps(t *testing.T) {
 			plugins:      []string{"org/codex-plugin"},
 			engineID:     "codex",
 			githubToken:  "",
-<<<<<<< HEAD
 			expectSteps:  1, // Codex plugins now generate steps (validation moved to compile-time)
-=======
-			expectSteps:  1,
->>>>>>> origin/main
 			expectCmds:   []string{"codex plugin install org/codex-plugin"},
 			expectTokens: []string{"${{ secrets.GH_AW_PLUGINS_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}"}, // Cascading fallback
 		},
@@ -191,7 +184,6 @@ func TestExtractPluginsFromFrontmatter(t *testing.T) {
 func TestPluginInstallationIntegration(t *testing.T) {
 	// Test that plugins are properly integrated into engine installation steps
 	engines := []struct {
-<<<<<<< HEAD
 		engineID       string
 		engine         CodingAgentEngine
 		supportsPlugin bool
@@ -199,14 +191,6 @@ func TestPluginInstallationIntegration(t *testing.T) {
 		{"copilot", NewCopilotEngine(), true},
 		{"claude", NewClaudeEngine(), true},
 		{"codex", NewCodexEngine(), false},
-=======
-		engineID string
-		engine   CodingAgentEngine
-	}{
-		{"copilot", NewCopilotEngine()},
-		{"claude", NewClaudeEngine()},
-		{"codex", NewCodexEngine()},
->>>>>>> origin/main
 	}
 
 	for _, e := range engines {
@@ -228,7 +212,6 @@ func TestPluginInstallationIntegration(t *testing.T) {
 				allStepsText += strings.Join(step, "\n") + "\n"
 			}
 
-<<<<<<< HEAD
 			// For engines that don't support plugins, no plugin steps should be generated
 			// But GeneratePluginInstallationSteps still generates them - the validation happens at compile-time
 			if !e.supportsPlugin {
@@ -248,19 +231,6 @@ func TestPluginInstallationIntegration(t *testing.T) {
 				assert.Contains(t, allStepsText, "secrets.GH_AW_PLUGINS_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN",
 					"Plugin installation should use cascading token when no custom token provided")
 			}
-=======
-			// Verify plugin installation step is present
-			assert.Contains(t, allStepsText, fmt.Sprintf("%s plugin install github/test-plugin", e.engineID),
-				"Installation steps should include plugin installation command")
-
-			// Verify GITHUB_TOKEN is set
-			assert.Contains(t, allStepsText, "GITHUB_TOKEN:",
-				"Plugin installation should have GITHUB_TOKEN environment variable")
-
-			// Verify cascading token is used when no custom token provided
-			assert.Contains(t, allStepsText, "secrets.GH_AW_PLUGINS_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN",
-				"Plugin installation should use cascading token when no custom token provided")
->>>>>>> origin/main
 		})
 	}
 }
@@ -299,7 +269,6 @@ func TestPluginTokenCascading(t *testing.T) {
 func TestPluginObjectFormatWithCustomToken(t *testing.T) {
 	// Test that object format with custom token overrides cascading resolution
 	engines := []struct {
-<<<<<<< HEAD
 		engineID       string
 		engine         CodingAgentEngine
 		supportsPlugin bool
@@ -307,14 +276,6 @@ func TestPluginObjectFormatWithCustomToken(t *testing.T) {
 		{"copilot", NewCopilotEngine(), true},
 		{"claude", NewClaudeEngine(), true},
 		{"codex", NewCodexEngine(), false},
-=======
-		engineID string
-		engine   CodingAgentEngine
-	}{
-		{"copilot", NewCopilotEngine()},
-		{"claude", NewClaudeEngine()},
-		{"codex", NewCodexEngine()},
->>>>>>> origin/main
 	}
 
 	for _, e := range engines {
@@ -337,7 +298,6 @@ func TestPluginObjectFormatWithCustomToken(t *testing.T) {
 				allStepsText += strings.Join(step, "\n") + "\n"
 			}
 
-<<<<<<< HEAD
 			// For engines that don't support plugins, GeneratePluginInstallationSteps still generates them
 			// But compile-time validation prevents it from being used in real workflows
 			if !e.supportsPlugin {
@@ -529,19 +489,6 @@ func TestEngineSupportsPlugins(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			supports := tt.engine.SupportsPlugins()
 			assert.Equal(t, tt.expectsPlugins, supports, "SupportsPlugins() should return expected value")
-=======
-			// Verify plugin installation step is present
-			assert.Contains(t, allStepsText, fmt.Sprintf("%s plugin install github/test-plugin", e.engineID),
-				"Installation steps should include plugin installation command")
-
-			// Verify custom token is used (not the cascading fallback)
-			assert.Contains(t, allStepsText, "GITHUB_TOKEN: ${{ secrets.CUSTOM_PLUGIN_TOKEN }}",
-				"Plugin installation should use custom token when provided")
-
-			// Verify cascading token is NOT used
-			assert.NotContains(t, allStepsText, "secrets.GH_AW_PLUGINS_TOKEN",
-				"Plugin installation should not use cascading token when custom token is provided")
->>>>>>> origin/main
 		})
 	}
 }

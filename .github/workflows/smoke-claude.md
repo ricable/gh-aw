@@ -18,11 +18,6 @@ name: Smoke Claude
 engine:
   id: claude
   max-turns: 15
-<<<<<<< HEAD
-plugins:
-  - explanatory-output-style@claude-plugins-official
-=======
->>>>>>> origin/main
 strict: true
 imports:
   - shared/mood.md

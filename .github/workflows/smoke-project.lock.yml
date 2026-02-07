@@ -27,11 +27,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-<<<<<<< HEAD
-# frontmatter-hash: 1a19cc6d450d2660aed67a43699e03d38308953660647e3c9ba2253071dd5935
-=======
 # frontmatter-hash: 444a34a300c5972bb914d3c10b44ef630d57544b9654a07681fed0038bf51692
->>>>>>> origin/main
 
 name: "Smoke Project"
 "on":

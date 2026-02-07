@@ -12,11 +12,6 @@ permissions:
   pull-requests: read
 name: Agent Container Smoke Test
 engine: copilot
-<<<<<<< HEAD
-plugins:
-  - explanatory-output-style@claude-plugins-official
-=======
->>>>>>> origin/main
 strict: true
 runtimes:
   node:

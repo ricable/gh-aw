@@ -31,17 +31,7 @@ safe-outputs:
 tools:
   github:
     toolsets: [default]
-<<<<<<< HEAD
-  bash:
-    - "gh aw update --verbose"
-    - "git status"
-    - "git diff .github/aw/actions-lock.json"
-    - "git add .github/aw/actions-lock.json"
-    - "git commit"
-    - "git push"
-=======
   bash: true
->>>>>>> origin/main
 
 timeout-minutes: 15
 

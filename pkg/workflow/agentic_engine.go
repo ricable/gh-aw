@@ -125,13 +125,10 @@ type CapabilityProvider interface {
 	// SupportsFirewall returns true if this engine supports network firewalling/sandboxing
 	// When true, the engine can enforce network restrictions defined in the workflow
 	SupportsFirewall() bool
-<<<<<<< HEAD
 
 	// SupportsPlugins returns true if this engine supports installing plugins
 	// When false, plugin installation commands will not be generated for this engine
 	SupportsPlugins() bool
-=======
->>>>>>> origin/main
 }
 
 // WorkflowExecutor handles workflow compilation and execution
@@ -206,10 +203,7 @@ type BaseEngine struct {
 	supportsWebFetch       bool
 	supportsWebSearch      bool
 	supportsFirewall       bool
-<<<<<<< HEAD
 	supportsPlugins        bool
-=======
->>>>>>> origin/main
 }
 
 func (e *BaseEngine) GetID() string {
@@ -252,13 +246,10 @@ func (e *BaseEngine) SupportsFirewall() bool {
 	return e.supportsFirewall
 }
 
-<<<<<<< HEAD
 func (e *BaseEngine) SupportsPlugins() bool {
 	return e.supportsPlugins
 }
 
-=======
->>>>>>> origin/main
 // GetDeclaredOutputFiles returns an empty list by default (engines can override)
 func (e *BaseEngine) GetDeclaredOutputFiles() []string {
 	return []string{}

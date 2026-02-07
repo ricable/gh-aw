@@ -7,10 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-<<<<<<< HEAD
-=======
 	"time"
->>>>>>> origin/main
 
 	"github.com/github/gh-aw/pkg/stringutil"
 	"github.com/github/gh-aw/pkg/testutil"
@@ -301,8 +298,6 @@ engine: copilot
 	// Artifact manager should still exist (it's reset, not recreated to nil)
 	require.NotNil(t, compiler.artifactManager, "Artifact manager should persist after reset")
 }
-<<<<<<< HEAD
-=======
 
 // TestValidateWorkflowData tests the validateWorkflowData function
 func TestValidateWorkflowData(t *testing.T) {
@@ -531,4 +526,3 @@ func TestWriteWorkflowOutput_ContentUnchanged(t *testing.T) {
 
 	assert.Equal(t, initialModTime, finalModTime, "File should not be rewritten if content is unchanged")
 }
->>>>>>> origin/main

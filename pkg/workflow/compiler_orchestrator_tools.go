@@ -180,7 +180,6 @@ func (c *Compiler) processToolsAndMarkdown(result *parser.FrontmatterResult, cle
 		orchestratorToolsLog.Printf("Merged plugins: %d total unique plugins", len(pluginInfo.Plugins))
 	}
 
-<<<<<<< HEAD
 	// Validate that plugins are supported by the engine
 	if pluginInfo != nil && len(pluginInfo.Plugins) > 0 {
 		if !agenticEngine.SupportsPlugins() {
@@ -191,8 +190,6 @@ func (c *Compiler) processToolsAndMarkdown(result *parser.FrontmatterResult, cle
 		orchestratorToolsLog.Printf("Validated plugin support: engine supports plugins")
 	}
 
-=======
->>>>>>> origin/main
 	// Add MCP fetch server if needed (when web-fetch is requested but engine doesn't support it)
 	tools, _ = AddMCPFetchServerIfNeeded(tools, agenticEngine)
 

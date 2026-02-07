@@ -2,10 +2,7 @@ package workflow
 
 import (
 	"fmt"
-<<<<<<< HEAD
 	"strings"
-=======
->>>>>>> origin/main
 
 	"github.com/github/gh-aw/pkg/logger"
 )
@@ -53,15 +50,12 @@ func GeneratePluginInstallationSteps(plugins []string, engineID string, githubTo
 
 	// Generate installation steps for each plugin
 	for _, plugin := range plugins {
-<<<<<<< HEAD
 		// Validate plugin compatibility with engine
 		if err := validatePluginForEngine(plugin, engineID); err != nil {
 			pluginInstallLog.Printf("Skipping incompatible plugin: %v", err)
 			continue
 		}
 
-=======
->>>>>>> origin/main
 		step := generatePluginInstallStep(plugin, engineID, effectiveToken)
 		steps = append(steps, step)
 		pluginInstallLog.Printf("Generated plugin install step: plugin=%s, engine=%s", plugin, engineID)
@@ -70,7 +64,6 @@ func GeneratePluginInstallationSteps(plugins []string, engineID string, githubTo
 	return steps
 }
 
-<<<<<<< HEAD
 // validatePluginForEngine validates that a plugin is compatible with the given engine.
 // Returns an error if the plugin uses a marketplace format that is incompatible with the engine.
 // Note: Engine plugin support is validated at compile time in compiler_orchestrator_tools.go
@@ -107,10 +100,6 @@ func validatePluginForEngine(plugin string, engineID string) error {
 // generatePluginInstallStep generates a single GitHub Actions step to install a plugin.
 // The step uses the engine-specific CLI command with proper authentication.
 // Note: This function should only be called for engines that support plugins
-=======
-// generatePluginInstallStep generates a single GitHub Actions step to install a plugin.
-// The step uses the engine-specific CLI command with proper authentication.
->>>>>>> origin/main
 func generatePluginInstallStep(plugin, engineID, githubToken string) GitHubActionStep {
 	// Determine the command based on the engine
 	var command string
@@ -118,15 +107,7 @@ func generatePluginInstallStep(plugin, engineID, githubToken string) GitHubActio
 	case "copilot":
 		command = fmt.Sprintf("copilot plugin install %s", plugin)
 	case "claude":
-<<<<<<< HEAD
 		command = fmt.Sprintf("claude plugin install %s", plugin)
-=======
-		// TODO: validate the correct claude CLI plugin install command syntax
-		command = fmt.Sprintf("claude plugin install %s", plugin)
-	case "codex":
-		// TODO: validate the correct codex CLI plugin install command syntax
-		command = fmt.Sprintf("codex plugin install %s", plugin)
->>>>>>> origin/main
 	default:
 		// For unknown engines, use a generic format
 		command = fmt.Sprintf("%s plugin install %s", engineID, plugin)
