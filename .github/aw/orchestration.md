@@ -119,13 +119,18 @@ Alternative: Equivalent JSON format for agent output:
 }
 ```
 
-## Custom Job Dependencies
+## When Execution Order Matters
 
-For workflows with multiple custom jobs, use GitHub Actions `needs` syntax to define dependency chains:
+For workflows where **deterministic execution order** is required within a single workflow run, use custom jobs with `needs` dependencies:
+
+**Use custom job dependencies when:**
+- Pre-processing steps must complete before the agent runs (data fetching, static analysis, linting)
+- Post-processing requires outputs from both agent and pre-processing jobs (reporting, cleanup)
+- Execution order is fixed and known at workflow design time
 
 ```yaml wrap
 jobs:
-  # Pre-processing job that fetches data
+  # Pre-processing: must complete before agent
   fetch_data:
     needs: activation
     runs-on: ubuntu-latest
@@ -137,17 +142,9 @@ jobs:
         run: |
           echo "url=https://api.example.com/data" >> $GITHUB_OUTPUT
   
-  # Validation job depends on data fetch
-  validate_data:
-    needs: fetch_data
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate URL
-        run: echo "Validating ${{ needs.fetch_data.outputs.api_url }}"
-  
-  # Report job runs after agent completes
+  # Post-processing: runs after agent completes
   report:
-    needs: [agent, fetch_data]  # Multiple dependencies
+    needs: [agent, fetch_data]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -155,14 +152,13 @@ jobs:
         run: echo "Report using ${{ needs.fetch_data.outputs.api_url }}"
 ```
 
-**Key capabilities:**
-- Jobs without explicit `needs` automatically depend on `activation`
-- Use array syntax for multiple dependencies: `needs: [job1, job2]`
-- Reference job outputs via `${{ needs.job_name.outputs.output_name }}`
-- Use `if: always()` to run cleanup/report jobs regardless of previous job status
-- Compiler validates dependencies and detects circular references
+**For dynamic orchestration across multiple runs:**
+- Use `dispatch-workflow` to trigger worker workflows
+- Workers can update Projects to coordinate state across runs
+- Each workflow run is independent and can be retried
+- Orchestrator makes runtime decisions about which workers to dispatch
 
-See [frontmatter documentation](/gh-aw/reference/frontmatter/#job-dependencies-needs) for more examples.
+See [frontmatter documentation](/gh-aw/reference/frontmatter/#job-dependencies-needs) for more `needs` examples.
 
 ## Design Guidelines for Orchestrator Workflows
 
