@@ -37,4 +37,24 @@ If your workers need shared context, pass an explicit input such as `tracker_id`
 - Set conservative `max` limits on dispatch to prevent accidental fan-out.
 - Prefer Projects + status updates for **monitoring** over ad-hoc labels.
 
+## Dynamic vs. Static Parallelization
+
+Agentic workflows use **dynamic parallelization** where the agent decides at runtime which workers to dispatch and how many:
+
+```yaml
+safe-outputs:
+  dispatch-workflow:
+    workflows: [worker-a, worker-b, worker-c]
+    max: 10  # Agent chooses which workers and how many instances
+```
+
+This differs from **static parallelization** (GitHub Actions matrix strategy) where combinations are predefined at compile time. Matrix jobs are not typically useful for agentic orchestration because:
+
+- Orchestrators make intelligent routing decisions based on content analysis
+- Work items are discovered dynamically (issues, PRs, alerts)
+- The number and type of workers needed depends on runtime conditions
+- Matrix requires all combinations to be known before workflow execution
+
+For predetermined parallel tasks across static lists, use custom jobs with [job dependencies (`needs`)](/gh-aw/reference/frontmatter/#job-dependencies-needs) instead.
+
 See also: [/patterns/monitoring/](/gh-aw/patterns/monitoring/)

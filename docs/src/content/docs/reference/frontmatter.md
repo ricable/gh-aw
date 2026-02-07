@@ -458,6 +458,52 @@ The agentic execution job waits for all custom jobs to complete. Custom jobs can
 > [!CAUTION]
 > Security Notice: Custom jobs run OUTSIDE the firewall sandbox. These jobs execute with standard GitHub Actions security but do NOT have the network egress controls that protect the agent job. Do not run agentic compute or untrusted AI execution in custom jobs—use them only for deterministic preprocessing, data fetching, or static analysis.
 
+### Job Dependencies (`needs`)
+
+Custom jobs support GitHub Actions `needs` syntax for creating job dependency chains. Jobs can depend on other custom jobs, the `activation` job, or the `agent` job:
+
+```yaml wrap
+jobs:
+  # First job: fetch external data
+  fetch_data:
+    needs: activation  # Run after workflow activation
+    runs-on: ubuntu-latest
+    outputs:
+      api_url: ${{ steps.fetch.outputs.url }}
+    steps:
+      - name: Fetch configuration
+        id: fetch
+        run: |
+          echo "url=https://api.example.com/data" >> $GITHUB_OUTPUT
+  
+  # Second job: depends on data fetch
+  validate_data:
+    needs: fetch_data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate URL
+        run: echo "Validating ${{ needs.fetch_data.outputs.api_url }}"
+  
+  # Third job: runs after agent completes
+  report:
+    needs: [agent, fetch_data]  # Multiple dependencies
+    if: always()  # Run even if agent fails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate report
+        run: echo "Report using ${{ needs.fetch_data.outputs.api_url }}"
+---
+
+Use the data from ${{ needs.fetch_data.outputs.api_url }} to complete your task.
+```
+
+**Key points:**
+- Jobs without explicit `needs` automatically depend on `activation`
+- Use array syntax for multiple dependencies: `needs: [job1, job2]`
+- Reference job outputs via `${{ needs.job_name.outputs.output_name }}`
+- Use `if: always()` to run cleanup/report jobs regardless of previous job status
+- The compiler validates dependencies and detects circular references
+
 ### Job Outputs
 
 Custom jobs can expose outputs accessible in the agentic execution prompt via `${{ needs.job-name.outputs.output-name }}`:
