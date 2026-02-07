@@ -85,7 +85,7 @@ func TestMCPServer_AuditToolWithJqFilter(t *testing.T) {
 
 		// Apply invalid jq filter
 		_, err := ApplyJqFilter(sampleJSON, ".[invalid")
-		assert.Error(t, err, "Invalid jq filter should return error")
+		require.Error(t, err, "Invalid jq filter should return error")
 		assert.Contains(t, err.Error(), "jq filter failed", "Error should mention jq filter failure")
 	})
 }
