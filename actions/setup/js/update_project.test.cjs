@@ -481,62 +481,10 @@ describe("updateProject", () => {
 
     await updateProject(output);
 
-    expect(mockCore.info).toHaveBeenCalledWith("✓ Draft issue already on board (matched by title)");
+    expect(mockCore.info).toHaveBeenCalledWith("✓ Draft issue already on board");
     expect(getOutput("item-id")).toBe("existing-draft-item");
     // Should not call addProjectV2DraftIssue mutation
     expect(mockGithub.graphql.mock.calls.some(([query]) => query.includes("addProjectV2DraftIssue"))).toBe(false);
-  });
-
-  it("creates draft issue with temporary_id and allows reference by ID", async () => {
-    const projectUrl = "https://github.com/orgs/testowner/projects/60";
-
-    // Create a shared temporary ID map to simulate persistence
-    const temporaryIdMap = new Map();
-
-    // First call: create with temporary_id
-    const createOutput = {
-      type: "update_project",
-      project: projectUrl,
-      content_type: "draft_issue",
-      draft_title: "Task 1",
-      temporary_id: "aw_abc123def456",
-    };
-
-    queueResponses([repoResponse(), viewerResponse(), orgProjectV2Response(projectUrl, 60, "project-temp-id"), emptyDraftItemsResponse(), addDraftIssueResponse("draft-temp-1")]);
-
-    // Get the handler factory and call it with the message
-    const handler = await updateProjectHandlerFactory({});
-    await handler(createOutput, temporaryIdMap);
-
-    expect(mockCore.info).toHaveBeenCalledWith("Created draft issue and stored temporary ID mapping: aw_abc123def456 -> draft-temp-1");
-    expect(getOutput("item-id")).toBe("draft-temp-1");
-
-    // Verify the temporary ID was stored
-    expect(temporaryIdMap.has("aw_abc123def456")).toBe(true);
-    expect(temporaryIdMap.get("aw_abc123def456")).toEqual({ draftItemId: "draft-temp-1" });
-
-    // Second call: reference by temporary_id only (no title needed)
-    const updateOutput = {
-      type: "update_project",
-      project: projectUrl,
-      content_type: "draft_issue",
-      temporary_id: "aw_abc123def456",
-      fields: { Status: "Done" },
-    };
-
-    queueResponses([
-      repoResponse(),
-      viewerResponse(),
-      orgProjectV2Response(projectUrl, 60, "project-temp-id"),
-      fieldsResponse([{ id: "field-status", name: "Status", dataType: "SINGLE_SELECT", options: [{ id: "opt-done", name: "Done" }] }]),
-      updateFieldValueResponse(),
-    ]);
-
-    await handler(updateOutput, temporaryIdMap);
-
-    // Check that the message was logged (may be among other info messages)
-    const infoCalls = mockCore.info.mock.calls.map(call => call[0]);
-    expect(infoCalls).toContain("✓ Draft issue found via temporary ID aw_abc123def456");
   });
 
   it("skips adding an issue that already exists on the board", async () => {
