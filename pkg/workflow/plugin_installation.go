@@ -66,12 +66,8 @@ func GeneratePluginInstallationSteps(plugins []string, engineID string, githubTo
 
 // validatePluginForEngine validates that a plugin is compatible with the given engine.
 // Returns an error if the plugin uses a marketplace format that is incompatible with the engine.
+// Note: Engine plugin support is validated at compile time in compiler_orchestrator_tools.go
 func validatePluginForEngine(plugin string, engineID string) error {
-	// Codex engine does not support plugin install command at all - it uses MCP servers instead
-	if engineID == "codex" {
-		return fmt.Errorf("codex engine does not support plugin install command - use MCP servers (codex mcp add) instead for plugin: %s", plugin)
-	}
-
 	// Check for marketplace syntax: plugin-name@marketplace
 	if strings.Contains(plugin, "@") {
 		parts := strings.Split(plugin, "@")
@@ -103,6 +99,7 @@ func validatePluginForEngine(plugin string, engineID string) error {
 
 // generatePluginInstallStep generates a single GitHub Actions step to install a plugin.
 // The step uses the engine-specific CLI command with proper authentication.
+// Note: This function should only be called for engines that support plugins
 func generatePluginInstallStep(plugin, engineID, githubToken string) GitHubActionStep {
 	// Determine the command based on the engine
 	var command string
@@ -111,12 +108,6 @@ func generatePluginInstallStep(plugin, engineID, githubToken string) GitHubActio
 		command = fmt.Sprintf("copilot plugin install %s", plugin)
 	case "claude":
 		command = fmt.Sprintf("claude plugin install %s", plugin)
-	case "codex":
-		// Codex CLI does not support plugin install command
-		// Codex uses MCP servers (codex mcp add) instead of plugins
-		// This should have been caught by validation, but provide a clear error if reached
-		pluginInstallLog.Printf("ERROR: Codex engine does not support 'plugin install' command - use MCP servers instead")
-		command = "echo 'ERROR: Codex does not support plugin install. Use MCP servers (codex mcp add) instead.' && exit 1"
 	default:
 		// For unknown engines, use a generic format
 		command = fmt.Sprintf("%s plugin install %s", engineID, plugin)

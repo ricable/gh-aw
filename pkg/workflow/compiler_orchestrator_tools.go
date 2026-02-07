@@ -180,6 +180,16 @@ func (c *Compiler) processToolsAndMarkdown(result *parser.FrontmatterResult, cle
 		orchestratorToolsLog.Printf("Merged plugins: %d total unique plugins", len(pluginInfo.Plugins))
 	}
 
+	// Validate that plugins are supported by the engine
+	if pluginInfo != nil && len(pluginInfo.Plugins) > 0 {
+		if !agenticEngine.SupportsPlugins() {
+			engineID := agenticEngine.GetID()
+			orchestratorToolsLog.Printf("Engine %s does not support plugins, %d plugin(s) specified", engineID, len(pluginInfo.Plugins))
+			return nil, fmt.Errorf("engine '%s' does not support plugin installation. Plugins specified: %v. For Codex, use MCP servers (codex mcp add) instead", engineID, pluginInfo.Plugins)
+		}
+		orchestratorToolsLog.Printf("Validated plugin support: engine supports plugins")
+	}
+
 	// Add MCP fetch server if needed (when web-fetch is requested but engine doesn't support it)
 	tools, _ = AddMCPFetchServerIfNeeded(tools, agenticEngine)
 
