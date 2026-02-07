@@ -69,7 +69,7 @@ func GeneratePluginInstallationSteps(plugins []string, engineID string, githubTo
 func validatePluginForEngine(plugin string, engineID string) error {
 	// Codex engine does not support plugin install command at all - it uses MCP servers instead
 	if engineID == "codex" {
-		return fmt.Errorf("Codex engine does not support plugin install command - use MCP servers (codex mcp add) instead for plugin: %s", plugin)
+		return fmt.Errorf("codex engine does not support plugin install command - use MCP servers (codex mcp add) instead for plugin: %s", plugin)
 	}
 
 	// Check for marketplace syntax: plugin-name@marketplace
@@ -116,7 +116,7 @@ func generatePluginInstallStep(plugin, engineID, githubToken string) GitHubActio
 		// Codex uses MCP servers (codex mcp add) instead of plugins
 		// This should have been caught by validation, but provide a clear error if reached
 		pluginInstallLog.Printf("ERROR: Codex engine does not support 'plugin install' command - use MCP servers instead")
-		command = fmt.Sprintf("echo 'ERROR: Codex does not support plugin install. Use MCP servers (codex mcp add) instead.' && exit 1")
+		command = "echo 'ERROR: Codex does not support plugin install. Use MCP servers (codex mcp add) instead.' && exit 1"
 	default:
 		// For unknown engines, use a generic format
 		command = fmt.Sprintf("%s plugin install %s", engineID, plugin)

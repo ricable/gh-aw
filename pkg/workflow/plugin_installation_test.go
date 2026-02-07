@@ -317,145 +317,145 @@ func TestPluginObjectFormatWithCustomToken(t *testing.T) {
 }
 
 func TestValidatePluginForEngine(t *testing.T) {
-tests := []struct {
-name        string
-plugin      string
-engineID    string
-expectErr   bool
-errContains string
-}{
-{
-name:      "GitHub plugin works with any engine",
-plugin:    "github/test-plugin",
-engineID:  "copilot",
-expectErr: false,
-},
-{
-name:        "Regular plugin with Codex engine fails",
-plugin:      "github/test-plugin",
-engineID:    "codex",
-expectErr:   true,
-errContains: "Codex engine does not support plugin install",
-},
-{
-name:        "Codex plugin with Codex engine fails",
-plugin:      "org/codex-plugin",
-engineID:    "codex",
-expectErr:   true,
-errContains: "Codex engine does not support plugin install",
-},
-{
-name:      "Org/repo format works with any engine",
-plugin:    "acme/my-plugin",
-engineID:  "claude",
-expectErr: false,
-},
-{
-name:        "Claude marketplace plugin with Codex engine fails",
-plugin:      "explanatory-output-style@claude-plugins-official",
-engineID:    "codex",
-expectErr:   true,
-errContains: "Codex engine does not support plugin install",
-},
-{
-name:        "Claude marketplace plugin with Copilot engine fails",
-plugin:      "explanatory-output-style@claude-plugins-official",
-engineID:    "copilot",
-expectErr:   true,
-errContains: "Claude marketplace",
-},
-{
-name:      "Claude marketplace plugin with Claude engine works",
-plugin:    "explanatory-output-style@claude-plugins-official",
-engineID:  "claude",
-expectErr: false,
-},
-{
-name:        "Copilot marketplace plugin with Claude engine fails",
-plugin:      "some-plugin@copilot-plugins-official",
-engineID:    "claude",
-expectErr:   true,
-errContains: "Copilot marketplace",
-},
-{
-name:      "Copilot marketplace plugin with Copilot engine works",
-plugin:    "some-plugin@copilot-plugins-official",
-engineID:  "copilot",
-expectErr: false,
-},
-{
-name:      "Unknown marketplace shows warning but allows",
-plugin:    "some-plugin@unknown-marketplace",
-engineID:  "copilot",
-expectErr: false,
-},
-}
+	tests := []struct {
+		name        string
+		plugin      string
+		engineID    string
+		expectErr   bool
+		errContains string
+	}{
+		{
+			name:      "GitHub plugin works with any engine",
+			plugin:    "github/test-plugin",
+			engineID:  "copilot",
+			expectErr: false,
+		},
+		{
+			name:        "Regular plugin with Codex engine fails",
+			plugin:      "github/test-plugin",
+			engineID:    "codex",
+			expectErr:   true,
+			errContains: "codex engine does not support plugin install",
+		},
+		{
+			name:        "Codex plugin with Codex engine fails",
+			plugin:      "org/codex-plugin",
+			engineID:    "codex",
+			expectErr:   true,
+			errContains: "codex engine does not support plugin install",
+		},
+		{
+			name:      "Org/repo format works with any engine",
+			plugin:    "acme/my-plugin",
+			engineID:  "claude",
+			expectErr: false,
+		},
+		{
+			name:        "Claude marketplace plugin with Codex engine fails",
+			plugin:      "explanatory-output-style@claude-plugins-official",
+			engineID:    "codex",
+			expectErr:   true,
+			errContains: "codex engine does not support plugin install",
+		},
+		{
+			name:        "Claude marketplace plugin with Copilot engine fails",
+			plugin:      "explanatory-output-style@claude-plugins-official",
+			engineID:    "copilot",
+			expectErr:   true,
+			errContains: "Claude marketplace",
+		},
+		{
+			name:      "Claude marketplace plugin with Claude engine works",
+			plugin:    "explanatory-output-style@claude-plugins-official",
+			engineID:  "claude",
+			expectErr: false,
+		},
+		{
+			name:        "Copilot marketplace plugin with Claude engine fails",
+			plugin:      "some-plugin@copilot-plugins-official",
+			engineID:    "claude",
+			expectErr:   true,
+			errContains: "Copilot marketplace",
+		},
+		{
+			name:      "Copilot marketplace plugin with Copilot engine works",
+			plugin:    "some-plugin@copilot-plugins-official",
+			engineID:  "copilot",
+			expectErr: false,
+		},
+		{
+			name:      "Unknown marketplace shows warning but allows",
+			plugin:    "some-plugin@unknown-marketplace",
+			engineID:  "copilot",
+			expectErr: false,
+		},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-err := validatePluginForEngine(tt.plugin, tt.engineID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePluginForEngine(tt.plugin, tt.engineID)
 
-if tt.expectErr {
-assert.Error(t, err, "Expected validation to fail")
-if tt.errContains != "" {
-assert.Contains(t, err.Error(), tt.errContains, "Error should contain expected text")
-}
-} else {
-assert.NoError(t, err, "Expected validation to pass")
-}
-})
-}
+			if tt.expectErr {
+				require.Error(t, err, "Expected validation to fail")
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains, "Error should contain expected text")
+				}
+			} else {
+				assert.NoError(t, err, "Expected validation to pass")
+			}
+		})
+	}
 }
 
 func TestGeneratePluginInstallationStepsSkipsIncompatible(t *testing.T) {
-// Test that incompatible plugins are skipped
-tests := []struct {
-name        string
-plugins     []string
-engineID    string
-expectSteps int
-expectCmds  []string
-}{
-{
-name:        "Claude marketplace plugin skipped for Codex",
-plugins:     []string{"explanatory-output-style@claude-plugins-official"},
-engineID:    "codex",
-expectSteps: 0,
-expectCmds:  []string{},
-},
-{
-name:        "Claude marketplace plugin skipped for Copilot",
-plugins:     []string{"explanatory-output-style@claude-plugins-official"},
-engineID:    "copilot",
-expectSteps: 0,
-expectCmds:  []string{},
-},
-{
-name:        "Claude marketplace plugin works for Claude",
-plugins:     []string{"explanatory-output-style@claude-plugins-official"},
-engineID:    "claude",
-expectSteps: 1,
-expectCmds:  []string{"claude plugin install explanatory-output-style@claude-plugins-official"},
-},
-{
-name:        "Mixed plugins - compatible ones processed, incompatible skipped",
-plugins:     []string{"github/valid-plugin", "invalid@claude-plugins-official", "acme/another"},
-engineID:    "copilot",
-expectSteps: 2,
-expectCmds:  []string{"copilot plugin install github/valid-plugin", "copilot plugin install acme/another"},
-},
-}
+	// Test that incompatible plugins are skipped
+	tests := []struct {
+		name        string
+		plugins     []string
+		engineID    string
+		expectSteps int
+		expectCmds  []string
+	}{
+		{
+			name:        "Claude marketplace plugin skipped for Codex",
+			plugins:     []string{"explanatory-output-style@claude-plugins-official"},
+			engineID:    "codex",
+			expectSteps: 0,
+			expectCmds:  []string{},
+		},
+		{
+			name:        "Claude marketplace plugin skipped for Copilot",
+			plugins:     []string{"explanatory-output-style@claude-plugins-official"},
+			engineID:    "copilot",
+			expectSteps: 0,
+			expectCmds:  []string{},
+		},
+		{
+			name:        "Claude marketplace plugin works for Claude",
+			plugins:     []string{"explanatory-output-style@claude-plugins-official"},
+			engineID:    "claude",
+			expectSteps: 1,
+			expectCmds:  []string{"claude plugin install explanatory-output-style@claude-plugins-official"},
+		},
+		{
+			name:        "Mixed plugins - compatible ones processed, incompatible skipped",
+			plugins:     []string{"github/valid-plugin", "invalid@claude-plugins-official", "acme/another"},
+			engineID:    "copilot",
+			expectSteps: 2,
+			expectCmds:  []string{"copilot plugin install github/valid-plugin", "copilot plugin install acme/another"},
+		},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-steps := GeneratePluginInstallationSteps(tt.plugins, tt.engineID, "")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			steps := GeneratePluginInstallationSteps(tt.plugins, tt.engineID, "")
 
-assert.Len(t, steps, tt.expectSteps, "Number of steps should match")
+			assert.Len(t, steps, tt.expectSteps, "Number of steps should match")
 
-for i, step := range steps {
-stepText := strings.Join(step, "\n")
-assert.Contains(t, stepText, tt.expectCmds[i], "Step should contain expected command")
-}
-})
-}
+			for i, step := range steps {
+				stepText := strings.Join(step, "\n")
+				assert.Contains(t, stepText, tt.expectCmds[i], "Step should contain expected command")
+			}
+		})
+	}
 }
