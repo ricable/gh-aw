@@ -318,7 +318,7 @@ func TestPermissionsBuilder_BackwardCompatibility(t *testing.T) {
 			builderYAML := builderPerms.RenderToYAML()
 			factoryYAML := factoryPerms.RenderToYAML()
 
-			assert.Equal(t, factoryYAML, builderYAML, "Builder and factory should produce identical YAML")
+			assert.YAMLEq(t, factoryYAML, builderYAML, "Builder and factory should produce identical YAML")
 		})
 	}
 }

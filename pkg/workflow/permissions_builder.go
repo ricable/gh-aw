@@ -4,14 +4,80 @@ import "github.com/github/gh-aw/pkg/logger"
 
 var permissionsBuilderLog = logger.New("workflow:permissions_builder")
 
-// PermissionsBuilder provides a fluent API for building Permissions objects
-// Example usage:
+// PermissionsBuilder provides a fluent API for building Permissions objects.
 //
+// The builder pattern replaces the previous factory explosion approach (23 constructors)
+// with a composable, type-safe API that scales to any permission combination.
+//
+// # Basic Usage
+//
+//	// Simple single permission
 //	perms := NewPermissionsBuilder().
-//	    WithContents(PermissionRead).
-//	    WithIssues(PermissionWrite).
-//	    WithPullRequests(PermissionWrite).
-//	    Build()
+//		WithContents(PermissionRead).
+//		Build()
+//
+//	// Multiple permissions
+//	perms := NewPermissionsBuilder().
+//		WithContents(PermissionRead).
+//		WithIssues(PermissionWrite).
+//		WithPullRequests(PermissionWrite).
+//		Build()
+//
+// # Advanced Usage
+//
+//	// Complex permission combinations
+//	perms := NewPermissionsBuilder().
+//		WithActions(PermissionWrite).
+//		WithContents(PermissionWrite).
+//		WithIssues(PermissionWrite).
+//		WithPullRequests(PermissionWrite).
+//		WithDiscussions(PermissionWrite).
+//		WithSecurityEvents(PermissionWrite).
+//		Build()
+//
+// # Backward Compatibility
+//
+// Existing factory functions remain available as deprecated wrappers:
+//
+//	// Old style (still works, but deprecated)
+//	perms := NewPermissionsContentsReadIssuesWrite()
+//
+//	// New style (preferred)
+//	perms := NewPermissionsBuilder().
+//		WithContents(PermissionRead).
+//		WithIssues(PermissionWrite).
+//		Build()
+//
+// Both produce identical results, but the builder pattern is more flexible
+// and doesn't require a new factory function for each combination.
+//
+// # Available Permission Scopes
+//
+// The builder provides methods for all GitHub Actions permission scopes:
+//   - WithActions(level)          - actions permission
+//   - WithAttestations(level)     - attestations permission
+//   - WithChecks(level)           - checks permission
+//   - WithContents(level)         - contents permission
+//   - WithDeployments(level)      - deployments permission
+//   - WithDiscussions(level)      - discussions permission
+//   - WithIdToken(level)          - id-token permission
+//   - WithIssues(level)           - issues permission
+//   - WithMetadata(level)         - metadata permission
+//   - WithModels(level)           - models permission
+//   - WithPackages(level)         - packages permission
+//   - WithPages(level)            - pages permission
+//   - WithPullRequests(level)     - pull-requests permission
+//   - WithRepositoryProjects(level)      - repository-projects permission
+//   - WithOrganizationProjects(level)    - organization-projects permission
+//   - WithSecurityEvents(level)   - security-events permission
+//   - WithStatuses(level)         - statuses permission
+//
+// # Permission Levels
+//
+// Each scope accepts one of three levels:
+//   - PermissionRead  - read access
+//   - PermissionWrite - write access (implies read)
+//   - PermissionNone  - explicitly no access
 type PermissionsBuilder struct {
 	perms *Permissions
 }

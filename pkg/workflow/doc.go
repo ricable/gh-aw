@@ -12,13 +12,25 @@
 //
 // # Basic Usage
 //
-//	compiler := workflow.NewCompiler(workflow.CompilerOptions{
-//		Verbose: true,
-//	})
+//	compiler := workflow.NewCompiler(workflow.WithVerbose(true))
 //	err := compiler.CompileWorkflow("path/to/workflow.md")
 //	if err != nil {
 //		log.Fatal(err)
 //	}
+//
+// # Permissions Builder
+//
+// The PermissionsBuilder provides a fluent API for constructing GitHub Actions
+// permissions with type safety and composability:
+//
+//	perms := workflow.NewPermissionsBuilder().
+//		WithContents(workflow.PermissionRead).
+//		WithIssues(workflow.PermissionWrite).
+//		WithPullRequests(workflow.PermissionWrite).
+//		Build()
+//
+// This replaces the previous factory explosion pattern (23 constructors) with
+// a composable builder pattern that scales to any permission combination.
 //
 // # Architecture
 //
