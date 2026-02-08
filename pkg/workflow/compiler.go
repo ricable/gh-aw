@@ -2,7 +2,6 @@ package workflow
 
 import (
 	_ "embed"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -37,6 +36,42 @@ const (
 //go:embed schemas/github-workflow.json
 var githubWorkflowSchema string
 
+// compilerError is a custom error type that formats errors with IDE-friendly multi-line output
+// while preserving the error chain for errors.Is() and errors.As()
+type compilerError struct {
+	formatted string
+	cause     error
+}
+
+func (e *compilerError) Error() string {
+	if e.cause == nil {
+		return e.formatted
+	}
+	// Format with cause on separate line(s) for IDE-friendliness
+	var builder strings.Builder
+	builder.WriteString(e.formatted)
+	builder.WriteString("\n")
+
+	// Add each error in the chain on a new line with indentation
+	causeStr := e.cause.Error()
+	lines := strings.Split(causeStr, "\n")
+	for _, line := range lines {
+		if line != "" {
+			builder.WriteString("  ")
+			builder.WriteString(line)
+			builder.WriteString("\n")
+		}
+	}
+
+	// Remove trailing newline
+	result := builder.String()
+	return strings.TrimSuffix(result, "\n")
+}
+
+func (e *compilerError) Unwrap() error {
+	return e.cause
+}
+
 // formatCompilerError creates a formatted compiler error message
 // filePath: the file path to include in the error (typically markdownPath or lockFile)
 // errType: the error type ("error" or "warning")
@@ -52,10 +87,11 @@ func formatCompilerError(filePath string, errType string, message string, cause 
 		Type:    errType,
 		Message: message,
 	})
-	if cause != nil {
-		return fmt.Errorf("%s: %w", formattedErr, cause)
+	// Return custom error type that preserves chain and formats multi-line
+	return &compilerError{
+		formatted: strings.TrimSuffix(formattedErr, "\n"),
+		cause:     cause,
 	}
-	return errors.New(formattedErr)
 }
 
 // formatCompilerMessage creates a formatted compiler message string (for warnings printed to stderr)
