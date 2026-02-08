@@ -2,7 +2,12 @@
 
 ## Executive Summary
 
-**YES** - Workflows CAN technically import files from `.github/aw/` directory, but **SHOULD NOT** due to semantic and architectural differences.
+**YES** - Workflows CAN technically import files from `.github/aw/` directory.
+
+**SHOULD YOU?** It depends on the content type:
+- **Hybrid content** (safe-outputs + runtime instructions): ⚠️ CONSIDER (acceptable for reducing boilerplate)
+- **Pure agent configuration**: ❌ NO (use `shared/` instead)
+- **Reusable components**: ✅ YES (but create in `shared/` directory)
 
 ## Technical Feasibility
 
@@ -117,13 +122,49 @@ infer: false
 | **Semantic Meaning** | "This is meant to be shared" | "This configures agent behavior" |
 | **Directory Convention** | Standard for reusable components | Standard for agent configuration |
 
-## Why `.github/aw/` Should NOT Be Used for Imports
+## When `.github/aw/` Imports Make Sense
+
+### Hybrid Content: Safe Outputs + Instructions
+
+Some files in `.github/aw/` serve **dual purposes**:
+
+1. **Agent creation guidance**: Help agents understand how to use features
+2. **Runtime instructions**: Provide guidance that accompanies safe-output configurations
+
+**Example**: `.github/aw/orchestration.md` contains:
+- `assign-to-agent` and `dispatch-workflow` safe-output configs
+- Best practices for correlation IDs and tracking
+- Runtime guidance on when to use each pattern
+
+For such hybrid content, importing from `.github/aw/` could be **acceptable** because:
+- ✅ Reduces boilerplate (no need to duplicate instructions)
+- ✅ Keeps instructions and configuration together
+- ✅ Makes workflows simpler to write
+
+**Usage Pattern**:
+```yaml
+---
+description: Orchestrator workflow
+imports:
+  - ../aw/orchestration.md  # Brings in assign-to-agent + guidance
+---
+
+# Orchestrator Agent
+
+Analyze the issue and create sub-issues for specialized agents.
+
+[The imported orchestration.md provides instructions on using assign_to_agent()]
+```
+
+## Why Pure Agent Config Should NOT Be Imported
+
+For content that's purely agent-specific, importing from `.github/aw/` creates problems:
 
 ### 1. **Semantic Confusion**
 
-The `.github/aw/` directory has a specific, documented purpose - agent configuration:
-- Files like `create-agentic-workflow.md` are prompts for meta-workflows
-- Files like `github-agentic-workflows.md` provide documentation
+Files like `create-agentic-workflow.md` are prompts for meta-workflows:
+- Designed for the agent that creates workflows
+- Not relevant at runtime for regular workflows
 - Using these for imports blurs the distinction
 
 ### 2. **Path Clarity**
@@ -133,10 +174,9 @@ The `.github/aw/` directory has a specific, documented purpose - agent configura
 imports:
   - shared/reporting.md
 
-# Awkward and unclear
+# Awkward and unclear (for pure agent config)
 imports:
-  - ../aw/orchestration.md
-  - .github/aw/orchestration.md
+  - ../aw/create-agentic-workflow.md
 ```
 
 The `shared/` prefix immediately signals "this is meant to be imported."
@@ -154,7 +194,7 @@ If `.github/aw/` becomes a special directory with different semantics (e.g., age
 
 ## Recommendations
 
-### ✅ DO: Use `shared/` for Reusable Components
+### ✅ DO: Use `shared/` for Most Reusable Components
 
 ```yaml
 ---
@@ -166,18 +206,46 @@ imports:
 ---
 ```
 
-### ❌ DON'T: Import from `.github/aw/`
+### ⚠️ CONSIDER: Import from `.github/aw/` for Hybrid Content
+
+For files that provide **both** safe-output configurations **and** runtime instructions:
 
 ```yaml
-# Avoid this pattern
+---
+description: Orchestrator workflow
 imports:
-  - ../aw/orchestration.md
-  - .github/aw/create-agentic-workflow.md
+  - ../aw/orchestration.md  # Acceptable: safe-outputs + instructions
+---
 ```
 
-### 🔄 Migration: If Content Needs Sharing
+**When to use this pattern**:
+- File contains safe-output configuration (e.g., `assign-to-agent`, `dispatch-workflow`)
+- File provides runtime guidance on using those safe-outputs
+- Content is genuinely useful during workflow execution (not just agent creation)
+- Importing reduces boilerplate and keeps config + docs together
 
-If a file in `.github/aw/` contains useful reusable content:
+### ❌ DON'T: Import Pure Agent Configuration
+
+```yaml
+# Avoid this pattern - pure agent prompts
+imports:
+  - ../aw/create-agentic-workflow.md     # NO: Agent creation prompt
+  - ../aw/github-agentic-workflows.md    # NO: Agent documentation
+```
+
+### 🔄 Migration: Create Shared Wrappers (Best Practice)
+
+If hybrid content becomes widely used, create a `shared/` wrapper:
+
+```bash
+# Extract reusable parts to shared
+cp .github/aw/orchestration.md .github/workflows/shared/orchestration-patterns.md
+
+# Keep agent-specific guidance in .github/aw/
+# Update workflows to use shared version
+```
+
+This provides the clearest separation of concerns.
 
 1. Extract the reusable parts
 2. Create a new file in `shared/`
@@ -239,8 +307,74 @@ imports:
 4. 📝 Consider adding linter rule to warn about `.github/aw/` imports
 5. 📝 Consider documentation update to clarify directory purposes
 
+## Special Case: Hybrid Content
+
+### Generic Agent Instructions with Safe Outputs
+
+**Use Case**: Some content serves BOTH purposes:
+1. Agent creation guidance (e.g., how to use `assign-to-agent` or `dispatch_workflow`)
+2. Runtime instructions that accompany safe outputs
+
+**Example**: `.github/aw/orchestration.md` contains:
+- Safe-output configurations (`assign-to-agent`, `dispatch_workflow`)
+- Best practices for using these features
+- Runtime guidance on correlation IDs and patterns
+
+**Solution Options**:
+
+#### Option 1: Create Shared Wrapper (Recommended)
+
+Extract the reusable parts into `shared/` and keep agent-specific content in `.github/aw/`:
+
+```yaml
+# .github/workflows/shared/orchestration-patterns.md
+---
+safe-outputs:
+  assign-to-agent:
+    name: "copilot"
+    target: "*"
+  dispatch-workflow:
+    allowed: ["*"]
+---
+
+# Orchestration Patterns
+
+[Runtime instructions for using assign-to-agent and dispatch_workflow]
+```
+
+Workflows import from `shared/`:
+```yaml
+imports:
+  - shared/orchestration-patterns.md
+```
+
+#### Option 2: Allow Hybrid Imports (Alternative)
+
+For content that legitimately serves both purposes, importing from `.github/aw/` could be acceptable:
+
+```yaml
+imports:
+  - ../aw/orchestration.md  # Hybrid: safe-outputs + instructions
+```
+
+**Guidelines for Hybrid Content**:
+- ✅ DO: If file provides safe-outputs configuration + runtime guidance
+- ✅ DO: Document that the file is designed for both uses
+- ❌ DON'T: For pure agent prompts or meta-instructions
+- ❌ DON'T: If content is only relevant during workflow creation
+
+### Recommendation for Hybrid Content
+
+1. **Prefer duplication over confusion**: Create separate files in `shared/` for workflow imports
+2. **Document dual purpose**: If using `.github/aw/` for imports, clearly mark files as "importable"
+3. **Consider migration path**: If many workflows need this, move to `shared/` permanently
+
 ## Conclusion
 
-While workflows CAN import from `.github/aw/`, they SHOULD NOT due to semantic differences, path awkwardness, and established conventions. The `shared/` directory is the proper location for reusable workflow components.
+While workflows CAN import from `.github/aw/`, the recommendation depends on content type:
 
-Use `.github/aw/` exclusively for agent configuration files and meta-workflow instructions.
+- **Pure agent configuration**: Keep in `.github/aw/`, do NOT import
+- **Hybrid content** (safe-outputs + instructions): Consider `shared/` wrapper or document as importable
+- **Reusable components**: Always use `shared/` directory
+
+The `shared/` directory remains the proper location for most reusable workflow components. Use `.github/aw/` primarily for agent configuration, with exceptions for well-documented hybrid content that serves both agent creation and runtime purposes.
