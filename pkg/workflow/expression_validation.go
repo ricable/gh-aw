@@ -379,7 +379,7 @@ func extractRuntimeImportPaths(markdownContent string) []string {
 
 // validateRuntimeImportFiles validates expressions in all runtime-import files at compile time.
 // This catches expression errors early, before the workflow runs.
-// workspaceDir should be the root of the repository (containing .github folder).
+// workspaceDir should be the root of the repository (containing .github and .agents folders).
 func validateRuntimeImportFiles(markdownContent string, workspaceDir string) error {
 	expressionValidationLog.Print("Validating runtime-import files")
 
@@ -395,13 +395,29 @@ func validateRuntimeImportFiles(markdownContent string, workspaceDir string) err
 	var validationErrors []string
 
 	for _, filePath := range paths {
-		// Normalize the path to be relative to .github folder
+		// Normalize the path and determine which base folder to use
 		normalizedPath := filePath
+		var baseFolder string
+		
+		// Check if path starts with .github/ or .agents/
 		if strings.HasPrefix(normalizedPath, ".github/") {
 			normalizedPath = normalizedPath[8:] // Remove ".github/"
+			baseFolder = ".github"
 		} else if strings.HasPrefix(normalizedPath, ".github\\") {
 			normalizedPath = normalizedPath[8:] // Remove ".github\" (Windows)
+			baseFolder = ".github"
+		} else if strings.HasPrefix(normalizedPath, ".agents/") {
+			normalizedPath = normalizedPath[8:] // Remove ".agents/"
+			baseFolder = ".agents"
+		} else if strings.HasPrefix(normalizedPath, ".agents\\") {
+			normalizedPath = normalizedPath[8:] // Remove ".agents\" (Windows)
+			baseFolder = ".agents"
+		} else {
+			// Default to .github for backward compatibility
+			baseFolder = ".github"
 		}
+		
+		// Remove leading ./ or .\ if present
 		if strings.HasPrefix(normalizedPath, "./") {
 			normalizedPath = normalizedPath[2:] // Remove "./"
 		} else if strings.HasPrefix(normalizedPath, ".\\") {
@@ -409,16 +425,16 @@ func validateRuntimeImportFiles(markdownContent string, workspaceDir string) err
 		}
 
 		// Build absolute path to the file
-		githubFolder := filepath.Join(workspaceDir, ".github")
-		absolutePath := filepath.Join(githubFolder, normalizedPath)
+		targetFolder := filepath.Join(workspaceDir, baseFolder)
+		absolutePath := filepath.Join(targetFolder, normalizedPath)
 
-		// Security check: ensure the resolved path is within the .github folder
-		// Use filepath.Rel to check if the path escapes the .github folder
-		normalizedGithubFolder := filepath.Clean(githubFolder)
+		// Security check: ensure the resolved path is within the base folder (.github or .agents)
+		// Use filepath.Rel to check if the path escapes the base folder
+		normalizedTargetFolder := filepath.Clean(targetFolder)
 		normalizedAbsolutePath := filepath.Clean(absolutePath)
-		relativePath, err := filepath.Rel(normalizedGithubFolder, normalizedAbsolutePath)
+		relativePath, err := filepath.Rel(normalizedTargetFolder, normalizedAbsolutePath)
 		if err != nil || relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) || filepath.IsAbs(relativePath) {
-			validationErrors = append(validationErrors, fmt.Sprintf("%s: Security: Path must be within .github folder (resolves to: %s)", filePath, relativePath))
+			validationErrors = append(validationErrors, fmt.Sprintf("%s: Security: Path must be within %s folder (resolves to: %s)", filePath, baseFolder, relativePath))
 			continue
 		}
 

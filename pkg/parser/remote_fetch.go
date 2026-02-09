@@ -118,28 +118,36 @@ func ResolveIncludePath(filePath, baseDir string, cache *ImportCache) (string, e
 	// Regular path, resolve relative to base directory
 	fullPath := filepath.Join(baseDir, filePath)
 	
-	// Security check: ensure the resolved path is within the .github folder
-	// baseDir should be .github or a subdirectory within it
-	githubFolder := baseDir
-	// Find the .github folder by traversing up from baseDir
-	for !strings.HasSuffix(githubFolder, ".github") && githubFolder != "." && githubFolder != "/" {
-		githubFolder = filepath.Dir(githubFolder)
-		if githubFolder == "." || githubFolder == "/" {
-			// If we can't find .github folder, use baseDir
-			githubFolder = baseDir
+	// Security check: ensure the resolved path is within the .github or .agents folder
+	// baseDir should be .github/.agents or a subdirectory within one of them
+	allowedFolder := baseDir
+	// Find the .github or .agents folder by traversing up from baseDir
+	for !strings.HasSuffix(allowedFolder, ".github") && !strings.HasSuffix(allowedFolder, ".agents") && allowedFolder != "." && allowedFolder != "/" {
+		allowedFolder = filepath.Dir(allowedFolder)
+		if allowedFolder == "." || allowedFolder == "/" {
+			// If we can't find .github or .agents folder, use baseDir
+			allowedFolder = baseDir
 			break
 		}
 	}
 	
+	// Determine the folder name for error messages
+	folderName := ".github or .agents"
+	if strings.HasSuffix(allowedFolder, ".github") {
+		folderName = ".github"
+	} else if strings.HasSuffix(allowedFolder, ".agents") {
+		folderName = ".agents"
+	}
+	
 	// Normalize paths for comparison
-	normalizedGithubFolder := filepath.Clean(githubFolder)
+	normalizedAllowedFolder := filepath.Clean(allowedFolder)
 	normalizedFullPath := filepath.Clean(fullPath)
 	
-	// Check if fullPath is within githubFolder
-	relativePath, err := filepath.Rel(normalizedGithubFolder, normalizedFullPath)
+	// Check if fullPath is within allowedFolder
+	relativePath, err := filepath.Rel(normalizedAllowedFolder, normalizedFullPath)
 	if err != nil || relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) || filepath.IsAbs(relativePath) {
-		remoteLog.Printf("Security: Path escapes .github folder: %s (resolves to: %s)", filePath, relativePath)
-		return "", fmt.Errorf("Security: Path %s must be within .github folder (resolves to: %s)", filePath, relativePath)
+		remoteLog.Printf("Security: Path escapes %s folder: %s (resolves to: %s)", folderName, filePath, relativePath)
+		return "", fmt.Errorf("Security: Path %s must be within %s folder (resolves to: %s)", filePath, folderName, relativePath)
 	}
 	
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {

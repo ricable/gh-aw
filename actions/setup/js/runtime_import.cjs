@@ -630,13 +630,22 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
 
   // Otherwise, process as a file
   let filepath = filepathOrUrl;
+  let baseFolder = ".github"; // Default to .github for backward compatibility
 
-  // Trim .github/ prefix if provided (support both .github/file and file)
+  // Trim .github/ or .agents/ prefix if provided
   // This allows users to use either format
   if (filepath.startsWith(".github/")) {
     filepath = filepath.substring(8); // Remove ".github/"
+    baseFolder = ".github";
   } else if (filepath.startsWith(".github\\")) {
     filepath = filepath.substring(8); // Remove ".github\" (Windows)
+    baseFolder = ".github";
+  } else if (filepath.startsWith(".agents/")) {
+    filepath = filepath.substring(8); // Remove ".agents/"
+    baseFolder = ".agents";
+  } else if (filepath.startsWith(".agents\\")) {
+    filepath = filepath.substring(8); // Remove ".agents\" (Windows)
+    baseFolder = ".agents";
   }
 
   // Remove leading ./ or ../ if present
@@ -645,19 +654,19 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   } else if (filepath.startsWith(".\\")) {
     filepath = filepath.substring(2);
   }
-  // Note: We don't allow ../ paths as they would escape .github folder
+  // Note: We don't allow ../ paths as they would escape the base folder
 
-  // Construct the path within .github folder
-  const githubFolder = path.join(workspaceDir, ".github");
-  const absolutePath = path.resolve(githubFolder, filepath);
+  // Construct the path within the base folder (.github or .agents)
+  const targetFolder = path.join(workspaceDir, baseFolder);
+  const absolutePath = path.resolve(targetFolder, filepath);
   const normalizedPath = path.normalize(absolutePath);
-  const normalizedGithubFolder = path.normalize(githubFolder);
+  const normalizedTargetFolder = path.normalize(targetFolder);
 
-  // Security check: ensure the resolved path is within the .github folder
-  // Use path.relative to check if the path escapes the .github folder
-  const relativePath = path.relative(normalizedGithubFolder, normalizedPath);
+  // Security check: ensure the resolved path is within the base folder
+  // Use path.relative to check if the path escapes the base folder
+  const relativePath = path.relative(normalizedTargetFolder, normalizedPath);
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    throw new Error(`Security: Path ${filepathOrUrl} must be within .github folder (resolves to: ${relativePath})`);
+    throw new Error(`Security: Path ${filepathOrUrl} must be within ${baseFolder} folder (resolves to: ${relativePath})`);
   }
 
   // Check if file exists
