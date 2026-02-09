@@ -61,11 +61,6 @@ Workflows run with read-only permissions by default. Write operations require ex
 
 ## Example: Daily Issues Report
 
-**How they work:**
-1. **Write** - Create a `.md` file with your automation instructions in natural language
-2. **Compile** - Run `gh aw compile` to transform it into a GitHub Actions workflow with guardrails (`.lock.yml`)
-3. **Run** - GitHub Actions executes your workflow automatically based on your triggers
-
 Here's a simple workflow that runs daily to create an upbeat status report:
 
 ```markdown
@@ -88,7 +83,7 @@ safe-outputs:
 Create an upbeat daily status report for the team as a GitHub issue.
 ```
 
-The `gh aw` cli converts this into a GitHub Actions Workflow (.yml) that runs an AI agent (Copilot, Claude, Codex, ...) in a containerized environment on a schedule or manually.
+The `gh aw` cli augments this with a [lock file](/gh-aw/reference/faq/#what-is-a-workflow-lock-file) for a GitHub Actions Workflow (.lock.yml) that runs an AI agent (Copilot, Claude, Codex, ...) in a containerized environment on a schedule or manually.
 
 The AI coding agent reads your repository context, analyzes issues, generates visualizations, and creates reports - all defined in natural language rather than complex code.
 
