@@ -5,6 +5,87 @@ const { generatePlainTextSummary, generateCopilotCliStyleSummary, wrapAgentLogIn
 const { getErrorMessage } = require("./error_helpers.cjs");
 
 /**
+ * Add failure diagnostics to step summary when agent produces no logs
+ * @param {string} message - Diagnostic message to display
+ */
+function addFailureDiagnostics(message) {
+  const fs = require("fs");
+
+  // Start building diagnostic markdown
+  let diagnosticMarkdown = `## ⚠️ Agent Execution Diagnostics\n\n`;
+  diagnosticMarkdown += `**Issue:** ${message}\n\n`;
+
+  // Check for agent-stdio.log which captures stdout/stderr from the agent execution
+  const stdioLogPath = "/tmp/gh-aw/agent-stdio.log";
+  if (fs.existsSync(stdioLogPath)) {
+    try {
+      const stdioContent = fs.readFileSync(stdioLogPath, "utf8").trim();
+      if (stdioContent) {
+        // Extract last 50 lines for brevity (typical error messages are at the end)
+        const lines = stdioContent.split("\n");
+        const relevantLines = lines.slice(-50);
+        const truncated = lines.length > 50;
+
+        diagnosticMarkdown += `### Agent Execution Output\n\n`;
+        if (truncated) {
+          diagnosticMarkdown += `<details>\n<summary>Last 50 lines of agent output (${lines.length} total lines)</summary>\n\n`;
+        }
+        diagnosticMarkdown += "```\n";
+        diagnosticMarkdown += relevantLines.join("\n");
+        diagnosticMarkdown += "\n```\n";
+        if (truncated) {
+          diagnosticMarkdown += `\n</details>\n`;
+        }
+        diagnosticMarkdown += "\n";
+
+        // Look for common error patterns
+        const errorPatterns = [
+          { pattern: /error|fail|exception/i, label: "Error indicators found in output" },
+          { pattern: /command not found/i, label: "Command not found - possible installation issue" },
+          { pattern: /permission denied/i, label: "Permission issue detected" },
+          { pattern: /timeout|timed out/i, label: "Timeout detected" },
+          { pattern: /killed/i, label: "Process was killed" },
+        ];
+
+        const detectedIssues = [];
+        for (const { pattern, label } of errorPatterns) {
+          if (pattern.test(stdioContent)) {
+            detectedIssues.push(label);
+          }
+        }
+
+        if (detectedIssues.length > 0) {
+          diagnosticMarkdown += `### Detected Issues\n\n`;
+          for (const issue of detectedIssues) {
+            diagnosticMarkdown += `- ⚠️ ${issue}\n`;
+          }
+          diagnosticMarkdown += "\n";
+        }
+      }
+    } catch (error) {
+      core.warning(`Failed to read agent stdio log: ${getErrorMessage(error)}`);
+    }
+  }
+
+  // Add troubleshooting guidance
+  diagnosticMarkdown += `### Troubleshooting Steps\n\n`;
+  diagnosticMarkdown += `1. **Check the full workflow logs** for the agent execution step\n`;
+  diagnosticMarkdown += `2. **Review agent artifacts** if available (uploaded as workflow artifacts)\n`;
+  diagnosticMarkdown += `3. **Check for resource constraints** (memory, timeout, disk space)\n`;
+  diagnosticMarkdown += `4. **Verify agent installation** completed successfully in earlier steps\n`;
+  diagnosticMarkdown += `5. **Review recent workflow changes** that might affect agent execution\n\n`;
+
+  diagnosticMarkdown += `> 💡 **Tip:** Download the \`agent-artifacts\` artifact from this workflow run for detailed logs.\n`;
+
+  // Write to step summary
+  core.summary.addRaw(diagnosticMarkdown);
+  core.summary.write();
+
+  // Also log to console
+  core.warning(`Agent execution diagnostics: ${message}`);
+}
+
+/**
  * Bootstrap helper for log parser entry points.
  * Handles common logic for environment variable lookup, file existence checks,
  * content reading (file or directory), and summary emission.
@@ -24,11 +105,13 @@ async function runLogParser(options) {
     const logPath = process.env.GH_AW_AGENT_OUTPUT;
     if (!logPath) {
       core.info("No agent log file specified");
+      addFailureDiagnostics("No GH_AW_AGENT_OUTPUT environment variable set");
       return;
     }
 
     if (!fs.existsSync(logPath)) {
       core.info(`Log path not found: ${logPath}`);
+      addFailureDiagnostics(`Agent log directory not found: ${logPath}. This indicates the agent may have failed to start.`);
       return;
     }
 
@@ -79,6 +162,7 @@ async function runLogParser(options) {
 
       if (logFiles.length === 0) {
         core.info(`No log files found in directory: ${logPath}`);
+        addFailureDiagnostics(`No log files found in ${logPath}. The agent did not produce any output logs.`);
         return;
       }
 

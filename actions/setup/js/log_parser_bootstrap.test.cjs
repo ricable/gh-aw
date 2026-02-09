@@ -129,14 +129,60 @@ describe("log_parser_bootstrap.cjs", () => {
             fs.unlinkSync(path.join(tmpDir, "1.log")),
             fs.rmdirSync(tmpDir));
         }),
-        it("should handle empty directory gracefully", () => {
+        it("should handle empty directory gracefully with diagnostics", () => {
           const tmpDir = fs.mkdtempSync(path.join(__dirname, "test-"));
           process.env.GH_AW_AGENT_OUTPUT = tmpDir;
           const mockParseLog = vi.fn();
           (runLogParser({ parseLog: mockParseLog, parserName: "TestParser", supportsDirectories: !0 }),
             expect(mockCore.info).toHaveBeenCalledWith(`No log files found in directory: ${tmpDir}`),
+            expect(mockCore.warning).toHaveBeenCalledWith(expect.stringContaining("Agent execution diagnostics")),
+            expect(mockCore.summary.addRaw).toHaveBeenCalledWith(expect.stringContaining("⚠️ Agent Execution Diagnostics")),
             expect(mockParseLog).not.toHaveBeenCalled(),
             fs.rmdirSync(tmpDir));
+        }),
+        it("should include stdio log content in diagnostics when available", () => {
+          const tmpDir = fs.mkdtempSync(path.join(__dirname, "test-"));
+          const stdioLogPath = "/tmp/gh-aw/agent-stdio.log";
+
+          // Create parent directory if needed
+          const stdioLogDir = path.dirname(stdioLogPath);
+          if (!fs.existsSync(stdioLogDir)) {
+            fs.mkdirSync(stdioLogDir, { recursive: true });
+          }
+
+          // Write a sample error log
+          fs.writeFileSync(stdioLogPath, "Error: command not found\nFailed to execute agent\n");
+
+          process.env.GH_AW_AGENT_OUTPUT = tmpDir;
+          const mockParseLog = vi.fn();
+
+          try {
+            runLogParser({ parseLog: mockParseLog, parserName: "TestParser", supportsDirectories: true });
+
+            const summaryCall = mockCore.summary.addRaw.mock.calls[0];
+            expect(summaryCall).toBeDefined();
+            expect(summaryCall[0]).toContain("⚠️ Agent Execution Diagnostics");
+            expect(summaryCall[0]).toContain("Agent Execution Output");
+            expect(summaryCall[0]).toContain("command not found");
+            expect(summaryCall[0]).toContain("Command not found - possible installation issue");
+          } finally {
+            // Cleanup
+            if (fs.existsSync(stdioLogPath)) {
+              fs.unlinkSync(stdioLogPath);
+            }
+            fs.rmdirSync(tmpDir);
+          }
+        }),
+        it("should detect and report missing log path with diagnostics", () => {
+          process.env.GH_AW_AGENT_OUTPUT = "/non/existent/path";
+          const mockParseLog = vi.fn();
+
+          runLogParser({ parseLog: mockParseLog, parserName: "TestParser" });
+
+          expect(mockCore.info).toHaveBeenCalledWith("Log path not found: /non/existent/path");
+          expect(mockCore.warning).toHaveBeenCalledWith(expect.stringContaining("Agent execution diagnostics"));
+          expect(mockCore.summary.addRaw).toHaveBeenCalledWith(expect.stringContaining("Agent log directory not found"));
+          expect(mockCore.summary.addRaw).toHaveBeenCalledWith(expect.stringContaining("Troubleshooting Steps"));
         }),
         it("should handle parser errors", () => {
           const tmpDir = fs.mkdtempSync(path.join(__dirname, "test-")),
