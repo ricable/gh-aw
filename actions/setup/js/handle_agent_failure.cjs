@@ -323,6 +323,91 @@ function buildMissingDataContext() {
 }
 
 /**
+ * Check if the agent failure was likely due to missing agent token configuration
+ * This should only return true when we have no other explanation for the failure
+ * @param {boolean} hasAssignmentErrors - Whether there are assignment errors
+ * @param {boolean} hasCreateDiscussionErrors - Whether there are discussion creation errors
+ * @param {boolean} hasSecretVerificationFailed - Whether secret verification failed
+ * @returns {boolean} True if missing agent token is suspected
+ */
+function checkForMissingAgentToken(hasAssignmentErrors, hasCreateDiscussionErrors, hasSecretVerificationFailed) {
+  // If agent job failed and the agent output file doesn't exist,
+  // it's likely that the agent token was not configured
+  const agentConclusion = process.env.GH_AW_AGENT_CONCLUSION || "";
+  
+  if (agentConclusion !== "failure") {
+    return false;
+  }
+
+  // If we already have other explanations for the failure, don't assume it's a token issue
+  if (hasAssignmentErrors || hasCreateDiscussionErrors || hasSecretVerificationFailed) {
+    return false;
+  }
+
+  // Try to load agent output - if it fails with ENOENT or no output file, the token might be missing
+  const { loadAgentOutput } = require("./load_agent_output.cjs");
+  const agentOutputResult = loadAgentOutput();
+
+  // Check if the loading failed (no file or file not found)
+  if (!agentOutputResult.success) {
+    // Check if there's an error indicating missing file (ENOENT)
+    if (agentOutputResult.error) {
+      const errorMessage = agentOutputResult.error.toLowerCase();
+      if (errorMessage.includes("enoent") || errorMessage.includes("no such file or directory")) {
+        core.info("Detected missing agent output file (ENOENT) - possible missing agent token");
+        return true;
+      }
+    } else {
+      // No error but also no success - likely GH_AW_AGENT_OUTPUT not set
+      // This happens when agent fails before creating output file
+      core.info("Detected missing agent output (no GH_AW_AGENT_OUTPUT) - possible missing agent token");
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Build missing agent token context string for display in failure issues/comments
+ * @param {boolean} hasAssignmentErrors - Whether there are assignment errors
+ * @param {boolean} hasCreateDiscussionErrors - Whether there are discussion creation errors
+ * @param {boolean} hasSecretVerificationFailed - Whether secret verification failed
+ * @returns {string} Formatted missing agent token context
+ */
+function buildMissingAgentTokenContext(hasAssignmentErrors, hasCreateDiscussionErrors, hasSecretVerificationFailed) {
+  const hasMissingToken = checkForMissingAgentToken(hasAssignmentErrors, hasCreateDiscussionErrors, hasSecretVerificationFailed);
+
+  if (!hasMissingToken) {
+    return "";
+  }
+
+  let context = "\n**⚠️ Missing Agent Token**: The agent job failed early, likely due to a missing or improperly configured agent token.\n\n";
+  context += "**Possible Causes:**\n";
+  context += "- The `GH_AW_AGENT_TOKEN` secret is not set in your repository\n";
+  context += "- The token lacks required permissions (actions, contents, issues, pull requests)\n";
+  context += "- The token is expired or invalid\n\n";
+  context += "**How to Fix:**\n\n";
+  context += "1. Create a fine-grained Personal Access Token (PAT) with the following permissions:\n";
+  context += "   - Actions: Read and Write\n";
+  context += "   - Contents: Read and Write\n";
+  context += "   - Issues: Read and Write\n";
+  context += "   - Pull Requests: Read and Write\n\n";
+  context += "2. Add the token as a secret:\n";
+  context += "   ```bash\n";
+  context += "   gh aw secrets set GH_AW_AGENT_TOKEN --value \"YOUR_TOKEN\"\n";
+  context += "   ```\n\n";
+  context += "3. Alternatively, set the secret in your repository settings:\n";
+  context += "   - Go to Settings → Secrets and variables → Actions\n";
+  context += "   - Click \"New repository secret\"\n";
+  context += "   - Name: `GH_AW_AGENT_TOKEN`\n";
+  context += "   - Value: Your PAT\n\n";
+  context += "For more information, see: https://github.github.io/gh-aw/reference/tokens/#gh_aw_agent_token-agent-assignment\n\n";
+
+  return context;
+}
+
+/**
  * Handle agent job failure by creating or updating a failure tracking issue
  * This script is called from the conclusion job when the agent job has failed
  * or when the agent succeeded but produced no safe outputs
@@ -464,6 +549,10 @@ async function main() {
         // Build missing_data context
         const missingDataContext = buildMissingDataContext();
 
+        // Build missing agent token context
+        const hasSecretVerificationFailed = secretVerificationResult === "failed";
+        const missingAgentTokenContext = buildMissingAgentTokenContext(hasAssignmentErrors, hasCreateDiscussionErrors, hasSecretVerificationFailed);
+
         // Build missing safe outputs context
         let missingSafeOutputsContext = "";
         if (hasMissingSafeOutputs) {
@@ -488,6 +577,7 @@ async function main() {
           assignment_errors_context: assignmentErrorsContext,
           create_discussion_errors_context: createDiscussionErrorsContext,
           missing_data_context: missingDataContext,
+          missing_agent_token_context: missingAgentTokenContext,
           missing_safe_outputs_context: missingSafeOutputsContext,
         };
 
@@ -549,6 +639,10 @@ async function main() {
         // Build missing_data context
         const missingDataContext = buildMissingDataContext();
 
+        // Build missing agent token context
+        const hasSecretVerificationFailed = secretVerificationResult === "failed";
+        const missingAgentTokenContext = buildMissingAgentTokenContext(hasAssignmentErrors, hasCreateDiscussionErrors, hasSecretVerificationFailed);
+
         // Build missing safe outputs context
         let missingSafeOutputsContext = "";
         if (hasMissingSafeOutputs) {
@@ -573,6 +667,7 @@ async function main() {
           assignment_errors_context: assignmentErrorsContext,
           create_discussion_errors_context: createDiscussionErrorsContext,
           missing_data_context: missingDataContext,
+          missing_agent_token_context: missingAgentTokenContext,
           missing_safe_outputs_context: missingSafeOutputsContext,
         };
 

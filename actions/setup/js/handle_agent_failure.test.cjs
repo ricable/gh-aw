@@ -26,7 +26,7 @@ describe("handle_agent_failure.cjs", () => {
 **Branch:** {branch}  
 **Run URL:** {run_url}{pull_request_info}
 
-{secret_verification_context}{assignment_errors_context}{create_discussion_errors_context}{missing_data_context}{missing_safe_outputs_context}
+{secret_verification_context}{missing_agent_token_context}{assignment_errors_context}{create_discussion_errors_context}{missing_data_context}{missing_safe_outputs_context}
 
 ### Action Required
 
@@ -40,7 +40,7 @@ When prompted, instruct the agent to debug this workflow failure.`;
       } else if (filePath.includes("agent_failure_comment.md")) {
         return `Agent job [{run_id}]({run_url}) failed.
 
-{secret_verification_context}{assignment_errors_context}{create_discussion_errors_context}{missing_data_context}{missing_safe_outputs_context}`;
+{secret_verification_context}{missing_agent_token_context}{assignment_errors_context}{create_discussion_errors_context}{missing_data_context}{missing_safe_outputs_context}`;
       }
       return originalReadFileSync.call(fs, filePath, encoding);
     });
@@ -491,7 +491,9 @@ When prompted, instruct the agent to debug this workflow failure.`;
       const commentCall = mockGithub.rest.issues.createComment.mock.calls[0][0];
       expect(commentCall.body).toContain("Agent job [123]");
       expect(commentCall.body).toContain("https://github.com/test-owner/test-repo/actions/runs/123");
-      expect(commentCall.body).not.toContain("```bash");
+      // Since agent failed with no output file and no other errors, missing token context should be included
+      expect(commentCall.body).toContain("⚠️ Missing Agent Token");
+      expect(commentCall.body).toContain("```bash");
       expect(commentCall.body).toContain("Generated from [Test Workflow](https://github.com/test-owner/test-repo/actions/runs/123)");
 
       expect(mockCore.info).toHaveBeenCalledWith(expect.stringContaining("Added comment to existing issue #10"));
@@ -1372,6 +1374,151 @@ When prompted, instruct the agent to debug this workflow failure.`;
 
       // Verify issue was created (normal failure handling)
       expect(mockGithub.rest.issues.create).toHaveBeenCalled();
+    });
+  });
+
+  describe("missing agent token", () => {
+    it("should include missing agent token context when agent output file is missing", async () => {
+      // Set up environment - agent failed
+      process.env.GH_AW_AGENT_CONCLUSION = "failure";
+      // Don't set GH_AW_AGENT_OUTPUT so loadAgentOutput will fail with ENOENT
+
+      mockGithub.rest.search.issuesAndPullRequests
+        .mockResolvedValueOnce({
+          // First search: PR search (no PR found)
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Second search: parent issue
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Third search: failure issue
+          data: { total_count: 0, items: [] },
+        });
+
+      mockGithub.rest.issues.create
+        .mockResolvedValueOnce({
+          data: { number: 1, html_url: "https://example.com/1", node_id: "I_1" },
+        })
+        .mockResolvedValueOnce({
+          data: { number: 2, html_url: "https://example.com/2", node_id: "I_2" },
+        });
+
+      mockGithub.graphql = vi.fn().mockResolvedValue({
+        addSubIssue: {
+          issue: { id: "I_1", number: 1 },
+          subIssue: { id: "I_2", number: 2 },
+        },
+      });
+
+      await main();
+
+      // Verify issue was created
+      expect(mockGithub.rest.issues.create).toHaveBeenCalled();
+
+      // Get the issue creation call
+      const createCalls = mockGithub.rest.issues.create.mock.calls;
+      const failureIssueCall = createCalls[1]; // Second call is the failure issue
+      const issueBody = failureIssueCall[0].body;
+
+      // Verify the missing agent token context is included
+      expect(issueBody).toContain("⚠️ Missing Agent Token");
+      expect(issueBody).toContain("GH_AW_AGENT_TOKEN");
+      expect(issueBody).toContain("fine-grained Personal Access Token");
+      expect(issueBody).toContain("gh aw secrets set GH_AW_AGENT_TOKEN");
+      expect(issueBody).toContain("https://github.github.io/gh-aw/reference/tokens/#gh_aw_agent_token-agent-assignment");
+    });
+
+    it("should not include missing agent token context when agent succeeded", async () => {
+      // Set up environment - agent succeeded
+      process.env.GH_AW_AGENT_CONCLUSION = "success";
+      // Don't set GH_AW_AGENT_OUTPUT to simulate missing safe outputs (not missing token)
+
+      mockGithub.rest.search.issuesAndPullRequests
+        .mockResolvedValueOnce({
+          // First search: PR search (no PR found)
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Second search: parent issue
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Third search: failure issue
+          data: { total_count: 0, items: [] },
+        });
+
+      mockGithub.rest.issues.create
+        .mockResolvedValueOnce({
+          data: { number: 1, html_url: "https://example.com/1", node_id: "I_1" },
+        })
+        .mockResolvedValueOnce({
+          data: { number: 2, html_url: "https://example.com/2", node_id: "I_2" },
+        });
+
+      mockGithub.graphql = vi.fn().mockResolvedValue({
+        addSubIssue: {
+          issue: { id: "I_1", number: 1 },
+          subIssue: { id: "I_2", number: 2 },
+        },
+      });
+
+      await main();
+
+      // Verify issue was created
+      expect(mockGithub.rest.issues.create).toHaveBeenCalled();
+
+      // Get the issue creation call
+      const createCalls = mockGithub.rest.issues.create.mock.calls;
+      const failureIssueCall = createCalls[1]; // Second call is the failure issue
+      const issueBody = failureIssueCall[0].body;
+
+      // Verify the missing agent token context is NOT included (should show missing safe outputs instead)
+      expect(issueBody).not.toContain("⚠️ Missing Agent Token");
+      expect(issueBody).toContain("⚠️ No Safe Outputs Generated");
+    });
+
+    it("should include missing agent token context in comment to existing issue", async () => {
+      // Set up environment - agent failed
+      process.env.GH_AW_AGENT_CONCLUSION = "failure";
+      // Don't set GH_AW_AGENT_OUTPUT so loadAgentOutput will fail with ENOENT
+
+      mockGithub.rest.search.issuesAndPullRequests
+        .mockResolvedValueOnce({
+          // First search: PR search (no PR found)
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Second search: parent issue
+          data: { total_count: 0, items: [] },
+        })
+        .mockResolvedValueOnce({
+          // Third search: existing failure issue found
+          data: {
+            total_count: 1,
+            items: [{ number: 42, html_url: "https://example.com/issues/42" }],
+          },
+        });
+
+      mockGithub.rest.issues.create.mockResolvedValueOnce({
+        data: { number: 1, html_url: "https://example.com/1", node_id: "I_1" },
+      });
+
+      await main();
+
+      // Verify comment was added to existing issue
+      expect(mockGithub.rest.issues.createComment).toHaveBeenCalled();
+
+      // Get the comment creation call
+      const commentCall = mockGithub.rest.issues.createComment.mock.calls[0];
+      const commentBody = commentCall[0].body;
+
+      // Verify the missing agent token context is included
+      expect(commentBody).toContain("⚠️ Missing Agent Token");
+      expect(commentBody).toContain("GH_AW_AGENT_TOKEN");
+      expect(commentBody).toContain("fine-grained Personal Access Token");
+      expect(commentBody).toContain("gh aw secrets set GH_AW_AGENT_TOKEN");
     });
   });
 });
