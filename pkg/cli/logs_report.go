@@ -355,7 +355,8 @@ func buildToolUsageSummary(processedRuns []ProcessedRun) []ToolUsageSummary {
 		}
 	}
 
-	var result []ToolUsageSummary
+	// Initialize as empty slice to ensure JSON marshals to [] instead of null
+	result := make([]ToolUsageSummary, 0, len(toolStats))
 	for _, info := range toolStats {
 		result = append(result, *info)
 	}
@@ -403,7 +404,8 @@ func aggregateSummaryItems[TItem any, TSummary any](
 	}
 
 	// Convert map to slice and finalize each summary
-	var result []TSummary
+	// Initialize as empty slice to ensure JSON marshals to [] instead of null
+	result := make([]TSummary, 0, len(summaryMap))
 	for _, summary := range summaryMap {
 		finalizeSummary(summary)
 		result = append(result, *summary)
