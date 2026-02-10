@@ -1,26 +1,31 @@
-# PR Triage Summary - February 10, 2026
+# PR Triage Summary
 
-**Run:** #21864799973  
-**Date:** 2026-02-10 12:30 UTC  
-**Total PRs:** 6
+Last updated: 2026-02-10T18:34:00Z
+Run ID: 21877444406
 
-## Quick Stats
-- ✅ Auto-merge: 1 (#14754 - docs)
-- 🔍 Priority Review: 1 (#14743 - high-risk bug)
-- 📦 Batch Review: 4 (including batch-test-low-001 with 2 PRs)
-- 🟡 Drafts: 2 (#14751, #14742)
+## Current Status
 
-## Top Priority
-1. #14743 (58/100) - Debug logging in core files - HIGH RISK
-2. #14751 (32/100) - Functional patterns - Draft
-3. #14767 (30/100) - Actions updates
+- **Open Agent PRs**: 3
+- **Fast-track Needed**: 2 (PRs #14820, #14819)
+- **Batch Review**: 1 (PR #14682)
 
-## Agent Activity
-- Most Active: 6 different agents created PRs
-- Highest Quality: `manual` workflow (13/20)
-- Highest Priority: `log` workflow (58/100)
+## High-Priority PRs Requiring Attention
 
-## Backlog Health: ✅ Excellent
-Only 6 open PRs, all pending CI. No urgent issues.
+1. **PR #14820** - Make discussion categories case-insensitive (Priority: 73/100)
+   - Category: Bug | Risk: High | Status: Draft, CI Pending
+   - Action: Fast-track review once CI passes
 
-**Next triage:** 2026-02-10 18:30 UTC
+2. **PR #14819** - Add github-token support to all safe-output handlers (Priority: 73/100)
+   - Category: Bug | Risk: High | Status: Draft, CI Pending
+   - Action: Fast-track review once CI passes
+
+## Trends
+
+- Backlog reduced by 50% (6 → 3 PRs)
+- 2 new high-priority bug fixes identified
+- All PRs include test coverage
+- Quality maintained at 13.0/20 average
+
+## Next Triage
+
+Scheduled: 6 hours from now or on new PR creation
