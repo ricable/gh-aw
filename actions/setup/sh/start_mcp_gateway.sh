@@ -355,7 +355,14 @@ echo "Detected engine type: $ENGINE_TYPE"
 case "$ENGINE_TYPE" in
   copilot)
     echo "Using Copilot converter..."
-    bash /opt/gh-aw/actions/convert_gateway_config_copilot.sh
+    # Convert gateway output to Copilot format and save to file for --additional-mcp-config flag
+    # The converted JSON will be read and passed inline to copilot CLI
+    mkdir -p /tmp/gh-aw/mcp-config
+    bash /opt/gh-aw/actions/convert_gateway_config_copilot.sh > /tmp/gh-aw/mcp-config/copilot-mcp-config.json
+    echo "Copilot MCP configuration saved to /tmp/gh-aw/mcp-config/copilot-mcp-config.json"
+    echo "Configuration preview:"
+    head -c 500 /tmp/gh-aw/mcp-config/copilot-mcp-config.json
+    echo "..."
     ;;
   codex)
     echo "Using Codex converter..."

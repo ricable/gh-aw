@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Convert MCP Gateway Configuration to Copilot Format
 # This script converts the gateway's standard HTTP-based MCP configuration
-# to the format expected by GitHub Copilot CLI
+# to the format expected by GitHub Copilot CLI --additional-mcp-config flag
 
 set -e
 
@@ -11,28 +11,28 @@ set -e
 # - MCP_GATEWAY_PORT: Port for MCP gateway (e.g., 80)
 
 if [ -z "$MCP_GATEWAY_OUTPUT" ]; then
-  echo "ERROR: MCP_GATEWAY_OUTPUT environment variable is required"
+  echo "ERROR: MCP_GATEWAY_OUTPUT environment variable is required" >&2
   exit 1
 fi
 
 if [ ! -f "$MCP_GATEWAY_OUTPUT" ]; then
-  echo "ERROR: Gateway output file not found: $MCP_GATEWAY_OUTPUT"
+  echo "ERROR: Gateway output file not found: $MCP_GATEWAY_OUTPUT" >&2
   exit 1
 fi
 
 if [ -z "$MCP_GATEWAY_DOMAIN" ]; then
-  echo "ERROR: MCP_GATEWAY_DOMAIN environment variable is required"
+  echo "ERROR: MCP_GATEWAY_DOMAIN environment variable is required" >&2
   exit 1
 fi
 
 if [ -z "$MCP_GATEWAY_PORT" ]; then
-  echo "ERROR: MCP_GATEWAY_PORT environment variable is required"
+  echo "ERROR: MCP_GATEWAY_PORT environment variable is required" >&2
   exit 1
 fi
 
-echo "Converting gateway configuration to Copilot format..."
-echo "Input: $MCP_GATEWAY_OUTPUT"
-echo "Target domain: $MCP_GATEWAY_DOMAIN:$MCP_GATEWAY_PORT"
+echo "Converting gateway configuration to Copilot format..." >&2
+echo "Input: $MCP_GATEWAY_OUTPUT" >&2
+echo "Target domain: $MCP_GATEWAY_DOMAIN:$MCP_GATEWAY_PORT" >&2
 
 # Convert gateway output to Copilot format
 # Gateway format:
@@ -70,7 +70,9 @@ echo "Target domain: $MCP_GATEWAY_DOMAIN:$MCP_GATEWAY_PORT"
 # Build the correct URL prefix using the configured domain and port
 URL_PREFIX="http://${MCP_GATEWAY_DOMAIN}:${MCP_GATEWAY_PORT}"
 
-jq --arg urlPrefix "$URL_PREFIX" '
+# Output the converted configuration to stdout (single line, no pretty-printing)
+# This output will be captured and passed to copilot --additional-mcp-config
+jq -c --arg urlPrefix "$URL_PREFIX" '
   .mcpServers |= with_entries(
     .value |= (
       # Add tools field if not present
@@ -80,9 +82,4 @@ jq --arg urlPrefix "$URL_PREFIX" '
       .url |= (. | sub("^http://[^/]+/mcp/"; $urlPrefix + "/mcp/"))
     )
   )
-' "$MCP_GATEWAY_OUTPUT" > /home/runner/.copilot/mcp-config.json
-
-echo "Copilot configuration written to /home/runner/.copilot/mcp-config.json"
-echo ""
-echo "Converted configuration:"
-cat /home/runner/.copilot/mcp-config.json
+' "$MCP_GATEWAY_OUTPUT"
