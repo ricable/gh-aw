@@ -186,6 +186,9 @@ func (e *CopilotEngine) GetExecutionSteps(workflowData *WorkflowData, logFile st
 		commandName = "copilot"
 	}
 
+	// Check if MCP servers are configured - needed for adding --additional-mcp-config
+	hasMCPServers := HasMCPServers(workflowData)
+
 	if sandboxEnabled {
 		// Build base command
 		baseCommand := fmt.Sprintf("%s %s", commandName, shellJoinArgs(copilotArgs))
@@ -196,6 +199,14 @@ func (e *CopilotEngine) GetExecutionSteps(workflowData *WorkflowData, logFile st
 		} else {
 			copilotCommand = baseCommand
 		}
+
+		// Add --additional-mcp-config with proper escaping for JSON content
+		// The JSON is in GH_AW_COPILOT_MCP_CONFIG environment variable
+		// We use printf with %q to properly quote the JSON, handling both " and ' characters
+		if hasMCPServers {
+			copilotCommand = fmt.Sprintf(`%s --additional-mcp-config "$(printf %%q "$GH_AW_COPILOT_MCP_CONFIG")"`, copilotCommand)
+			copilotExecLog.Printf("Added --additional-mcp-config with printf %%q escaping for JSON quotes")
+		}
 	} else {
 		baseCommand := fmt.Sprintf("%s %s", commandName, shellJoinArgs(copilotArgs))
 
@@ -204,6 +215,14 @@ func (e *CopilotEngine) GetExecutionSteps(workflowData *WorkflowData, logFile st
 			copilotCommand = fmt.Sprintf(`%s${%s:+ --model "$%s"}`, baseCommand, modelEnvVar, modelEnvVar)
 		} else {
 			copilotCommand = baseCommand
+		}
+
+		// Add --additional-mcp-config with proper escaping for JSON content
+		// The JSON is in GH_AW_COPILOT_MCP_CONFIG environment variable
+		// We use printf with %q to properly quote the JSON, handling both " and ' characters
+		if hasMCPServers {
+			copilotCommand = fmt.Sprintf(`%s --additional-mcp-config "$(printf %%q "$GH_AW_COPILOT_MCP_CONFIG")"`, copilotCommand)
+			copilotExecLog.Printf("Added --additional-mcp-config with printf %%q escaping for JSON quotes")
 		}
 	}
 
