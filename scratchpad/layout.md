@@ -1,19 +1,20 @@
 # GitHub Actions Workflow Layout Specification
 
 > Auto-generated specification documenting patterns used in compiled `.lock.yml` files.
-> Last updated: February 04, 2026
+> Last updated: 2026-02-10
 
 ## Overview
 
-This document catalogs all file paths, folder names, artifact names, and other patterns used across our compiled GitHub Actions workflows (`.lock.yml` files).
+This document catalogs all file paths, folder names, artifact names, and other patterns used across our compiled GitHub Actions workflows (`.lock.yml` files). The specification is extracted from 148 lock files in `.github/workflows/`, Go source code in `pkg/workflow/`, and JavaScript code in `actions/setup/js/`.
 
 **Compilation Summary:**
-- **Lock files analyzed**: 145
-- **Total action uses**: 6,472
-- **Unique actions**: 30
-- **Unique artifacts**: 18
-- **Unique job names**: 24
-- **Step IDs documented**: 30+
+- **Lock files analyzed**: 148
+- **Unique actions**: 28
+- **Artifacts documented**: 17 upload, 9 download
+- **Job patterns**: 20 unique jobs
+- **File paths**: 33+ unique paths
+- **Go constants**: 50+ documented
+- **JavaScript patterns**: 10+ extracted
 
 ## GitHub Actions
 
