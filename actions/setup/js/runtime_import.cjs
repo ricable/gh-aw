@@ -466,9 +466,30 @@ async function fetchUrlContent(url, cacheDir) {
         });
 
         res.on("end", () => {
-          // Cache the content
-          fs.writeFileSync(cacheFile, data, "utf8");
-          resolve(data);
+          // Use atomic write-then-rename pattern to prevent partial writes
+          // Generate unique temporary filename with process ID and timestamp
+          const tempFile = `${cacheFile}.tmp.${process.pid}.${Date.now()}`;
+
+          try {
+            // Write to temporary file first
+            fs.writeFileSync(tempFile, data, "utf8");
+
+            // Atomic rename (POSIX guarantee) - ensures file is either completely written or not present
+            fs.renameSync(tempFile, cacheFile);
+
+            resolve(data);
+          } catch (error) {
+            // Clean up temporary file on error
+            try {
+              if (fs.existsSync(tempFile)) {
+                fs.unlinkSync(tempFile);
+              }
+            } catch (cleanupError) {
+              // Ignore cleanup errors
+            }
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            reject(new Error(`Failed to cache URL content: ${errorMessage}`));
+          }
         });
       })
       .on("error", err => {
