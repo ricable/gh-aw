@@ -26,7 +26,7 @@ func TestConcurrencyRules(t *testing.T) {
 		description         string
 	}{
 		{
-			name: "PR workflow should have dynamic concurrency with cancel",
+			name: "PR workflow should be sequentialized per workflow with cancel",
 			frontmatter: `---
 on:
   pull_request:
@@ -37,10 +37,10 @@ tools:
 ---`,
 			filename: "pr-workflow.md",
 			expectedConcurrency: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: "gh-aw-${{ github.workflow }}"
   cancel-in-progress: true`,
 			shouldHaveCancel: true,
-			description:      "PR workflows should use dynamic concurrency with PR number and cancellation",
+			description:      "PR workflows are sequentialized per workflow with cancellation",
 		},
 		{
 			name: "command workflow should have dynamic concurrency without cancel",
@@ -75,7 +75,7 @@ tools:
 			description:      "Regular workflows should use static concurrency without cancellation",
 		},
 		{
-			name: "push workflow should use dynamic concurrency with ref",
+			name: "push workflow should be sequentialized per workflow",
 			frontmatter: `---
 on:
   push:
@@ -86,9 +86,9 @@ tools:
 ---`,
 			filename: "push-workflow.md",
 			expectedConcurrency: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.ref }}"`,
+  group: "gh-aw-${{ github.workflow }}"`,
 			shouldHaveCancel: false,
-			description:      "Push workflows should use dynamic concurrency with github.ref",
+			description:      "Push workflows are sequentialized per workflow",
 		},
 		{
 			name: "issue workflow should be sequentialized per workflow",
@@ -158,7 +158,7 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 		description    string
 	}{
 		{
-			name: "PR workflow should have dynamic concurrency with cancel and PR number",
+			name: "PR workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   pull_request:
@@ -167,9 +167,9 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			},
 			isAliasTrigger: false,
 			expected: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: "gh-aw-${{ github.workflow }}"
   cancel-in-progress: true`,
-			description: "PR workflows should use PR number or ref with cancellation",
+			description: "PR workflows are sequentialized per workflow with cancellation",
 		},
 		{
 			name: "Alias workflow should have dynamic concurrency without cancel",
@@ -185,7 +185,7 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			description: "Alias workflows should use dynamic concurrency with ref but without cancellation",
 		},
 		{
-			name: "Push workflow should have dynamic concurrency with ref",
+			name: "Push workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   push:
@@ -194,8 +194,8 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			},
 			isAliasTrigger: false,
 			expected: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.ref }}"`,
-			description: "Push workflows should use github.ref without cancellation",
+  group: "gh-aw-${{ github.workflow }}"`,
+			description: "Push workflows are sequentialized per workflow",
 		},
 		{
 			name: "Regular workflow should use static concurrency without cancel",
@@ -237,7 +237,7 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			description: "Issue comment workflows are sequentialized per workflow (no issue number)",
 		},
 		{
-			name: "Mixed issue and PR workflow should have dynamic concurrency with issue/PR number",
+			name: "Mixed issue and PR workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   issues:
@@ -248,12 +248,12 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			},
 			isAliasTrigger: false,
 			expected: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}"
+  group: "gh-aw-${{ github.workflow }}"
   cancel-in-progress: true`,
-			description: "Mixed workflows should use issue/PR number with cancellation enabled",
+			description: "Mixed workflows are sequentialized per workflow with cancellation",
 		},
 		{
-			name: "Discussion workflow should have dynamic concurrency with discussion number",
+			name: "Discussion workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   discussion:
@@ -262,11 +262,11 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			},
 			isAliasTrigger: false,
 			expected: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.discussion.number }}"`,
-			description: "Discussion workflows should use discussion number without cancellation",
+  group: "gh-aw-${{ github.workflow }}"`,
+			description: "Discussion workflows are sequentialized per workflow (no discussion number)",
 		},
 		{
-			name: "Mixed issue and discussion workflow should have dynamic concurrency with issue/discussion number",
+			name: "Mixed issue and discussion workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   issues:
@@ -277,8 +277,8 @@ func TestGenerateConcurrencyConfig(t *testing.T) {
 			},
 			isAliasTrigger: false,
 			expected: `concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.issue.number || github.event.discussion.number }}"`,
-			description: "Mixed issue and discussion workflows should use issue/discussion number without cancellation",
+  group: "gh-aw-${{ github.workflow }}"`,
+			description: "Mixed issue and discussion workflows are sequentialized per workflow",
 		},
 		{
 			name: "Existing concurrency should not be overridden",
@@ -639,15 +639,15 @@ func TestBuildConcurrencyGroupKeys(t *testing.T) {
 			description:    "Alias workflows should use issue/PR number",
 		},
 		{
-			name: "Pure PR workflow should include PR number",
+			name: "Pure PR workflow should NOT include PR number",
 			workflowData: &WorkflowData{
 				On: `on:
   pull_request:
     types: [opened, synchronize]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.event.pull_request.number || github.ref }}"},
-			description:    "Pure PR workflows should use PR number",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Pure PR workflows are sequentialized per workflow",
 		},
 		{
 			name: "Pure issue workflow should NOT include issue number",
@@ -661,7 +661,7 @@ func TestBuildConcurrencyGroupKeys(t *testing.T) {
 			description:    "Pure issue workflows are sequentialized per workflow",
 		},
 		{
-			name: "Mixed issue and PR workflow should include issue/PR number",
+			name: "Mixed issue and PR workflow should NOT include issue/PR number",
 			workflowData: &WorkflowData{
 				On: `on:
   issues:
@@ -670,22 +670,22 @@ func TestBuildConcurrencyGroupKeys(t *testing.T) {
     types: [opened, synchronize]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.event.issue.number || github.event.pull_request.number }}"},
-			description:    "Mixed workflows should use issue/PR number",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Mixed workflows are sequentialized per workflow",
 		},
 		{
-			name: "Pure discussion workflow should include discussion number",
+			name: "Pure discussion workflow should NOT include discussion number",
 			workflowData: &WorkflowData{
 				On: `on:
   discussion:
     types: [created, edited]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.event.discussion.number }}"},
-			description:    "Pure discussion workflows should use discussion number",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Pure discussion workflows are sequentialized per workflow",
 		},
 		{
-			name: "Mixed issue and discussion workflow should include issue/discussion number",
+			name: "Mixed issue and discussion workflow should NOT include issue/discussion number",
 			workflowData: &WorkflowData{
 				On: `on:
   issues:
@@ -694,22 +694,22 @@ func TestBuildConcurrencyGroupKeys(t *testing.T) {
     types: [created, edited]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.event.issue.number || github.event.discussion.number }}"},
-			description:    "Mixed issue and discussion workflows should use issue/discussion number",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Mixed issue and discussion workflows are sequentialized per workflow",
 		},
 		{
-			name: "Push workflow should include github.ref",
+			name: "Push workflow should NOT include github.ref",
 			workflowData: &WorkflowData{
 				On: `on:
   push:
     branches: [main]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.ref }}"},
-			description:    "Push workflows should use github.ref",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Push workflows are sequentialized per workflow",
 		},
 		{
-			name: "Mixed push and PR workflow should use PR logic (PR takes priority)",
+			name: "Mixed push and PR workflow should be sequentialized per workflow",
 			workflowData: &WorkflowData{
 				On: `on:
   push:
@@ -718,8 +718,8 @@ func TestBuildConcurrencyGroupKeys(t *testing.T) {
     types: [opened, synchronize]`,
 			},
 			isAliasTrigger: false,
-			expected:       []string{"gh-aw", "${{ github.workflow }}", "${{ github.event.pull_request.number || github.ref }}"},
-			description:    "Mixed push+PR workflows should use PR logic since PR is checked first",
+			expected:       []string{"gh-aw", "${{ github.workflow }}"},
+			description:    "Mixed push+PR workflows are sequentialized per workflow",
 		},
 		{
 			name: "Other workflow should not include additional keys",

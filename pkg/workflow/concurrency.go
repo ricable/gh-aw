@@ -132,28 +132,8 @@ func buildConcurrencyGroupKeys(workflowData *WorkflowData, isCommandTrigger bool
 	if isCommandTrigger {
 		// For command workflows: use issue/PR number
 		keys = append(keys, "${{ github.event.issue.number || github.event.pull_request.number }}")
-	} else if isPullRequestWorkflow(workflowData.On) && isIssueWorkflow(workflowData.On) {
-		// Mixed workflows with both issue and PR triggers: use issue/PR number
-		keys = append(keys, "${{ github.event.issue.number || github.event.pull_request.number }}")
-	} else if isPullRequestWorkflow(workflowData.On) && isDiscussionWorkflow(workflowData.On) {
-		// Mixed workflows with PR and discussion triggers: use PR/discussion number
-		keys = append(keys, "${{ github.event.pull_request.number || github.event.discussion.number }}")
-	} else if isIssueWorkflow(workflowData.On) && isDiscussionWorkflow(workflowData.On) {
-		// Mixed workflows with issue and discussion triggers: use issue/discussion number
-		keys = append(keys, "${{ github.event.issue.number || github.event.discussion.number }}")
-	} else if isPullRequestWorkflow(workflowData.On) {
-		// Pure PR workflows: use PR number if available, otherwise fall back to ref for compatibility
-		keys = append(keys, "${{ github.event.pull_request.number || github.ref }}")
-	} else if isIssueWorkflow(workflowData.On) {
-		// Issue workflows: sequentialized per workflow (no issue number)
-		// Multiple runs on the same workflow queue sequentially
-	} else if isDiscussionWorkflow(workflowData.On) {
-		// Discussion workflows: use discussion number
-		keys = append(keys, "${{ github.event.discussion.number }}")
-	} else if isPushWorkflow(workflowData.On) {
-		// Push workflows: use ref to differentiate between branches
-		keys = append(keys, "${{ github.ref }}")
 	}
+	// All other workflows: sequentialize per workflow (no event-specific keys)
 
 	return keys
 }

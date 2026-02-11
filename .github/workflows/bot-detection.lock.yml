@@ -46,7 +46,7 @@ name: "Bot Detection Agent 🔍🤖"
 permissions: {}
 
 concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}"
+  group: "gh-aw-${{ github.workflow }}"
   cancel-in-progress: true
 
 run-name: "Bot Detection Agent 🔍🤖"

@@ -16,9 +16,11 @@ Workflow-level concurrency groups include the workflow name plus context-specifi
 | Trigger Type | Concurrency Group | Cancel In Progress |
 |--------------|-------------------|-------------------|
 | Issues | `gh-aw-${{ github.workflow }}` | No |
-| Pull Requests | `gh-aw-${{ github.workflow }}-${{ pr.number \|\| ref }}` | Yes (new commits cancel outdated runs) |
-| Push | `gh-aw-${{ github.workflow }}-${{ github.ref }}` | No |
+| Pull Requests | `gh-aw-${{ github.workflow }}` | Yes (new commits cancel outdated runs) |
+| Push | `gh-aw-${{ github.workflow }}` | No |
+| Discussions | `gh-aw-${{ github.workflow }}` | No |
 | Schedule/Other | `gh-aw-${{ github.workflow }}` | No |
+| Command Triggers | `gh-aw-${{ github.workflow }}-${{ issue.number \|\| pr.number }}` | No |
 
 This ensures workflows on different issues, PRs, or branches run concurrently without interference.
 

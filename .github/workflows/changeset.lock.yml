@@ -43,7 +43,7 @@ name: "Changeset Generator"
 permissions: {}
 
 concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: "gh-aw-${{ github.workflow }}"
   cancel-in-progress: true
 
 run-name: "Changeset Generator"
