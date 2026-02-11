@@ -726,14 +726,12 @@ func (c *Compiler) generateMCPSetup(yaml *strings.Builder, tools map[string]any,
 		// Render MCP config - this will pipe directly to the gateway script
 		engine.RenderMCPConfig(yaml, tools, mcpTools, workflowData)
 	} else {
-		// Sandbox is disabled - generate MCP config file directly without gateway
-		// This is needed for Copilot CLI to discover MCP servers (e.g., safe-outputs)
-		// The engine's RenderMCPConfig will handle writing the config directly when sandbox is disabled
+		// Sandbox is disabled - generate "Write MCP config" step to write MCP config directly to file
+		// This is needed for Copilot CLI to discover MCP servers (e.g., safe-outputs) without the gateway
+		// The engine's RenderMCPConfig will detect sandbox is disabled and write directly to the config file
 		yaml.WriteString("      - name: Write MCP config\n")
 		yaml.WriteString("        run: |\n")
 		// Call engine's RenderMCPConfig - for Copilot it will write directly to file
 		engine.RenderMCPConfig(yaml, tools, mcpTools, workflowData)
 	}
-	// Note: When sandbox is disabled, gateway config will be nil and MCP config will be generated
-	// without the gateway section. The engine's RenderMCPConfig handles both cases.
 }

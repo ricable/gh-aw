@@ -972,14 +972,15 @@ func RenderJSONMCPConfig(
 
 // RenderJSONMCPConfigDirect renders MCP configuration in JSON format and writes it directly to a file.
 // This is used when sandbox is disabled (sandbox: false) and the gateway is not started.
-// The config file is written so that Copilot CLI can discover MCP servers directly.
+// The config file is written to the path specified in options.ConfigPath (typically /home/runner/.copilot/mcp-config.json)
+// so that Copilot CLI can discover MCP servers directly without the gateway.
 //
 // Parameters:
 //   - yaml: The string builder for YAML output
 //   - tools: Map of tool configurations
 //   - mcpTools: Ordered list of MCP tool names to render
 //   - workflowData: Workflow configuration data
-//   - options: JSON MCP config rendering options
+//   - options: JSON MCP config rendering options (ConfigPath must be set)
 func RenderJSONMCPConfigDirect(
 	yaml *strings.Builder,
 	tools map[string]any,
@@ -1053,6 +1054,7 @@ func RenderJSONMCPConfigDirect(
 	fmt.Fprintf(yaml, "          cat << MCPCONFIG_EOF > %s\n", options.ConfigPath)
 	yaml.WriteString(generatedConfig)
 	yaml.WriteString("          MCPCONFIG_EOF\n")
+	// Add blank line for readability in generated workflow
 	yaml.WriteString("          \n")
 	fmt.Fprintf(yaml, "          echo \"MCP config written to %s\"\n", options.ConfigPath)
 
