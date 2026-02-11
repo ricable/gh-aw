@@ -8,8 +8,9 @@ const { AGENT_OUTPUT_FILENAME, TMP_GH_AW_PATH } = require("./constants.cjs");
 async function main() {
   try {
     const fs = require("fs");
+    const path = require("path");
     const { sanitizeContent } = require("./sanitize_content.cjs");
-    const { validateItem, getMaxAllowedForType, getMinRequiredForType, hasValidationConfig, MAX_BODY_LENGTH: maxBodyLength, resetValidationConfigCache } = require("./safe_output_type_validator.cjs");
+    const { validateItem, getMaxAllowedForType, getMinRequiredForType, hasValidationConfig, resetValidationConfigCache } = require("./safe_output_type_validator.cjs");
     const { resolveAllowedMentionsFromPayload } = require("./resolve_mentions_from_payload.cjs");
 
     // Load validation config from file and set it in environment for the validator to read
@@ -34,6 +35,14 @@ async function main() {
     // This determines which @mentions are allowed in the agent output
     const allowedMentions = await resolveAllowedMentionsFromPayload(context, github, core, mentionsConfig);
 
+    /**
+     * Validates a field value against its input schema
+     * @param {any} value - Field value to validate
+     * @param {string} fieldName - Name of the field
+     * @param {object} inputSchema - Schema definition
+     * @param {number} lineNum - Line number for error messages
+     * @returns {{ isValid: boolean, error?: string, normalizedValue?: any }} Validation result
+     */
     function validateFieldWithInputSchema(value, fieldName, inputSchema, lineNum) {
       if (inputSchema.required && (value === undefined || value === null)) {
         return {
@@ -101,6 +110,14 @@ async function main() {
         normalizedValue,
       };
     }
+
+    /**
+     * Validates an item against safe job configuration
+     * @param {object} item - Item to validate
+     * @param {object} jobConfig - Job configuration
+     * @param {number} lineNum - Line number for error messages
+     * @returns {{ isValid: boolean, errors: string[], normalizedItem: object }} Validation result
+     */
     function validateItemWithSafeJobConfig(item, jobConfig, lineNum) {
       const errors = [];
       const normalizedItem = { ...item };
@@ -126,6 +143,13 @@ async function main() {
         normalizedItem,
       };
     }
+
+    /**
+     * Parses JSON with automatic repair on failure
+     * @param {string} jsonStr - JSON string to parse
+     * @returns {any} Parsed JSON object
+     * @throws {Error} If parsing fails even after repair attempt
+     */
     function parseJsonWithRepair(jsonStr) {
       try {
         return JSON.parse(jsonStr);
@@ -141,6 +165,7 @@ async function main() {
         }
       }
     }
+
     const outputFile = process.env.GH_AW_SAFE_OUTPUTS;
     // Read config from file instead of environment variable
     const configPath = process.env.GH_AW_SAFE_OUTPUTS_CONFIG_PATH || "/opt/gh-aw/safeoutputs/config.json";
@@ -190,6 +215,7 @@ async function main() {
         core.info(`Warning: Could not parse safe-outputs config: ${errorMsg}`);
       }
     }
+
     // Parse JSONL (JSON Lines) format: each line is a separate JSON object
     // CRITICAL: This expects one JSON object per line. If JSON is formatted with
     // indentation/pretty-printing, parsing will fail.
@@ -248,7 +274,7 @@ async function main() {
             continue;
           }
           const safeJobConfig = jobOutputType;
-          if (safeJobConfig && safeJobConfig.inputs) {
+          if (safeJobConfig?.inputs) {
             const validation = validateItemWithSafeJobConfig(item, safeJobConfig, i + 1);
             if (!validation.isValid) {
               errors.push(...validation.errors);
@@ -283,7 +309,6 @@ async function main() {
       items: parsedItems,
       errors: errors,
     };
-    const path = require("path");
     const agentOutputFile = path.join(TMP_GH_AW_PATH, AGENT_OUTPUT_FILENAME);
     const validatedOutputJson = JSON.stringify(validatedOutput);
     try {
