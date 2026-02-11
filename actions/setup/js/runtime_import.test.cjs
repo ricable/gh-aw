@@ -365,14 +365,16 @@ describe("runtime_import", () => {
           const result = await processRuntimeImport("missing.md", !0, tempDir);
           (expect(result).toBe(""), expect(core.warning).toHaveBeenCalledWith("Optional runtime import file not found: workflows/missing.md"));
         }),
-        it("should remove front matter and warn", async () => {
+        it("should preserve front matter and wrap in configuration section", async () => {
           const filepath = "with-frontmatter.md";
           fs.writeFileSync(path.join(workflowsDir, filepath), "---\ntitle: Test\nkey: value\n---\n\n# Content\n\nActual content.");
           const result = await processRuntimeImport(filepath, !1, tempDir);
           (expect(result).toContain("# Content"),
             expect(result).toContain("Actual content."),
-            expect(result).not.toContain("title: Test"),
-            expect(core.warning).toHaveBeenCalledWith(`File workflows/${filepath} contains front matter which will be ignored in runtime import`));
+            expect(result).toContain("<workflow-configuration>"),
+            expect(result).toContain("title: Test"),
+            expect(result).toContain("key: value"),
+            expect(core.info).toHaveBeenCalledWith(`File workflows/${filepath} contains front matter which will be included in the prompt for agent visibility`));
         }),
         it("should remove XML comments", async () => {
           fs.writeFileSync(path.join(workflowsDir, "with-comments.md"), "# Title\n\n\x3c!-- This is a comment --\x3e\n\nContent here.");
@@ -414,7 +416,8 @@ describe("runtime_import", () => {
         it("should handle file with only front matter", async () => {
           fs.writeFileSync(path.join(workflowsDir, "only-frontmatter.md"), "---\ntitle: Test\n---\n");
           const result = await processRuntimeImport("only-frontmatter.md", !1, tempDir);
-          expect(result.trim()).toBe("");
+          expect(result).toContain("<workflow-configuration>");
+          expect(result).toContain("title: Test");
         }),
         it("should allow template conditionals", async () => {
           const content = "{{#if condition}}content{{/if}}";
@@ -561,7 +564,7 @@ describe("runtime_import", () => {
         it("should handle front matter with varying formats", async () => {
           fs.writeFileSync(path.join(workflowsDir, "yaml-frontmatter.md"), "---\ntitle: Test\narray:\n  - item1\n  - item2\n---\n\nBody content");
           const result = await processRuntimeImport("yaml-frontmatter.md", !1, tempDir);
-          (expect(result).toContain("Body content"), expect(result).not.toContain("array:"), expect(result).not.toContain("item1"));
+          (expect(result).toContain("Body content"), expect(result).toContain("array:"), expect(result).toContain("item1"));
         }));
     }),
     describe("Error Handling", () => {
@@ -817,12 +820,12 @@ describe("runtime_import", () => {
           // This is a placeholder for the structure
         });
 
-        it("should handle expressions with front matter removal", async () => {
+        it("should handle expressions with front matter preservation", async () => {
           const content = "---\ntitle: Test\n---\n\nActor: ${{ github.actor }}";
           fs.writeFileSync(path.join(workflowsDir, "frontmatter-expr.md"), content);
           const result = await processRuntimeImport("frontmatter-expr.md", false, tempDir);
           expect(result).toContain("Actor: testuser");
-          expect(result).not.toContain("title: Test");
+          expect(result).toContain("title: Test");
         });
 
         it("should handle expressions with XML comments", async () => {

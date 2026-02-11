@@ -812,14 +812,15 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     content = lines.slice(start - 1, end).join("\n");
   }
 
-  // Check for front matter and warn
+  // Check for front matter and preserve it for agent visibility
   if (hasFrontMatter(content)) {
-    core.warning(`File ${filepath} contains front matter which will be ignored in runtime import`);
-    // Remove front matter (everything between first --- and second ---)
+    core.info(`File ${filepath} contains front matter which will be included in the prompt for agent visibility`);
+    // Keep the frontmatter but wrap it in a special section so the agent can see the configuration
     const lines = content.split("\n");
     let inFrontMatter = false;
     let frontMatterCount = 0;
-    const processedLines = [];
+    const frontMatterLines = [];
+    const bodyLines = [];
 
     for (const line of lines) {
       if (line.trim() === "---" || line.trim() === "---\r") {
@@ -832,11 +833,19 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
           continue;
         }
       }
-      if (!inFrontMatter && frontMatterCount >= 2) {
-        processedLines.push(line);
+      if (inFrontMatter && frontMatterCount === 1) {
+        frontMatterLines.push(line);
+      } else if (!inFrontMatter && frontMatterCount >= 2) {
+        bodyLines.push(line);
       }
     }
-    content = processedLines.join("\n");
+
+    // Reconstruct with frontmatter in a visible section
+    if (frontMatterLines.length > 0) {
+      content = "<workflow-configuration>\n" + "```yaml\n" + frontMatterLines.join("\n") + "\n```\n" + "</workflow-configuration>\n\n" + bodyLines.join("\n");
+    } else {
+      content = bodyLines.join("\n");
+    }
   }
 
   // Remove XML comments
