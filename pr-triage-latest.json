@@ -1,110 +1,134 @@
 {
-  "run_date": "2026-02-11T06:32:00Z",
-  "run_id": "21895125075",
-  "total_prs_triaged": 4,
-  "new_prs": 4,
-  "re_triaged": 0,
+  "run_date": "2026-02-11T12:29:09.783493Z",
+  "run_id": "21904909325",
+  "total_prs_triaged": 7,
+  "new_prs": 3,
+  "re_triaged": 4,
   "results": [
     {
-      "number": 14888,
-      "title": "Remove sandbox: false, add sandbox.agent: false for firewall-only disable",
-      "category": "feature",
+      "number": 14935,
+      "title": "Remove generic fallback from cache-memory restore-keys",
+      "category": "bug",
       "risk": "high",
-      "priority_score": 75,
+      "priority_score": 83,
       "action": "fast_track",
-      "ci_status": "clean",
-      "files_changed": 23,
+      "ci_status": "pending",
+      "files_changed": 69,
       "draft": false
     },
     {
-      "number": 14901,
-      "title": "[WIP] Fix error messages display in gh aw compile command",
-      "category": "bug",
+      "number": 14937,
+      "title": "docs: fix tokens page build errors - stable anchor IDs and proper image containers",
+      "category": "docs",
       "risk": "low",
-      "priority_score": 50,
+      "priority_score": 38,
+      "action": "batch_review",
+      "ci_status": "pending",
+      "files_changed": 2,
+      "draft": false
+    },
+    {
+      "number": 14940,
+      "title": "[WIP] Add support for user per workflow rate limiting",
+      "category": "feature",
+      "risk": "low",
+      "priority_score": 32,
       "action": "defer",
       "ci_status": "pending",
-      "files_changed": 4,
+      "files_changed": 0,
       "draft": true
     },
     {
-      "number": 14899,
-      "title": "Extract duplicate expires preprocessing logic into shared helper",
-      "category": "refactor",
-      "risk": "medium",
-      "priority_score": 45,
+      "number": 14939,
+      "title": "[docs] Consolidate developer specifications into instructions file",
+      "category": "docs",
+      "risk": "low",
+      "priority_score": 30,
       "action": "batch_review",
       "ci_status": "pending",
-      "files_changed": 4,
-      "draft": false,
-      "batch_id": "batch-refactor-001"
+      "files_changed": 1,
+      "draft": false
     },
     {
-      "number": 14900,
-      "title": "Verify roles: all is valid and compiles correctly",
-      "category": "chore",
+      "number": 14920,
+      "title": "[docs] Update documentation for features from 2026-02-11",
+      "category": "docs",
+      "risk": "low",
+      "priority_score": 28,
+      "action": "defer",
+      "ci_status": "pending",
+      "files_changed": 4,
+      "draft": false
+    },
+    {
+      "number": 14913,
+      "title": "[specs] Update layout specification - 2026-02-11",
+      "category": "docs",
+      "risk": "low",
+      "priority_score": 28,
+      "action": "defer",
+      "ci_status": "pending",
+      "files_changed": 1,
+      "draft": false
+    },
+    {
+      "number": 14914,
+      "title": "[jsweep] Clean collect_ndjson_output.cjs",
+      "category": "formatting",
       "risk": "low",
       "priority_score": 20,
-      "action": "close",
+      "action": "defer",
       "ci_status": "pending",
-      "files_changed": 0,
+      "files_changed": 1,
       "draft": true
     }
   ],
   "statistics": {
     "by_category": {
       "bug": 1,
+      "docs": 4,
       "feature": 1,
-      "refactor": 1,
-      "chore": 1
+      "formatting": 1
     },
     "by_risk": {
-      "low": 2,
-      "medium": 1,
+      "low": 6,
       "high": 1
     },
     "by_priority": {
       "high": 1,
-      "medium": 2,
-      "low": 1
+      "medium": 0,
+      "low": 6
     },
     "by_action": {
       "fast_track": 1,
-      "batch_review": 1,
-      "defer": 1,
-      "close": 1,
-      "auto_merge": 0
+      "batch_review": 2,
+      "defer": 4,
+      "auto_merge": 0,
+      "close": 0
     }
   },
   "auto_merge_candidates": [],
-  "fast_track_needed": [14888],
+  "fast_track_needed": [
+    14935
+  ],
   "batches": {
-    "batch-refactor-001": [14899]
-  },
-  "close_candidates": [14900],
-  "defer_candidates": [14901],
-  "previous_run": {
-    "run_date": "2026-02-11T00:44:13.341Z",
-    "run_id": "21888181686",
-    "total_prs_triaged": 0,
-    "prs_resolved_since_then": [
-      {
-        "number": 14820,
-        "title": "Make discussion categories case-insensitive",
-        "status": "merged"
-      },
-      {
-        "number": 14819,
-        "title": "Add github-token support to all safe-output handlers",
-        "status": "merged"
-      },
-      {
-        "number": 14682,
-        "title": "Add test workflow for project-related safe output token failure paths",
-        "status": "closed"
-      }
+    "batch-docs-001": [
+      14937,
+      14939
     ]
   },
+  "close_candidates": [],
+  "defer_candidates": [
+    14940,
+    14920,
+    14913,
+    14914
+  ],
+  "previous_run": {
+    "run_date": "2026-02-11T06:32:00Z",
+    "run_id": "21895125075",
+    "total_prs_triaged": 4
+  },
   "backlog_status": "active",
-  "notes": "4 new PRs triaged. 1 high-priority breaking change (#14888) needs fast-track review. 2 draft PRs in progress. 1 investigation PR should be closed. Previous backlog fully cleared."
+  "notes": "7 PRs triaged. 1 critical security fix (#14935) needs fast-track. 2 docs PRs batched. 4 PRs deferred (2 WIP drafts, 2 routine docs)."
 }
