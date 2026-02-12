@@ -1,41 +1,82 @@
 {
-  "run_date": "2026-02-12T00:39:35Z",
-  "run_id": "21928853950",
-  "total_prs_triaged": 0,
-  "new_prs": 0,
+  "run_date": "2026-02-12T06:32:00Z",
+  "run_id": "21936141489",
+  "total_prs_triaged": 4,
+  "new_prs": 4,
   "re_triaged": 0,
-  "results": [],
+  "results": [
+    {
+      "number": 15097,
+      "title": "[WIP] Add support for safe-outputs.body to update issue body",
+      "category": "feature",
+      "risk": "medium",
+      "priority": 32,
+      "action": "defer",
+      "wip": true,
+      "ci_status": "pending"
+    },
+    {
+      "number": 15096,
+      "title": "[WIP] Update strict mode to warn without failing on action pin resolution",
+      "category": "bug",
+      "risk": "medium",
+      "priority": 43,
+      "action": "defer",
+      "wip": true,
+      "ci_status": "pending"
+    },
+    {
+      "number": 15095,
+      "title": "Add build setup to Daily Syntax Error Quality Check workflow",
+      "category": "chore",
+      "risk": "low",
+      "priority": 40,
+      "action": "fast_track",
+      "wip": false,
+      "ci_status": "pending"
+    },
+    {
+      "number": 15084,
+      "title": "[WIP] Add support for --actor flag in mcp-server command",
+      "category": "feature",
+      "risk": "medium",
+      "priority": 38,
+      "action": "defer",
+      "wip": true,
+      "ci_status": "pending"
+    }
+  ],
   "statistics": {
     "by_category": {
       "docs": 0,
-      "bug": 0,
-      "feature": 0,
+      "bug": 1,
+      "feature": 2,
       "test": 0,
       "formatting": 0,
       "refactor": 0,
-      "chore": 0
+      "chore": 1
     },
     "by_risk": {
-      "low": 0,
-      "medium": 0,
+      "low": 1,
+      "medium": 3,
       "high": 0
     },
     "by_priority": {
       "high": 0,
-      "medium": 0,
-      "low": 0
+      "medium": 2,
+      "low": 2
     },
     "by_action": {
-      "defer": 0,
-      "fast_track": 0,
+      "defer": 3,
+      "fast_track": 1,
       "auto_merge": 0,
       "batch_review": 0,
       "close": 0
     }
   },
   "auto_merge_candidates": [],
-  "fast_track_needed": [],
+  "fast_track_needed": [15095],
   "batches": {},
   "close_candidates": [],
-  "defer_candidates": []
+  "defer_candidates": [15097, 15096, 15084]
 }
