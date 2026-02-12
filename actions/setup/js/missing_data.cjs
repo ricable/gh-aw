@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "missing_data";
@@ -56,7 +57,7 @@ async function main(config = {}) {
       core.info(`   Reason: ${missingData.reason}`);
     }
     if (missingData.context) {
-      core.info(`   Context: ${missingData.context}`);
+      safeInfo(`   Context: ${missingData.context}`);
     }
     if (missingData.alternatives) {
       core.info(`   Alternatives: ${missingData.alternatives}`);

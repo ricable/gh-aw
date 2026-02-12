@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "noop";
@@ -43,7 +44,7 @@ async function main(config = {}) {
     // Validate required fields
     const { message: messageText } = message;
     if (!messageText || typeof messageText !== "string" || !messageText.trim()) {
-      core.warning(`noop message missing or invalid 'message' field: ${JSON.stringify(message)}`);
+      safeWarning(`noop message missing or invalid 'message' field: ${JSON.stringify(message)}`);
       return {
         success: false,
         error: "Missing required field: message",
@@ -54,7 +55,7 @@ async function main(config = {}) {
 
     const timestamp = new Date().toISOString();
 
-    core.info(`✓ Recorded noop message: ${messageText}`);
+    safeInfo(`✓ Recorded noop message: ${messageText}`);
 
     return {
       success: true,

@@ -7,6 +7,7 @@ const { getWorkflowIdMarkerContent } = require("./generate_footer.cjs");
 /**
  * Maximum number of older issues to close
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const MAX_CLOSE_COUNT = 10;
 
 /**
@@ -83,12 +84,12 @@ async function searchOlderIssues(github, owner, repo, workflowId, excludeNumber)
       // Exclude the newly created issue
       if (item.number === excludeNumber) {
         excludedCount++;
-        core.info(`  Excluding issue #${item.number} (the newly created issue)`);
+        safeInfo(`  Excluding issue #${item.number} (the newly created issue)`);
         return false;
       }
 
       filteredCount++;
-      core.info(`  ✓ Issue #${item.number} matches criteria: ${item.title}`);
+      safeInfo(`  ✓ Issue #${item.number} matches criteria: ${item.title}`);
       return true;
     })
     .map(item => ({
@@ -117,7 +118,7 @@ async function searchOlderIssues(github, owner, repo, workflowId, excludeNumber)
  */
 async function addIssueComment(github, owner, repo, issueNumber, message) {
   core.info(`Adding comment to issue #${issueNumber} in ${owner}/${repo}`);
-  core.info(`  Comment length: ${message.length} characters`);
+  safeInfo(`  Comment length: ${message.length} characters`);
 
   const result = await github.rest.issues.createComment({
     owner,
@@ -198,9 +199,9 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
   core.info("Starting closeOlderIssues operation");
   core.info("=".repeat(70));
 
-  core.info(`Search criteria: workflow-id marker: "${getWorkflowIdMarkerContent(workflowId)}"`);
+  safeInfo(`Search criteria: workflow-id marker: "${getWorkflowIdMarkerContent(workflowId)}"`);
   core.info(`New issue reference: #${newIssue.number} (${newIssue.html_url})`);
-  core.info(`Workflow: ${workflowName}`);
+  safeInfo(`Workflow: ${workflowName}`);
   core.info(`Run URL: ${runUrl}`);
   core.info("");
 
@@ -215,8 +216,8 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
   core.info("");
   core.info(`Found ${olderIssues.length} older issue(s) matching the criteria`);
   for (const issue of olderIssues) {
-    core.info(`  - Issue #${issue.number}: ${issue.title}`);
-    core.info(`    Labels: ${issue.labels.map(l => l.name).join(", ") || "(none)"}`);
+    safeInfo(`  - Issue #${issue.number}: ${issue.title}`);
+    safeInfo(`    Labels: ${issue.labels.map(l => l.name).join(", ") || "(none)"}`);
     core.info(`    URL: ${issue.html_url}`);
   }
 
@@ -239,7 +240,7 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
     const issue = issuesToClose[i];
     core.info("-".repeat(70));
     core.info(`Processing issue ${i + 1}/${issuesToClose.length}: #${issue.number}`);
-    core.info(`  Title: ${issue.title}`);
+    safeInfo(`  Title: ${issue.title}`);
     core.info(`  URL: ${issue.html_url}`);
 
     try {
@@ -251,7 +252,7 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
         runUrl,
       });
 
-      core.info(`  Message length: ${closingMessage.length} characters`);
+      safeInfo(`  Message length: ${closingMessage.length} characters`);
       core.info("");
 
       // Add comment first
@@ -270,9 +271,9 @@ async function closeOlderIssues(github, owner, repo, workflowId, newIssue, workf
     } catch (error) {
       core.info("");
       core.error(`✗ Failed to close issue #${issue.number}`);
-      core.error(`  Error: ${getErrorMessage(error)}`);
+      safeError(`  Error: ${getErrorMessage(error)}`);
       if (error instanceof Error && error.stack) {
-        core.error(`  Stack trace: ${error.stack}`);
+        safeError(`  Stack trace: ${error.stack}`);
       }
       // Continue with other issues even if one fails
     }

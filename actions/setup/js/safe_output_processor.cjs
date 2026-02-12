@@ -5,6 +5,7 @@
  * Shared processor for safe-output scripts
  * Provides common pipeline: load agent output, handle staged mode, parse config, resolve target
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { loadAgentOutput } = require("./load_agent_output.cjs");
 const { generateStagedPreview } = require("./staged_preview.cjs");
@@ -111,12 +112,12 @@ async function processSafeOutput(config, stagedPreviewOptions, handlerConfig = n
     // Parse allowed items from handlerConfig
     allowed = handlerConfig.allowed || handlerConfig.allowed_labels || handlerConfig.allowed_repos;
     if (Array.isArray(allowed)) {
-      core.info(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
+      safeInfo(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
     } else if (typeof allowed === "string") {
       allowed = parseAllowedItems(allowed);
-      core.info(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
+      safeInfo(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
     } else {
-      core.info(`No ${itemTypeName} restrictions - any ${itemTypeName}s are allowed`);
+      safeInfo(`No ${itemTypeName} restrictions - any ${itemTypeName}s are allowed`);
     }
 
     // Get max count from handlerConfig
@@ -125,7 +126,7 @@ async function processSafeOutput(config, stagedPreviewOptions, handlerConfig = n
 
     // Get target from handlerConfig
     target = handlerConfig.target || "triggering";
-    core.info(`${displayName} target configuration: ${target}`);
+    safeInfo(`${displayName} target configuration: ${target}`);
   } else {
     // Fall back to reading from config file + env vars (backward compatibility)
     const safeOutputConfig = getSafeOutputConfig(configKey);
@@ -134,9 +135,9 @@ async function processSafeOutput(config, stagedPreviewOptions, handlerConfig = n
     const allowedEnvValue = envVars.allowed ? process.env[envVars.allowed] : undefined;
     allowed = parseAllowedItems(allowedEnvValue) || safeOutputConfig.allowed;
     if (allowed) {
-      core.info(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
+      safeInfo(`Allowed ${itemTypeName}s: ${JSON.stringify(allowed)}`);
     } else {
-      core.info(`No ${itemTypeName} restrictions - any ${itemTypeName}s are allowed`);
+      safeInfo(`No ${itemTypeName} restrictions - any ${itemTypeName}s are allowed`);
     }
 
     // Parse max count (env takes priority, then config)
@@ -151,7 +152,7 @@ async function processSafeOutput(config, stagedPreviewOptions, handlerConfig = n
 
     // Get target configuration
     target = envVars.target ? process.env[envVars.target] || "triggering" : "triggering";
-    core.info(`${displayName} target configuration: ${target}`);
+    safeInfo(`${displayName} target configuration: ${target}`);
   }
 
   // For multiple items, return early without target resolution

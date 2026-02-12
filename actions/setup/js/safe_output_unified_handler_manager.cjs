@@ -13,6 +13,7 @@
  *
  * The @actions/github package is installed at runtime via setup.sh to enable Octokit instantiation.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { loadAgentOutput } = require("./load_agent_output.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
@@ -199,7 +200,7 @@ async function loadHandlers(configs, projectOctokit = null) {
 
           if (typeof messageHandler !== "function") {
             const error = new Error(`Handler ${type} main() did not return a function - expected a message handler function but got ${typeof messageHandler}`);
-            core.error(`✗ Fatal error loading handler ${type}: ${error.message}`);
+            safeError(`✗ Fatal error loading handler ${type}: ${error.message}`);
             throw error;
           }
 
@@ -213,7 +214,7 @@ async function loadHandlers(configs, projectOctokit = null) {
         if (errorMessage.includes("did not return a function")) {
           throw error;
         }
-        core.warning(`Failed to load regular handler for ${type}: ${errorMessage}`);
+        safeWarning(`Failed to load regular handler for ${type}: ${errorMessage}`);
       }
     }
   }
@@ -236,7 +237,7 @@ async function loadHandlers(configs, projectOctokit = null) {
 
           if (typeof messageHandler !== "function") {
             const error = new Error(`Handler ${type} main() did not return a function - expected a message handler function but got ${typeof messageHandler}`);
-            core.error(`✗ Fatal error loading handler ${type}: ${error.message}`);
+            safeError(`✗ Fatal error loading handler ${type}: ${error.message}`);
             throw error;
           }
 
@@ -250,12 +251,12 @@ async function loadHandlers(configs, projectOctokit = null) {
         if (errorMessage.includes("did not return a function")) {
           throw error;
         }
-        core.warning(`Failed to load project handler for ${type}: ${errorMessage}`);
+        safeWarning(`Failed to load project handler for ${type}: ${errorMessage}`);
       }
     }
   }
 
-  core.info(`Loaded ${messageHandlers.size} handler(s) total`);
+  safeInfo(`Loaded ${messageHandlers.size} handler(s) total`);
   return messageHandlers;
 }
 
@@ -299,7 +300,7 @@ function collectMissingMessages(messages) {
     }
   }
 
-  core.info(`Collected ${missingTools.length} missing tool(s), ${missingData.length} missing data item(s), and ${noopMessages.length} noop message(s)`);
+  safeInfo(`Collected ${missingTools.length} missing tool(s), ${missingData.length} missing data item(s), and ${noopMessages.length} noop message(s)`);
   return { missingTools, missingData, noopMessages };
 }
 
@@ -360,7 +361,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
   /** @type {Array<{type: string, message: any, messageIndex: number, handler: Function}>} */
   const deferredMessages = [];
 
-  core.info(`Processing ${sortedMessages.length} message(s) in topologically sorted order...`);
+  safeInfo(`Processing ${sortedMessages.length} message(s) in topologically sorted order...`);
 
   // Process messages in topologically sorted order
   for (let i = 0; i < sortedMessages.length; i++) {
@@ -378,7 +379,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
       // Check if this message type is handled by a standalone step
       if (STANDALONE_STEP_TYPES.has(messageType)) {
         // Silently skip - this is handled by a dedicated step
-        core.debug(`Message ${i + 1} (${messageType}) will be handled by standalone step`);
+        safeDebug(`Message ${i + 1} (${messageType}) will be handled by standalone step`);
         results.push({
           type: messageType,
           messageIndex: i,
@@ -392,7 +393,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
       // Check if this message type is a custom safe output job
       if (customSafeOutputJobTypes.has(messageType)) {
         // Silently skip - this is handled by a custom safe output job
-        core.debug(`Message ${i + 1} (${messageType}) will be handled by custom safe output job`);
+        safeDebug(`Message ${i + 1} (${messageType}) will be handled by custom safe output job`);
         results.push({
           type: messageType,
           messageIndex: i,
@@ -417,7 +418,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
     }
 
     try {
-      core.info(`Processing message ${i + 1}/${messages.length}: ${messageType}`);
+      safeInfo(`Processing message ${i + 1}/${messages.length}: ${messageType}`);
 
       // Record the temp ID map size before processing to detect new IDs
       const tempIdMapSizeBefore = temporaryIdMap.size;
@@ -441,7 +442,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
       // Check if the handler explicitly returned a failure
       if (result && result.success === false && !result.deferred) {
         const errorMsg = result.error || "Handler returned success: false";
-        core.error(`✗ Message ${i + 1} (${messageType}) failed: ${errorMsg}`);
+        safeError(`✗ Message ${i + 1} (${messageType}) failed: ${errorMsg}`);
         results.push({
           type: messageType,
           messageIndex: i,
@@ -453,7 +454,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
 
       // Check if the operation was deferred due to unresolved temporary IDs
       if (result && result.deferred === true) {
-        core.info(`⏸ Message ${i + 1} (${messageType}) deferred - will retry after first pass`);
+        safeInfo(`⏸ Message ${i + 1} (${messageType}) deferred - will retry after first pass`);
         deferredMessages.push({
           type: messageType,
           message: message,
@@ -486,7 +487,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
         temporaryIdMap.set(normalizedTempId, {
           projectUrl: result.projectUrl,
         });
-        core.info(`✓ Stored project mapping: ${message.temporary_id} -> ${result.projectUrl}`);
+        safeInfo(`✓ Stored project mapping: ${message.temporary_id} -> ${result.projectUrl}`);
       }
 
       // If this was an update_project that created a draft issue, store the draft item mapping
@@ -544,9 +545,9 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
         result,
       });
 
-      core.info(`✓ Message ${i + 1} (${messageType}) completed successfully`);
+      safeInfo(`✓ Message ${i + 1} (${messageType}) completed successfully`);
     } catch (error) {
-      core.error(`✗ Message ${i + 1} (${messageType}) failed: ${getErrorMessage(error)}`);
+      safeError(`✗ Message ${i + 1} (${messageType}) failed: ${getErrorMessage(error)}`);
       results.push({
         type: messageType,
         messageIndex: i,
@@ -563,11 +564,11 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
   // with unresolved IDs to enable full synthetic update resolution.
   if (deferredMessages.length > 0) {
     core.info(`\n=== Retrying Deferred Messages ===`);
-    core.info(`Found ${deferredMessages.length} deferred message(s) to retry`);
+    safeInfo(`Found ${deferredMessages.length} deferred message(s) to retry`);
 
     for (const deferred of deferredMessages) {
       try {
-        core.info(`Retrying message ${deferred.messageIndex + 1}/${messages.length}: ${deferred.type}`);
+        safeInfo(`Retrying message ${deferred.messageIndex + 1}/${messages.length}: ${deferred.type}`);
 
         // Convert Map to plain object for handler
         const resolvedTemporaryIds = Object.fromEntries(temporaryIdMap);
@@ -581,7 +582,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
         // Check if the handler explicitly returned a failure
         if (result && result.success === false && !result.deferred) {
           const errorMsg = result.error || "Handler returned success: false";
-          core.error(`✗ Retry of message ${deferred.messageIndex + 1} (${deferred.type}) failed: ${errorMsg}`);
+          safeError(`✗ Retry of message ${deferred.messageIndex + 1} (${deferred.type}) failed: ${errorMsg}`);
           // Update the result to error
           const resultIndex = results.findIndex(r => r.messageIndex === deferred.messageIndex);
           if (resultIndex >= 0) {
@@ -593,14 +594,14 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
 
         // Check if still deferred
         if (result && result.deferred === true) {
-          core.warning(`⏸ Message ${deferred.messageIndex + 1} (${deferred.type}) still deferred - some temporary IDs remain unresolved`);
+          safeWarning(`⏸ Message ${deferred.messageIndex + 1} (${deferred.type}) still deferred - some temporary IDs remain unresolved`);
           // Update the existing result entry
           const resultIndex = results.findIndex(r => r.messageIndex === deferred.messageIndex);
           if (resultIndex >= 0) {
             results[resultIndex].result = result;
           }
         } else {
-          core.info(`✓ Message ${deferred.messageIndex + 1} (${deferred.type}) completed on retry`);
+          safeInfo(`✓ Message ${deferred.messageIndex + 1} (${deferred.type}) completed on retry`);
 
           // If handler returned a temp ID mapping, add it to our map
           // This ensures that sub-issues created during deferred retry have their temporary IDs
@@ -639,7 +640,7 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
           }
         }
       } catch (error) {
-        core.error(`✗ Retry of message ${deferred.messageIndex + 1} (${deferred.type}) failed: ${getErrorMessage(error)}`);
+        safeError(`✗ Retry of message ${deferred.messageIndex + 1} (${deferred.type}) failed: ${getErrorMessage(error)}`);
         // Update the result to error
         const resultIndex = results.findIndex(r => r.messageIndex === deferred.messageIndex);
         if (resultIndex >= 0) {
@@ -862,7 +863,7 @@ async function processSyntheticUpdates(github, context, trackedOutputs, temporar
                 core.debug(`Unknown output type: ${tracked.type}`);
             }
           } catch (error) {
-            core.warning(`✗ Failed to update ${tracked.type} ${tracked.result.repo}#${tracked.result.number}: ${getErrorMessage(error)}`);
+            safeWarning(`✗ Failed to update ${tracked.type} ${tracked.result.repo}#${tracked.result.number}: ${getErrorMessage(error)}`);
           }
         } else {
           core.debug(`Output ${tracked.result.repo}#${tracked.result.number} still has unresolved temporary IDs`);

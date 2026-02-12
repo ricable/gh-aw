@@ -19,6 +19,7 @@
  *    - Also run in base repository context
  *    - Must use `gh pr checkout` to get PR branch
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { renderTemplate } = require("./messages_core.cjs");
@@ -31,7 +32,7 @@ const fs = require("fs");
 function logPRContext(eventName, pullRequest) {
   core.startGroup("📋 PR Context Details");
 
-  core.info(`Event type: ${eventName}`);
+  safeInfo(`Event type: ${eventName}`);
   core.info(`PR number: ${pullRequest.number}`);
   core.info(`PR state: ${pullRequest.state || "unknown"}`);
 
@@ -41,7 +42,7 @@ function logPRContext(eventName, pullRequest) {
     core.info(`Head SHA: ${pullRequest.head.sha || "unknown"}`);
 
     if (pullRequest.head.repo) {
-      core.info(`Head repo: ${pullRequest.head.repo.full_name || "unknown"}`);
+      safeInfo(`Head repo: ${pullRequest.head.repo.full_name || "unknown"}`);
       core.info(`Head repo owner: ${pullRequest.head.repo.owner?.login || "unknown"}`);
     } else {
       core.warning("⚠️ Head repo information not available (repo may be deleted)");
@@ -54,7 +55,7 @@ function logPRContext(eventName, pullRequest) {
     core.info(`Base SHA: ${pullRequest.base.sha || "unknown"}`);
 
     if (pullRequest.base.repo) {
-      core.info(`Base repo: ${pullRequest.base.repo.full_name || "unknown"}`);
+      safeInfo(`Base repo: ${pullRequest.base.repo.full_name || "unknown"}`);
       core.info(`Base repo owner: ${pullRequest.base.repo.owner?.login || "unknown"}`);
     }
   }
@@ -64,8 +65,8 @@ function logPRContext(eventName, pullRequest) {
   core.info(`Is fork PR: ${isFork} (${forkReason})`);
 
   // Log current repository context
-  core.info(`Current repository: ${context.repo.owner}/${context.repo.repo}`);
-  core.info(`GitHub SHA: ${context.sha}`);
+  safeInfo(`Current repository: ${context.repo.owner}/${context.repo.repo}`);
+  safeInfo(`GitHub SHA: ${context.sha}`);
 
   core.endGroup();
 
@@ -77,7 +78,7 @@ function logPRContext(eventName, pullRequest) {
  */
 function logCheckoutStrategy(eventName, strategy, reason) {
   core.startGroup("🔄 Checkout Strategy");
-  core.info(`Event type: ${eventName}`);
+  safeInfo(`Event type: ${eventName}`);
   core.info(`Strategy: ${strategy}`);
   core.info(`Reason: ${reason}`);
   core.endGroup();
@@ -93,7 +94,7 @@ async function main() {
     return;
   }
 
-  core.info(`Event: ${eventName}`);
+  safeInfo(`Event: ${eventName}`);
   core.info(`Pull Request #${pullRequest.number}`);
 
   // Check if PR is closed
@@ -113,13 +114,13 @@ async function main() {
 
       logCheckoutStrategy(eventName, "git fetch + checkout", "pull_request event runs in merge commit context with PR branch available");
 
-      core.info(`Fetching branch: ${branchName} from origin`);
+      safeInfo(`Fetching branch: ${branchName} from origin`);
       await exec.exec("git", ["fetch", "origin", branchName]);
 
-      core.info(`Checking out branch: ${branchName}`);
+      safeInfo(`Checking out branch: ${branchName}`);
       await exec.exec("git", ["checkout", branchName]);
 
-      core.info(`✅ Successfully checked out branch: ${branchName}`);
+      safeInfo(`✅ Successfully checked out branch: ${branchName}`);
     } else {
       // For pull_request_target and other PR events, we run in base repository context
       // IMPORTANT: For fork PRs, the head branch doesn't exist in the base repo
@@ -160,7 +161,7 @@ async function main() {
     // Check if PR is closed - if so, treat checkout failure as a warning
     if (isClosed) {
       core.startGroup("⚠️ Closed PR Checkout Warning");
-      core.warning(`Event type: ${eventName}`);
+      safeWarning(`Event type: ${eventName}`);
       core.warning(`PR number: ${pullRequest.number}`);
       core.warning(`PR state: closed`);
       core.warning(`Checkout failed (expected for closed PR): ${errorMsg}`);
@@ -191,7 +192,7 @@ Pull request #${pullRequest.number} is closed. The checkout failed because the b
     // For open PRs, treat checkout failure as an error
     // Log detailed error context
     core.startGroup("❌ Checkout Error Details");
-    core.error(`Event type: ${eventName}`);
+    safeError(`Event type: ${eventName}`);
     core.error(`PR number: ${pullRequest.number}`);
     core.error(`Error message: ${errorMsg}`);
 
@@ -210,7 +211,7 @@ Pull request #${pullRequest.number} is closed. The checkout failed because the b
       core.info("Current branch:");
       await exec.exec("git", ["branch", "--show-current"]);
     } catch (gitError) {
-      core.warning(`Could not retrieve git state: ${getErrorMessage(gitError)}`);
+      safeWarning(`Could not retrieve git state: ${getErrorMessage(gitError)}`);
     }
 
     core.endGroup();

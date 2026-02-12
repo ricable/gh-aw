@@ -1,6 +1,8 @@
 // @ts-check
 /// <reference types="@actions/github-script" />
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
+
 /**
  * Shared update runner for safe-output scripts (update_issue, update_pull_request, etc.)
  *
@@ -213,9 +215,9 @@ async function runUpdateWorkflow(config) {
 
   core.info(`Update target configuration: ${updateTarget}`);
   if (supportsStatus) {
-    core.info(`Can update status: ${canUpdateStatus}, title: ${canUpdateTitle}, body: ${canUpdateBody}, labels: ${canUpdateLabels}`);
+    safeInfo(`Can update status: ${canUpdateStatus}, title: ${canUpdateTitle}, body: ${canUpdateBody}, labels: ${canUpdateLabels}`);
   } else {
-    core.info(`Can update title: ${canUpdateTitle}, body: ${canUpdateBody}, labels: ${canUpdateLabels}`);
+    safeInfo(`Can update title: ${canUpdateTitle}, body: ${canUpdateBody}, labels: ${canUpdateLabels}`);
   }
 
   // Check context validity
@@ -224,7 +226,7 @@ async function runUpdateWorkflow(config) {
 
   // Validate context based on target configuration
   if (updateTarget === "triggering" && !contextIsValid) {
-    core.info(`Target is "triggering" but not running in ${displayName} context, skipping ${displayName} update`);
+    safeInfo(`Target is "triggering" but not running in ${displayName} context, skipping ${displayName} update`);
     return;
   }
 
@@ -251,7 +253,7 @@ async function runUpdateWorkflow(config) {
     }
 
     const targetNumber = targetResult.number;
-    core.info(`Updating ${displayName} #${targetNumber}`);
+    safeInfo(`Updating ${displayName} #${targetNumber}`);
 
     // Build update data
     const { hasUpdates, updateData, logMessages } = buildUpdateData({
@@ -284,7 +286,7 @@ async function runUpdateWorkflow(config) {
     try {
       // Execute the update using the provided function
       const updatedItem = await executeUpdate(github, context, targetNumber, updateData, handlerConfig);
-      core.info(`Updated ${displayName} #${updatedItem.number}: ${updatedItem.html_url}`);
+      safeInfo(`Updated ${displayName} #${updatedItem.number}: ${updatedItem.html_url}`);
       updatedItems.push(updatedItem);
 
       // Set output for the last updated item (for backward compatibility)
@@ -293,7 +295,7 @@ async function runUpdateWorkflow(config) {
         core.setOutput(outputUrlKey, updatedItem.html_url);
       }
     } catch (error) {
-      core.error(`✗ Failed to update ${displayName} #${targetNumber}: ${getErrorMessage(error)}`);
+      safeError(`✗ Failed to update ${displayName} #${targetNumber}: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -307,7 +309,7 @@ async function runUpdateWorkflow(config) {
     await core.summary.addRaw(summaryContent).write();
   }
 
-  core.info(`Successfully updated ${updatedItems.length} ${displayName}(s)`);
+  safeInfo(`Successfully updated ${updatedItems.length} ${displayName}(s)`);
   return updatedItems;
 }
 

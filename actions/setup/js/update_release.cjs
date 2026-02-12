@@ -3,6 +3,7 @@
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { updateBody } = require("./update_pr_description_helpers.cjs");
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Create a handler for update-release messages
@@ -28,7 +29,7 @@ async function main(config = {}) {
   return async function handleUpdateRelease(message, resolvedTemporaryIds = {}) {
     // In staged mode, skip actual processing (preview is handled elsewhere)
     if (isStaged) {
-      core.info(`Staged mode: Would update release with tag ${message.tag || "(inferred)"}`);
+      safeInfo(`Staged mode: Would update release with tag ${message.tag || "(inferred)"}`);
       return { skipped: true, reason: "staged_mode" };
     }
 
@@ -79,7 +80,7 @@ async function main(config = {}) {
         tag: releaseTag,
       });
 
-      core.info(`Found release: ${release.name || release.tag_name} (ID: ${release.id})`);
+      safeInfo(`Found release: ${release.name || release.tag_name} (ID: ${release.id})`);
 
       // Get workflow run URL for AI attribution
       const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

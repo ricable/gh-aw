@@ -13,6 +13,7 @@ const { getMessages } = require("./messages_core.cjs");
  * @param {number} itemNumber - Number of the item (pull request or issue)
  * @param {string} itemType - Type of item: "pull_request" or "issue" (defaults to "pull_request")
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function updateActivationComment(github, context, core, itemUrl, itemNumber, itemType = "pull_request") {
   const itemLabel = itemType === "issue" ? "issue" : "pull request";
   const linkMessage = itemType === "issue" ? `\n\n✅ Issue created: [#${itemNumber}](${itemUrl})` : `\n\n✅ Pull request created: [#${itemNumber}](${itemUrl})`;
@@ -141,7 +142,7 @@ async function updateActivationCommentWithMessage(github, context, core, message
       return;
     } catch (error) {
       // Don't fail the workflow if we can't create the comment - just log a warning
-      core.warning(`Failed to create append-only comment: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to create append-only comment: ${getErrorMessage(error)}`);
       return;
     }
   }
@@ -154,7 +155,7 @@ async function updateActivationCommentWithMessage(github, context, core, message
   }
 
   core.info(`Updating activation comment ${commentId}`);
-  core.info(`Updating comment in ${repoOwner}/${repoName}`);
+  safeInfo(`Updating comment in ${repoOwner}/${repoName}`);
 
   // Check if this is a discussion comment (GraphQL node ID format)
   const isDiscussionComment = commentId.startsWith("DC_");
@@ -236,7 +237,7 @@ async function updateActivationCommentWithMessage(github, context, core, message
     }
   } catch (error) {
     // Don't fail the workflow if we can't update the comment - just log a warning
-    core.warning(`Failed to update activation comment: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to update activation comment: ${getErrorMessage(error)}`);
   }
 }
 

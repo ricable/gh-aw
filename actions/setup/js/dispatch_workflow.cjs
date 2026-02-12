@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "dispatch_workflow";
@@ -51,7 +52,7 @@ async function main(config = {}) {
       });
       return `refs/heads/${repoData.default_branch}`;
     } catch (error) {
-      core.warning(`Failed to fetch default branch: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to fetch default branch: ${getErrorMessage(error)}`);
       return "refs/heads/main";
     }
   };
@@ -123,7 +124,7 @@ async function main(config = {}) {
         }
       }
 
-      core.info(`Dispatching workflow: ${workflowName}`);
+      safeInfo(`Dispatching workflow: ${workflowName}`);
 
       // Prepare inputs - convert all values to strings as required by workflow_dispatch
       /** @type {Record<string, string>} */
@@ -174,7 +175,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to dispatch workflow "${workflowName}": ${errorMessage}`);
+      safeError(`Failed to dispatch workflow "${workflowName}": ${errorMessage}`);
 
       return {
         success: false,

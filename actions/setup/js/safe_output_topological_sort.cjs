@@ -11,6 +11,7 @@
  * This enables resolution of all temporary IDs in a single pass for acyclic
  * dependency graphs (graphs without loops).
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { extractTemporaryIdReferences, getCreatedTemporaryId } = require("./temporary_id.cjs");
 
@@ -216,7 +217,7 @@ function topologicalSort(messages, dependencies) {
     }
 
     if (typeof core !== "undefined") {
-      core.warning(`Topological sort incomplete: ${sorted.length}/${messages.length} messages sorted. ` + `Messages ${unsorted.join(", ")} may be part of a dependency cycle.`);
+      safeWarning(`Topological sort incomplete: ${sorted.length}/${messages.length} messages sorted. ` + `Messages ${unsorted.join(", ")} may be part of a dependency cycle.`);
     }
   }
 
@@ -243,7 +244,7 @@ function sortSafeOutputMessages(messages) {
 
   if (typeof core !== "undefined") {
     const messagesWithDeps = Array.from(dependencies.entries()).filter(([_, deps]) => deps.size > 0);
-    core.info(`Dependency analysis: ${providers.size} message(s) create temporary IDs, ` + `${messagesWithDeps.length} message(s) have dependencies`);
+    safeInfo(`Dependency analysis: ${providers.size} message(s) create temporary IDs, ` + `${messagesWithDeps.length} message(s) have dependencies`);
   }
 
   // Check for cycles
@@ -255,7 +256,7 @@ function sortSafeOutputMessages(messages) {
         const tempId = getCreatedTemporaryId(msg);
         return `${i} (${msg.type}${tempId ? `, creates ${tempId}` : ""})`;
       });
-      core.warning(`Dependency cycle detected in safe output messages: ${cycleMessages.join(" -> ")}. ` + `Temporary IDs may not resolve correctly. Messages will be processed in original order.`);
+      safeWarning(`Dependency cycle detected in safe output messages: ${cycleMessages.join(" -> ")}. ` + `Temporary IDs may not resolve correctly. Messages will be processed in original order.`);
     }
     // Return original order if there's a cycle
     return messages;
@@ -271,7 +272,7 @@ function sortSafeOutputMessages(messages) {
     // Check if order changed
     const orderChanged = sortedIndices.some((idx, i) => idx !== i);
     if (orderChanged) {
-      core.info(`Topological sort reordered ${messages.length} message(s) to resolve temporary ID dependencies. ` + `New order: [${sortedIndices.join(", ")}]`);
+      safeInfo(`Topological sort reordered ${messages.length} message(s) to resolve temporary ID dependencies. ` + `New order: [${sortedIndices.join(", ")}]`);
     } else {
       core.info(`Topological sort: Messages already in optimal order (no reordering needed)`);
     }

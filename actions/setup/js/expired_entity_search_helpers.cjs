@@ -11,6 +11,7 @@ const { EXPIRATION_PATTERN, LEGACY_EXPIRATION_PATTERN } = require("./ephemerals.
  * @property {string} resultKey - Key to use in return object (e.g., "issues", "pullRequests", "discussions")
  * @property {boolean} [enableDedupe] - Enable duplicate ID tracking (default: false)
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Search statistics
@@ -132,7 +133,7 @@ async function searchEntitiesWithExpiration(github, owner, repo, config) {
 
         const expirationValue = match ? match[1] : legacyMatch ? legacyMatch[1] : "unknown";
         const format = match ? "new" : "legacy";
-        core.info(`  Found ${config.entityType.slice(0, -1)} #${entity.number} with expiration marker (${format} format): "${expirationValue}" - ${entity.title}`);
+        safeInfo(`  Found ${config.entityType.slice(0, -1)} #${entity.number} with expiration marker (${format} format): "${expirationValue}" - ${entity.title}`);
         items.push(entity);
       }
     }

@@ -7,6 +7,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "create_project_status_update";
@@ -18,7 +19,7 @@ const HANDLER_TYPE = "create_project_status_update";
  */
 function logGraphQLError(error, operation) {
   core.info(`GraphQL Error during: ${operation}`);
-  core.info(`Message: ${getErrorMessage(error)}`);
+  safeInfo(`Message: ${getErrorMessage(error)}`);
 
   const errorList = Array.isArray(error.errors) ? error.errors : [];
   const hasInsufficientScopes = errorList.some(e => e?.type === "INSUFFICIENT_SCOPES");
@@ -35,9 +36,9 @@ function logGraphQLError(error, operation) {
   }
 
   if (error.errors) {
-    core.info(`Errors array (${error.errors.length} error(s)):`);
+    safeInfo(`Errors array (${error.errors.length} error(s)):`);
     error.errors.forEach((err, idx) => {
-      core.info(`  [${idx + 1}] ${err.message}`);
+      safeInfo(`  [${idx + 1}] ${err.message}`);
       if (err.type) core.info(`      Type: ${err.type}`);
       if (err.path) core.info(`      Path: ${JSON.stringify(err.path)}`);
       if (err.locations) core.info(`      Locations: ${JSON.stringify(err.locations)}`);
@@ -197,7 +198,7 @@ async function resolveProjectV2(projectInfo, projectNumberInt) {
     // If the query succeeded but returned null, fall back to list search
     core.warning(`Direct projectV2(number) query returned null; falling back to projectsV2 list search`);
   } catch (error) {
-    core.warning(`Direct projectV2(number) query failed; falling back to projectsV2 list search: ${getErrorMessage(error)}`);
+    safeWarning(`Direct projectV2(number) query failed; falling back to projectsV2 list search: ${getErrorMessage(error)}`);
   }
 
   // Wrap fallback query in try-catch to handle transient API errors gracefully
@@ -361,7 +362,7 @@ async function main(config = {}, githubClient = null) {
       const body = String(output.body);
 
       core.info(`Creating status update: ${status} (${startDate} → ${targetDate})`);
-      core.info(`Body preview: ${body.substring(0, 100)}${body.length > 100 ? "..." : ""}`);
+      safeInfo(`Body preview: ${body.substring(0, 100)}${body.length > 100 ? "..." : ""}`);
 
       // Create the status update using GraphQL mutation
       const mutation = `
@@ -428,7 +429,7 @@ async function main(config = {}, githubClient = null) {
     } catch (err) {
       // prettier-ignore
       const error = /** @type {Error & { errors?: Array<{ type?: string, message: string, path?: unknown, locations?: unknown }>, request?: unknown, data?: unknown }} */ (err);
-      core.error(`Failed to create project status update: ${getErrorMessage(error)}`);
+      safeError(`Failed to create project status update: ${getErrorMessage(error)}`);
       logGraphQLError(error, "Creating project status update");
 
       return {

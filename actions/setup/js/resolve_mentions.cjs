@@ -10,6 +10,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * @property {number} resolvedCount - Number of mentions resolved via API
  * @property {boolean} limitExceeded - Whether the 50 mention limit was exceeded
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Extract all @mentions from text
@@ -77,7 +78,7 @@ async function getRecentCollaborators(owner, repo, github, core) {
 
     return allowedMap;
   } catch (error) {
-    core.warning(`Failed to fetch recent collaborators: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to fetch recent collaborators: ${getErrorMessage(error)}`);
     return new Map();
   }
 }

@@ -15,6 +15,7 @@ const fs = require("fs");
  * Attempt to find a pull request for the current branch
  * @returns {Promise<{number: number, html_url: string} | null>} PR info or null if not found
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function findPullRequestForCurrentBranch() {
   try {
     const { owner, repo } = context.repo;
@@ -42,7 +43,7 @@ async function findPullRequestForCurrentBranch() {
     core.info(`No pull request found for branch: ${currentBranch}`);
     return null;
   } catch (error) {
-    core.warning(`Failed to find pull request for current branch: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to find pull request for current branch: ${getErrorMessage(error)}`);
     return null;
   }
 }
@@ -57,7 +58,7 @@ async function ensureParentIssue(previousParentNumber = null) {
   const parentTitle = "[agentics] Failed runs";
   const parentLabel = "agentic-workflows";
 
-  core.info(`Searching for parent issue: "${parentTitle}"`);
+  safeInfo(`Searching for parent issue: "${parentTitle}"`);
 
   // Search for existing parent issue
   const searchQuery = `repo:${owner}/${repo} is:issue is:open label:${parentLabel} in:title "${parentTitle}"`;
@@ -93,7 +94,7 @@ async function ensureParentIssue(previousParentNumber = null) {
       }
     }
   } catch (error) {
-    core.warning(`Error searching for parent issue: ${getErrorMessage(error)}`);
+    safeWarning(`Error searching for parent issue: ${getErrorMessage(error)}`);
   }
 
   // Create parent issue if it doesn't exist or if previous one is full
@@ -190,7 +191,7 @@ gh aw audit <run-id>
       node_id: newIssue.data.node_id,
     };
   } catch (error) {
-    core.error(`Failed to create parent issue: ${getErrorMessage(error)}`);
+    safeError(`Failed to create parent issue: ${getErrorMessage(error)}`);
     throw error;
   }
 }
@@ -232,7 +233,7 @@ async function linkSubIssue(parentNodeId, subIssueNodeId, parentNumber, subIssue
     if (errorMessage.includes("Field 'addSubIssue' doesn't exist") || errorMessage.includes("not yet available")) {
       core.warning(`Sub-issue API not available. Issue #${subIssueNumber} created but not linked to parent.`);
     } else {
-      core.warning(`Failed to link sub-issue: ${errorMessage}`);
+      safeWarning(`Failed to link sub-issue: ${errorMessage}`);
     }
   }
 }
@@ -294,7 +295,7 @@ function loadMissingDataMessages() {
 
     return missingDataMessages;
   } catch (error) {
-    core.warning(`Failed to load missing_data messages: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to load missing_data messages: ${getErrorMessage(error)}`);
     return [];
   }
 }
@@ -310,7 +311,7 @@ function buildMissingDataContext() {
     return "";
   }
 
-  core.info(`Found ${missingDataMessages.length} missing_data message(s)`);
+  safeInfo(`Found ${missingDataMessages.length} missing_data message(s)`);
 
   // Format the missing data using the existing formatter
   const formattedList = formatMissingData(missingDataMessages);
@@ -344,7 +345,7 @@ async function main() {
     const checkoutPRSuccess = process.env.GH_AW_CHECKOUT_PR_SUCCESS || "";
 
     core.info(`Agent conclusion: ${agentConclusion}`);
-    core.info(`Workflow name: ${workflowName}`);
+    safeInfo(`Workflow name: ${workflowName}`);
     core.info(`Workflow ID: ${workflowID}`);
     core.info(`Secret verification result: ${secretVerificationResult}`);
     core.info(`Assignment error count: ${assignmentErrorCount}`);
@@ -407,7 +408,7 @@ async function main() {
     try {
       parentIssue = await ensureParentIssue();
     } catch (error) {
-      core.warning(`Could not create parent issue, proceeding without parent: ${getErrorMessage(error)}`);
+      safeWarning(`Could not create parent issue, proceeding without parent: ${getErrorMessage(error)}`);
       // Continue without parent issue
     }
 
@@ -415,7 +416,7 @@ async function main() {
     const sanitizedWorkflowName = sanitizeContent(workflowName, { maxLength: 100 });
     const issueTitle = `[agentics] ${sanitizedWorkflowName} failed`;
 
-    core.info(`Checking for existing issue with title: "${issueTitle}"`);
+    safeInfo(`Checking for existing issue with title: "${issueTitle}"`);
 
     // Search for existing open issue with this title and label
     const searchQuery = `repo:${owner}/${repo} is:issue is:open label:agentic-workflows in:title "${issueTitle}"`;
@@ -617,17 +618,17 @@ async function main() {
           try {
             await linkSubIssue(parentIssue.node_id, newIssue.data.node_id, parentIssue.number, newIssue.data.number);
           } catch (error) {
-            core.warning(`Could not link issue as sub-issue: ${getErrorMessage(error)}`);
+            safeWarning(`Could not link issue as sub-issue: ${getErrorMessage(error)}`);
             // Continue even if linking fails
           }
         }
       }
     } catch (error) {
-      core.warning(`Failed to create or update failure tracking issue: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to create or update failure tracking issue: ${getErrorMessage(error)}`);
       // Don't fail the workflow if we can't create the issue
     }
   } catch (error) {
-    core.warning(`Error in handle_agent_failure: ${getErrorMessage(error)}`);
+    safeWarning(`Error in handle_agent_failure: ${getErrorMessage(error)}`);
     // Don't fail the workflow
   }
 }

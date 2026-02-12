@@ -4,6 +4,7 @@
 const { extractExpirationDate } = require("./ephemerals.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const DEFAULT_MAX_UPDATES_PER_RUN = 100;
 const DEFAULT_GRAPHQL_DELAY_MS = 500;
 
@@ -40,17 +41,17 @@ function categorizeByExpiration(entities, { entityLabel }) {
   const notExpired = [];
 
   for (const entity of entities) {
-    core.info(`Processing ${entityLabel} #${entity.number}: ${entity.title}`);
+    safeInfo(`Processing ${entityLabel} #${entity.number}: ${entity.title}`);
 
     if (!validateCreationDate(entity.createdAt)) {
-      core.warning(`  ${entityLabel} #${entity.number} has invalid creation date: ${entity.createdAt}, skipping`);
+      safeWarning(`  ${entityLabel} #${entity.number} has invalid creation date: ${entity.createdAt}, skipping`);
       continue;
     }
     core.info(`  Creation date: ${entity.createdAt}`);
 
     const expirationDate = extractExpirationDate(entity.body);
     if (!expirationDate) {
-      core.warning(`  ${entityLabel} #${entity.number} has invalid expiration date format, skipping`);
+      safeWarning(`  ${entityLabel} #${entity.number} has invalid expiration date format, skipping`);
       continue;
     }
     core.info(`  Expiration date: ${expirationDate.toISOString()}`);
@@ -63,13 +64,13 @@ function categorizeByExpiration(entities, { entityLabel }) {
     if (isExpired) {
       const daysSinceExpiration = Math.abs(daysUntilExpiration);
       const hoursSinceExpiration = Math.abs(hoursUntilExpiration);
-      core.info(`  ✓ ${entityLabel} #${entity.number} is EXPIRED (expired ${daysSinceExpiration} days, ${hoursSinceExpiration % 24} hours ago)`);
+      safeInfo(`  ✓ ${entityLabel} #${entity.number} is EXPIRED (expired ${daysSinceExpiration} days, ${hoursSinceExpiration % 24} hours ago)`);
       expired.push({
         ...entity,
         expirationDate,
       });
     } else {
-      core.info(`  ✗ ${entityLabel} #${entity.number} is NOT expired (expires in ${daysUntilExpiration} days, ${hoursUntilExpiration % 24} hours)`);
+      safeInfo(`  ✗ ${entityLabel} #${entity.number} is NOT expired (expires in ${daysUntilExpiration} days, ${hoursUntilExpiration % 24} hours)`);
       notExpired.push({
         ...entity,
         expirationDate,
@@ -96,11 +97,11 @@ async function processExpiredEntities(expiredEntities, { entityLabel, maxPerRun 
   const entitiesToProcess = expiredEntities.slice(0, maxPerRun);
 
   if (expiredEntities.length > maxPerRun) {
-    core.warning(`Found ${expiredEntities.length} expired ${entityLabel.toLowerCase()}s, but only closing the first ${maxPerRun}`);
-    core.info(`Remaining ${expiredEntities.length - maxPerRun} expired ${entityLabel.toLowerCase()}s will be closed in the next run`);
+    safeWarning(`Found ${expiredEntities.length} expired ${entityLabel.toLowerCase()}s, but only closing the first ${maxPerRun}`);
+    safeInfo(`Remaining ${expiredEntities.length - maxPerRun} expired ${entityLabel.toLowerCase()}s will be closed in the next run`);
   }
 
-  core.info(`Preparing to close ${entitiesToProcess.length} ${entityLabel.toLowerCase()}(s)`);
+  safeInfo(`Preparing to close ${entitiesToProcess.length} ${entityLabel.toLowerCase()}(s)`);
 
   const closed = [];
   const failed = [];
@@ -108,7 +109,7 @@ async function processExpiredEntities(expiredEntities, { entityLabel, maxPerRun 
 
   for (let i = 0; i < entitiesToProcess.length; i++) {
     const entity = entitiesToProcess[i];
-    core.info(`[${i + 1}/${entitiesToProcess.length}] Processing ${entityLabel.toLowerCase()} #${entity.number}: ${entity.url}`);
+    safeInfo(`[${i + 1}/${entitiesToProcess.length}] Processing ${entityLabel.toLowerCase()} #${entity.number}: ${entity.url}`);
 
     try {
       const result = await processEntity(entity);
@@ -119,9 +120,9 @@ async function processExpiredEntities(expiredEntities, { entityLabel, maxPerRun 
         closed.push(result.record);
       }
 
-      core.info(`✓ Successfully processed ${entityLabel.toLowerCase()} #${entity.number}: ${entity.url}`);
+      safeInfo(`✓ Successfully processed ${entityLabel.toLowerCase()} #${entity.number}: ${entity.url}`);
     } catch (error) {
-      core.error(`✗ Failed to close ${entityLabel.toLowerCase()} #${entity.number}: ${getErrorMessage(error)}`);
+      safeError(`✗ Failed to close ${entityLabel.toLowerCase()} #${entity.number}: ${getErrorMessage(error)}`);
       core.error(`  Error details: ${JSON.stringify(error, null, 2)}`);
       failed.push({
         number: entity.number,

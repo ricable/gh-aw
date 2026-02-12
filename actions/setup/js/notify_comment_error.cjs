@@ -14,6 +14,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * Collect generated asset URLs from safe output jobs
  * @returns {Array<string>} Array of generated asset URLs
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function collectGeneratedAssets() {
   const assets = [];
 
@@ -27,7 +28,7 @@ function collectGeneratedAssets() {
   try {
     jobOutputMapping = JSON.parse(safeOutputJobsEnv);
   } catch (error) {
-    core.warning(`Failed to parse GH_AW_SAFE_OUTPUT_JOBS: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to parse GH_AW_SAFE_OUTPUT_JOBS: ${getErrorMessage(error)}`);
     return assets;
   }
 
@@ -61,7 +62,7 @@ async function main() {
   core.info(`Comment ID: ${commentId}`);
   core.info(`Comment Repo: ${commentRepo}`);
   core.info(`Run URL: ${runUrl}`);
-  core.info(`Workflow Name: ${workflowName}`);
+  safeInfo(`Workflow Name: ${workflowName}`);
   core.info(`Agent Conclusion: ${agentConclusion}`);
   if (detectionConclusion) {
     core.info(`Detection Conclusion: ${detectionConclusion}`);
@@ -93,7 +94,7 @@ async function main() {
     }
 
     await core.summary.addRaw(summaryContent).write();
-    core.info(`Successfully wrote ${noopMessages.length} noop message(s) to step summary`);
+    safeInfo(`Successfully wrote ${noopMessages.length} noop message(s) to step summary`);
     return;
   }
 
@@ -112,7 +113,7 @@ async function main() {
   const repoOwner = commentRepo ? commentRepo.split("/")[0] : context.repo.owner;
   const repoName = commentRepo ? commentRepo.split("/")[1] : context.repo.repo;
 
-  core.info(`Updating comment in ${repoOwner}/${repoName}`);
+  safeInfo(`Updating comment in ${repoOwner}/${repoName}`);
 
   // Determine the message based on agent conclusion using custom messages if configured
   let message;
@@ -244,7 +245,7 @@ async function main() {
       return;
     } catch (error) {
       // Don't fail the workflow if we can't create the comment
-      core.warning(`Failed to create append-only comment: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to create append-only comment: ${getErrorMessage(error)}`);
       return;
     }
   }
@@ -296,7 +297,7 @@ async function main() {
     }
   } catch (error) {
     // Don't fail the workflow if we can't update the comment
-    core.warning(`Failed to update comment: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to update comment: ${getErrorMessage(error)}`);
   }
 }
 

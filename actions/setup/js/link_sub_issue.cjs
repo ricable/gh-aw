@@ -10,6 +10,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * @param {Object} config - Handler configuration from GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG
  * @returns {Promise<Function>} Message handler function (message, resolvedTemporaryIds) => result
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main(config = {}) {
   // Extract configuration from config object
   const parentRequiredLabels = config.parent_required_labels || [];
@@ -19,16 +20,16 @@ async function main(config = {}) {
   const maxCount = config.max || 5;
 
   if (parentRequiredLabels.length > 0) {
-    core.info(`Parent required labels: ${JSON.stringify(parentRequiredLabels)}`);
+    safeInfo(`Parent required labels: ${JSON.stringify(parentRequiredLabels)}`);
   }
   if (parentTitlePrefix) {
-    core.info(`Parent title prefix: ${parentTitlePrefix}`);
+    safeInfo(`Parent title prefix: ${parentTitlePrefix}`);
   }
   if (subRequiredLabels.length > 0) {
-    core.info(`Sub-issue required labels: ${JSON.stringify(subRequiredLabels)}`);
+    safeInfo(`Sub-issue required labels: ${JSON.stringify(subRequiredLabels)}`);
   }
   if (subTitlePrefix) {
-    core.info(`Sub-issue title prefix: ${subTitlePrefix}`);
+    safeInfo(`Sub-issue title prefix: ${subTitlePrefix}`);
   }
   core.info(`Max count: ${maxCount}`);
 
@@ -89,7 +90,7 @@ async function main(config = {}) {
 
     // Check for other resolution errors (non-temporary ID issues)
     if (parentResolved.errorMessage) {
-      core.warning(`Failed to resolve parent issue: ${parentResolved.errorMessage}`);
+      safeWarning(`Failed to resolve parent issue: ${parentResolved.errorMessage}`);
       return {
         parent_issue_number: item.parent_issue_number,
         sub_issue_number: item.sub_issue_number,
@@ -99,7 +100,7 @@ async function main(config = {}) {
     }
 
     if (subResolved.errorMessage) {
-      core.warning(`Failed to resolve sub-issue: ${subResolved.errorMessage}`);
+      safeWarning(`Failed to resolve sub-issue: ${subResolved.errorMessage}`);
       return {
         parent_issue_number: item.parent_issue_number,
         sub_issue_number: item.sub_issue_number,
@@ -122,10 +123,10 @@ async function main(config = {}) {
     }
 
     if (parentResolved.wasTemporaryId && parentResolved.resolved) {
-      core.info(`Resolved parent temporary ID '${item.parent_issue_number}' to ${parentResolved.resolved.owner}/${parentResolved.resolved.repo}#${parentIssueNumber}`);
+      safeInfo(`Resolved parent temporary ID '${item.parent_issue_number}' to ${parentResolved.resolved.owner}/${parentResolved.resolved.repo}#${parentIssueNumber}`);
     }
     if (subResolved.wasTemporaryId && subResolved.resolved) {
-      core.info(`Resolved sub-issue temporary ID '${item.sub_issue_number}' to ${subResolved.resolved.owner}/${subResolved.resolved.repo}#${subIssueNumber}`);
+      safeInfo(`Resolved sub-issue temporary ID '${item.sub_issue_number}' to ${subResolved.resolved.owner}/${subResolved.resolved.repo}#${subIssueNumber}`);
     }
 
     // Sub-issue linking is only supported within the same repository.
@@ -158,7 +159,7 @@ async function main(config = {}) {
       parentIssue = parentResponse.data;
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.warning(`Failed to fetch parent issue #${parentIssueNumber}: ${errorMessage}`);
+      safeWarning(`Failed to fetch parent issue #${parentIssueNumber}: ${errorMessage}`);
       return {
         parent_issue_number: parentIssueNumber,
         sub_issue_number: subIssueNumber,
@@ -172,7 +173,7 @@ async function main(config = {}) {
       const parentLabels = parentIssue.labels.map(l => (typeof l === "string" ? l : l.name || ""));
       const missingLabels = parentRequiredLabels.filter(required => !parentLabels.includes(required));
       if (missingLabels.length > 0) {
-        core.warning(`Parent issue #${parentIssueNumber} is missing required labels: ${missingLabels.join(", ")}. Skipping.`);
+        safeWarning(`Parent issue #${parentIssueNumber} is missing required labels: ${missingLabels.join(", ")}. Skipping.`);
         return {
           parent_issue_number: parentIssueNumber,
           sub_issue_number: subIssueNumber,
@@ -183,7 +184,7 @@ async function main(config = {}) {
     }
 
     if (parentTitlePrefix && !parentIssue.title.startsWith(parentTitlePrefix)) {
-      core.warning(`Parent issue #${parentIssueNumber} title does not start with "${parentTitlePrefix}". Skipping.`);
+      safeWarning(`Parent issue #${parentIssueNumber} title does not start with "${parentTitlePrefix}". Skipping.`);
       return {
         parent_issue_number: parentIssueNumber,
         sub_issue_number: subIssueNumber,
@@ -203,7 +204,7 @@ async function main(config = {}) {
       subIssue = subResponse.data;
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to fetch sub-issue #${subIssueNumber}: ${errorMessage}`);
+      safeError(`Failed to fetch sub-issue #${subIssueNumber}: ${errorMessage}`);
       return {
         parent_issue_number: parentIssueNumber,
         sub_issue_number: subIssueNumber,
@@ -234,7 +235,7 @@ async function main(config = {}) {
 
       const existingParent = parentCheckResult?.repository?.issue?.parent;
       if (existingParent) {
-        core.warning(`Sub-issue #${subIssueNumber} is already a sub-issue of #${existingParent.number} ("${existingParent.title}"). Skipping.`);
+        safeWarning(`Sub-issue #${subIssueNumber} is already a sub-issue of #${existingParent.number} ("${existingParent.title}"). Skipping.`);
         return {
           parent_issue_number: parentIssueNumber,
           sub_issue_number: subIssueNumber,
@@ -245,7 +246,7 @@ async function main(config = {}) {
     } catch (error) {
       // If the GraphQL query fails (e.g., parent field not available), log warning but continue
       const errorMessage = getErrorMessage(error);
-      core.warning(`Could not check if sub-issue #${subIssueNumber} has a parent: ${errorMessage}. Proceeding with link attempt.`);
+      safeWarning(`Could not check if sub-issue #${subIssueNumber} has a parent: ${errorMessage}. Proceeding with link attempt.`);
     }
 
     // Validate sub-issue filters
@@ -253,7 +254,7 @@ async function main(config = {}) {
       const subLabels = subIssue.labels.map(l => (typeof l === "string" ? l : l.name || ""));
       const missingLabels = subRequiredLabels.filter(required => !subLabels.includes(required));
       if (missingLabels.length > 0) {
-        core.warning(`Sub-issue #${subIssueNumber} is missing required labels: ${missingLabels.join(", ")}. Skipping.`);
+        safeWarning(`Sub-issue #${subIssueNumber} is missing required labels: ${missingLabels.join(", ")}. Skipping.`);
         return {
           parent_issue_number: parentIssueNumber,
           sub_issue_number: subIssueNumber,
@@ -264,7 +265,7 @@ async function main(config = {}) {
     }
 
     if (subTitlePrefix && !subIssue.title.startsWith(subTitlePrefix)) {
-      core.warning(`Sub-issue #${subIssueNumber} title does not start with "${subTitlePrefix}". Skipping.`);
+      safeWarning(`Sub-issue #${subIssueNumber} title does not start with "${subTitlePrefix}". Skipping.`);
       return {
         parent_issue_number: parentIssueNumber,
         sub_issue_number: subIssueNumber,
@@ -309,7 +310,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.warning(`Failed to link issue #${subIssueNumber} as sub-issue of #${parentIssueNumber}: ${errorMessage}`);
+      safeWarning(`Failed to link issue #${subIssueNumber} as sub-issue of #${parentIssueNumber}: ${errorMessage}`);
       return {
         parent_issue_number: parentIssueNumber,
         sub_issue_number: subIssueNumber,

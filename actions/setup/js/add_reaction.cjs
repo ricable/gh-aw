@@ -9,6 +9,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * This script only adds reactions - it does NOT create comments.
  * Use add_reaction_and_edit_comment.cjs in the activation job to create the comment with workflow link.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   // Read inputs from environment variables
   const reaction = process.env.GH_AW_REACTION || "eyes";
@@ -97,7 +98,7 @@ async function main() {
     await addReaction(reactionEndpoint, reaction);
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to add reaction: ${errorMessage}`);
+    safeError(`Failed to add reaction: ${errorMessage}`);
     core.setFailed(`Failed to add reaction: ${errorMessage}`);
   }
 }

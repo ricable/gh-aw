@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "update_issue";
@@ -65,7 +66,7 @@ async function executeIssueUpdate(github, context, issueNumber, updateData) {
       includeFooter, // Pass footer flag to helper
     });
 
-    core.info(`Will update body (length: ${apiData.body.length})`);
+    safeInfo(`Will update body (length: ${apiData.body.length})`);
   }
 
   const { data: issue } = await github.rest.issues.update({

@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { generateFooter } = require("./generate_footer.cjs");
 const { sanitizeContent } = require("./sanitize_content.cjs");
@@ -112,7 +113,7 @@ async function main(config = {}) {
     if (item.pull_request_number !== undefined) {
       prNumber = parseInt(String(item.pull_request_number), 10);
       if (isNaN(prNumber)) {
-        core.warning(`Invalid pull_request_number: ${item.pull_request_number}`);
+        safeWarning(`Invalid pull_request_number: ${item.pull_request_number}`);
         return {
           success: false,
           error: `Invalid pull_request_number: ${item.pull_request_number}`,
@@ -186,7 +187,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to mark PR #${prNumber} as ready for review: ${errorMessage}`);
+      safeError(`Failed to mark PR #${prNumber} as ready for review: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

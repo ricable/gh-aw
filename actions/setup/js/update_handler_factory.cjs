@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { resolveTarget } = require("./safe_output_helpers.cjs");
@@ -54,7 +55,7 @@ function createUpdateHandlerFactory(handlerConfig) {
       }
     });
 
-    core.info(`Update ${itemTypeName} configuration: ${configParts.join(", ")}`);
+    safeInfo(`Update ${itemTypeName} configuration: ${configParts.join(", ")}`);
 
     // Track state
     let processedCount = 0;
@@ -91,7 +92,7 @@ function createUpdateHandlerFactory(handlerConfig) {
       }
 
       const itemNumber = itemNumberResult.number;
-      core.info(`Resolved target ${itemTypeName} #${itemNumber} (target config: ${updateTarget})`);
+      safeInfo(`Resolved target ${itemTypeName} #${itemNumber} (target config: ${updateTarget})`);
 
       // Build update data (handler-specific logic)
       const updateDataResult = buildUpdateData(item, config);
@@ -106,7 +107,7 @@ function createUpdateHandlerFactory(handlerConfig) {
 
       // Check if buildUpdateData returned a skipped result (for update_pull_request)
       if (updateDataResult.skipped) {
-        core.info(`No update fields provided for ${itemTypeName} #${itemNumber} - treating as no-op (skipping update)`);
+        safeInfo(`No update fields provided for ${itemTypeName} #${itemNumber} - treating as no-op (skipping update)`);
         return {
           success: true,
           skipped: true,
@@ -123,7 +124,7 @@ function createUpdateHandlerFactory(handlerConfig) {
       const hasRawBody = updateData._rawBody !== undefined;
 
       if (updateFields.length === 0 && !hasRawBody) {
-        core.info(`No update fields provided for ${itemTypeName} #${itemNumber} - treating as no-op (skipping update)`);
+        safeInfo(`No update fields provided for ${itemTypeName} #${itemNumber} - treating as no-op (skipping update)`);
         return {
           success: true,
           skipped: true,
@@ -131,18 +132,18 @@ function createUpdateHandlerFactory(handlerConfig) {
         };
       }
 
-      core.info(`Updating ${itemTypeName} #${itemNumber} with: ${JSON.stringify(updateFields)}`);
+      safeInfo(`Updating ${itemTypeName} #${itemNumber} with: ${JSON.stringify(updateFields)}`);
 
       // Execute the update
       try {
         const updatedItem = await executeUpdate(github, context, itemNumber, updateData);
-        core.info(`Successfully updated ${itemTypeName} #${itemNumber}: ${updatedItem.html_url || updatedItem.url}`);
+        safeInfo(`Successfully updated ${itemTypeName} #${itemNumber}: ${updatedItem.html_url || updatedItem.url}`);
 
         // Format and return success result
         return formatSuccessResult(itemNumber, updatedItem);
       } catch (error) {
         const errorMessage = getErrorMessage(error);
-        core.error(`Failed to update ${itemTypeName} #${itemNumber}: ${errorMessage}`);
+        safeError(`Failed to update ${itemTypeName} #${itemNumber}: ${errorMessage}`);
         return {
           success: false,
           error: errorMessage,

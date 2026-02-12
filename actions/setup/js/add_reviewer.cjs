@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { processItems } = require("./safe_output_processor.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
@@ -134,7 +135,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to add reviewers: ${errorMessage}`);
+      safeError(`Failed to add reviewers: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

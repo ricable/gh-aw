@@ -4,6 +4,7 @@
 const { loadAgentOutput } = require("./load_agent_output.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { loadTemporaryIdMap, resolveIssueNumber, isTemporaryId, normalizeTemporaryId } = require("./temporary_id.cjs");
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Normalize agent output keys for update_project.
@@ -39,7 +40,7 @@ function normalizeUpdateProjectOutput(value) {
  */
 function logGraphQLError(error, operation) {
   core.info(`GraphQL Error during: ${operation}`);
-  core.info(`Message: ${getErrorMessage(error)}`);
+  safeInfo(`Message: ${getErrorMessage(error)}`);
 
   const errorList = Array.isArray(error.errors) ? error.errors : [];
   const hasInsufficientScopes = errorList.some(e => e?.type === "INSUFFICIENT_SCOPES");
@@ -56,9 +57,9 @@ function logGraphQLError(error, operation) {
   }
 
   if (error.errors) {
-    core.info(`Errors array (${error.errors.length} error(s)):`);
+    safeInfo(`Errors array (${error.errors.length} error(s)):`);
     error.errors.forEach((err, idx) => {
-      core.info(`  [${idx + 1}] ${err.message}`);
+      safeInfo(`  [${idx + 1}] ${err.message}`);
       if (err.type) core.info(`      Type: ${err.type}`);
       if (err.path) core.info(`      Path: ${JSON.stringify(err.path)}`);
       if (err.locations) core.info(`      Locations: ${JSON.stringify(err.locations)}`);
@@ -249,7 +250,7 @@ async function resolveProjectV2(projectInfo, projectNumberInt, github) {
 
     if (project) return project;
   } catch (error) {
-    core.warning(`Direct projectV2(number) query failed; falling back to projectsV2 list search: ${getErrorMessage(error)}`);
+    safeWarning(`Direct projectV2(number) query failed; falling back to projectsV2 list search: ${getErrorMessage(error)}`);
   }
 
   // Wrap fallback query in try-catch to handle transient API errors gracefully
@@ -458,7 +459,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
         core.info(`✓ Authenticated as: ${viewerLogin}`);
       }
     } catch (viewerError) {
-      core.warning(`Could not resolve token identity (viewer.login): ${getErrorMessage(viewerError)}`);
+      safeWarning(`Could not resolve token identity (viewer.login): ${getErrorMessage(viewerError)}`);
     }
 
     // Projects v2 GraphQL API does not work with the default GITHUB_TOKEN.
@@ -551,7 +552,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
               ...(visibleFields ? { visible_fields: visibleFields } : {}),
             };
 
-      core.info(`[3/4] Creating project view: ${name} (${layout})...`);
+      safeInfo(`[3/4] Creating project view: ${name} (${layout})...`);
       const response = await github.request(route, params);
       const created = response?.data;
 
@@ -579,7 +580,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
 
         const dataType = typeof fieldDef.data_type === "string" ? fieldDef.data_type.toUpperCase() : "";
         if (!["DATE", "TEXT", "NUMBER", "SINGLE_SELECT", "ITERATION"].includes(dataType)) {
-          core.warning(`Skipping field "${fieldName}" with invalid data_type "${fieldDef.data_type}". Must be one of: DATE, TEXT, NUMBER, SINGLE_SELECT, ITERATION`);
+          safeWarning(`Skipping field "${fieldName}" with invalid data_type "${fieldDef.data_type}". Must be one of: DATE, TEXT, NUMBER, SINGLE_SELECT, ITERATION`);
           continue;
         }
 
@@ -588,7 +589,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
           if (dataType === "SINGLE_SELECT") {
             const options = Array.isArray(fieldDef.options) ? fieldDef.options : [];
             if (options.length === 0) {
-              core.warning(`Skipping SINGLE_SELECT field "${fieldName}" with no options`);
+              safeWarning(`Skipping SINGLE_SELECT field "${fieldName}" with no options`);
               continue;
             }
 
@@ -653,9 +654,9 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             name: field.name,
             dataType: field.dataType,
           });
-          core.info(`✓ Created field: ${field.name} (${field.dataType})`);
+          safeInfo(`✓ Created field: ${field.name} (${field.dataType})`);
         } catch (createError) {
-          core.warning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
+          safeWarning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
         }
       }
 
@@ -733,7 +734,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
 
             if (existingDraftItem) {
               itemId = existingDraftItem.id;
-              core.info(`✓ Found draft issue "${draftTitle}" by title fallback`);
+              safeInfo(`✓ Found draft issue "${draftTitle}" by title fallback`);
             } else {
               throw new Error(`draft_issue_id "${draftIssueId}" not found in temporary ID map and no draft with title "${draftTitle}" found`);
             }
@@ -753,7 +754,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
 
         if (existingDraftItem) {
           itemId = existingDraftItem.id;
-          core.info(`✓ Found existing draft issue "${draftTitle}" - updating fields instead of creating duplicate`);
+          safeInfo(`✓ Found existing draft issue "${draftTitle}" - updating fields instead of creating duplicate`);
         } else {
           const result = await github.graphql(
             `mutation($projectId: ID!, $title: String!, $body: String) {
@@ -770,7 +771,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             { projectId, title: draftTitle, body: draftBody }
           );
           itemId = result.addProjectV2DraftIssue.projectItem.id;
-          core.info(`✓ Created new draft issue "${draftTitle}"`);
+          safeInfo(`✓ Created new draft issue "${draftTitle}"`);
 
           // Store temporary_id mapping if provided
           if (temporaryId) {
@@ -833,11 +834,11 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                     )
                   ).createProjectV2Field.projectV2Field;
                 } catch (createError) {
-                  core.warning(`Failed to create date field "${fieldName}": ${getErrorMessage(createError)}`);
+                  safeWarning(`Failed to create date field "${fieldName}": ${getErrorMessage(createError)}`);
                   continue;
                 }
               } else {
-                core.warning(`Field "${fieldName}" looks like a date field but value "${fieldValue}" is not in YYYY-MM-DD format. Skipping field creation.`);
+                safeWarning(`Field "${fieldName}" looks like a date field but value "${fieldValue}" is not in YYYY-MM-DD format. Skipping field creation.`);
                 continue;
               }
             } else if ("classification" === fieldName.toLowerCase() || ("string" == typeof fieldValue && fieldValue.includes("|")))
@@ -849,7 +850,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                   )
                 ).createProjectV2Field.projectV2Field;
               } catch (createError) {
-                core.warning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
+                safeWarning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
                 continue;
               }
             else
@@ -861,7 +862,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                   )
                 ).createProjectV2Field.projectV2Field;
               } catch (createError) {
-                core.warning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
+                safeWarning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
                 continue;
               }
           if (field.dataType === "DATE") valueToSet = { date: String(fieldValue) };
@@ -871,7 +872,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             // Convert string values to numbers if needed
             const numValue = typeof fieldValue === "number" ? fieldValue : parseFloat(String(fieldValue));
             if (isNaN(numValue)) {
-              core.warning(`Invalid number value "${fieldValue}" for field "${fieldName}"`);
+              safeWarning(`Invalid number value "${fieldValue}" for field "${fieldName}"`);
               continue;
             }
             valueToSet = { number: numValue };
@@ -879,14 +880,14 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             // ITERATION fields use ProjectV2FieldValue input type with iterationId property
             // The value should match an iteration title or ID
             if (!field.configuration || !field.configuration.iterations) {
-              core.warning(`Iteration field "${fieldName}" has no configured iterations`);
+              safeWarning(`Iteration field "${fieldName}" has no configured iterations`);
               continue;
             }
             // Try to find iteration by title (case-insensitive match)
             const iteration = field.configuration.iterations.find(iter => iter.title.toLowerCase() === String(fieldValue).toLowerCase());
             if (!iteration) {
               const availableIterations = field.configuration.iterations.map(i => i.title).join(", ");
-              core.warning(`Iteration "${fieldValue}" not found in field "${fieldName}". Available iterations: ${availableIterations}`);
+              safeWarning(`Iteration "${fieldValue}" not found in field "${fieldName}". Available iterations: ${availableIterations}`);
               continue;
             }
             valueToSet = { iterationId: iteration.id };
@@ -896,7 +897,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
               // GitHub's GraphQL API does not support adding new options to existing single-select fields
               // The updateProjectV2Field mutation does not exist - users must add options manually via UI
               const availableOptions = field.options.map(o => o.name).join(", ");
-              core.warning(`Option "${fieldValue}" not found in field "${fieldName}". Available options: ${availableOptions}. To add this option, please update the field manually in the GitHub Projects UI.`);
+              safeWarning(`Option "${fieldValue}" not found in field "${fieldName}". Available options: ${availableOptions}. To add this option, please update the field manually in the GitHub Projects UI.`);
               continue;
             }
             valueToSet = { singleSelectOptionId: option.id };
@@ -932,7 +933,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
           if (resolved.errorMessage || !resolved.resolved) {
             throw new Error(`Failed to resolve temporary ID in content_number: ${resolved.errorMessage || "Unknown error"}`);
           }
-          core.info(`✓ Resolved temporary ID ${sanitizedContentNumber} to issue #${resolved.resolved.number}`);
+          safeInfo(`✓ Resolved temporary ID ${sanitizedContentNumber} to issue #${resolved.resolved.number}`);
           contentNumber = resolved.resolved.number;
         } else {
           // Not a temporary ID - validate as numeric
@@ -1030,11 +1031,11 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                     )
                   ).createProjectV2Field.projectV2Field;
                 } catch (createError) {
-                  core.warning(`Failed to create date field "${fieldName}": ${getErrorMessage(createError)}`);
+                  safeWarning(`Failed to create date field "${fieldName}": ${getErrorMessage(createError)}`);
                   continue;
                 }
               } else {
-                core.warning(`Field "${fieldName}" looks like a date field but value "${fieldValue}" is not in YYYY-MM-DD format. Skipping field creation.`);
+                safeWarning(`Field "${fieldName}" looks like a date field but value "${fieldValue}" is not in YYYY-MM-DD format. Skipping field creation.`);
                 continue;
               }
             } else if ("classification" === fieldName.toLowerCase() || ("string" == typeof fieldValue && fieldValue.includes("|")))
@@ -1046,7 +1047,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                   )
                 ).createProjectV2Field.projectV2Field;
               } catch (createError) {
-                core.warning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
+                safeWarning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
                 continue;
               }
             else
@@ -1058,7 +1059,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
                   )
                 ).createProjectV2Field.projectV2Field;
               } catch (createError) {
-                core.warning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
+                safeWarning(`Failed to create field "${fieldName}": ${getErrorMessage(createError)}`);
                 continue;
               }
           // Check dataType first to properly handle DATE fields before checking for options
@@ -1074,7 +1075,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             // Convert string values to numbers if needed
             const numValue = typeof fieldValue === "number" ? fieldValue : parseFloat(String(fieldValue));
             if (isNaN(numValue)) {
-              core.warning(`Invalid number value "${fieldValue}" for field "${fieldName}"`);
+              safeWarning(`Invalid number value "${fieldValue}" for field "${fieldName}"`);
               continue;
             }
             valueToSet = { number: numValue };
@@ -1082,14 +1083,14 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
             // ITERATION fields use ProjectV2FieldValue input type with iterationId property
             // The value should match an iteration title or ID
             if (!field.configuration || !field.configuration.iterations) {
-              core.warning(`Iteration field "${fieldName}" has no configured iterations`);
+              safeWarning(`Iteration field "${fieldName}" has no configured iterations`);
               continue;
             }
             // Try to find iteration by title (case-insensitive match)
             const iteration = field.configuration.iterations.find(iter => iter.title.toLowerCase() === String(fieldValue).toLowerCase());
             if (!iteration) {
               const availableIterations = field.configuration.iterations.map(i => i.title).join(", ");
-              core.warning(`Iteration "${fieldValue}" not found in field "${fieldName}". Available iterations: ${availableIterations}`);
+              safeWarning(`Iteration "${fieldValue}" not found in field "${fieldName}". Available iterations: ${availableIterations}`);
               continue;
             }
             valueToSet = { iterationId: iteration.id };
@@ -1099,7 +1100,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
               // GitHub's GraphQL API does not support adding new options to existing single-select fields
               // The updateProjectV2Field mutation does not exist - users must add options manually via UI
               const availableOptions = field.options.map(o => o.name).join(", ");
-              core.warning(`Option "${fieldValue}" not found in field "${fieldName}". Available options: ${availableOptions}. To add this option, please update the field manually in the GitHub Projects UI.`);
+              safeWarning(`Option "${fieldValue}" not found in field "${fieldName}". Available options: ${availableOptions}. To add this option, please update the field manually in the GitHub Projects UI.`);
               continue;
             }
             valueToSet = { singleSelectOptionId: option.id };
@@ -1121,7 +1122,7 @@ async function updateProject(output, temporaryIdMap = new Map(), githubClient = 
           (usingCustomToken ? "GH_AW_PROJECT_GITHUB_TOKEN is set but lacks access." : "Using default GITHUB_TOKEN - this cannot access Projects v2 API. You must configure GH_AW_PROJECT_GITHUB_TOKEN.")
       );
     } else {
-      core.error(`Failed to manage project: ${getErrorMessage(error)}`);
+      safeError(`Failed to manage project: ${getErrorMessage(error)}`);
     }
     throw error;
   }
@@ -1305,11 +1306,11 @@ async function main(config = {}, githubClient = null) {
             };
 
             await updateProject(viewOutput, temporaryIdMap, github);
-            core.info(`✓ Created view ${i + 1}/${configuredViews.length}: ${viewConfig.name} (${viewConfig.layout})`);
+            safeInfo(`✓ Created view ${i + 1}/${configuredViews.length}: ${viewConfig.name} (${viewConfig.layout})`);
           } catch (err) {
             // prettier-ignore
             const error = /** @type {Error & { errors?: Array<{ type?: string, message: string, path?: unknown, locations?: unknown }>, request?: unknown, data?: unknown }} */ (err);
-            core.error(`Failed to create configured view ${i + 1}: ${viewConfig.name}`);
+            safeError(`Failed to create configured view ${i + 1}: ${viewConfig.name}`);
             logGraphQLError(error, `Creating configured view: ${viewConfig.name}`);
           }
         }

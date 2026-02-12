@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -55,7 +56,7 @@ async function main(config = {}) {
     const milestoneNumber = Number(item.milestone_number);
 
     if (isNaN(issueNumber) || issueNumber <= 0) {
-      core.error(`Invalid issue_number: ${item.issue_number}`);
+      safeError(`Invalid issue_number: ${item.issue_number}`);
       return {
         success: false,
         error: `Invalid issue_number: ${item.issue_number}`,
@@ -63,7 +64,7 @@ async function main(config = {}) {
     }
 
     if (isNaN(milestoneNumber) || milestoneNumber <= 0) {
-      core.error(`Invalid milestone_number: ${item.milestone_number}`);
+      safeError(`Invalid milestone_number: ${item.milestone_number}`);
       return {
         success: false,
         error: `Invalid milestone_number: ${item.milestone_number}`,
@@ -83,7 +84,7 @@ async function main(config = {}) {
         core.info(`Fetched ${allMilestones.length} milestones from repository`);
       } catch (error) {
         const errorMessage = getErrorMessage(error);
-        core.error(`Failed to fetch milestones: ${errorMessage}`);
+        safeError(`Failed to fetch milestones: ${errorMessage}`);
         return {
           success: false,
           error: `Failed to fetch milestones for validation: ${errorMessage}`,
@@ -106,7 +107,7 @@ async function main(config = {}) {
       const isAllowed = allowedMilestones.includes(milestone.title) || allowedMilestones.includes(String(milestoneNumber));
 
       if (!isAllowed) {
-        core.warning(`Milestone "${milestone.title}" (#${milestoneNumber}) is not in the allowed list`);
+        safeWarning(`Milestone "${milestone.title}" (#${milestoneNumber}) is not in the allowed list`);
         return {
           success: false,
           error: `Milestone "${milestone.title}" (#${milestoneNumber}) is not in the allowed list`,
@@ -131,7 +132,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to assign milestone #${milestoneNumber} to issue #${issueNumber}: ${errorMessage}`);
+      safeError(`Failed to assign milestone #${milestoneNumber} to issue #${issueNumber}: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

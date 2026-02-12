@@ -5,6 +5,7 @@
  * Rate limit check for per-user per-workflow triggers
  * Prevents users from triggering workflows too frequently
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 async function main() {
   const actor = context.actor;
@@ -40,7 +41,7 @@ async function main() {
 
   core.info(`🔍 Checking rate limit for user '${actor}' on workflow '${workflowId}'`);
   core.info(`   Configuration: max=${maxRuns} runs per ${windowMinutes} minutes`);
-  core.info(`   Current event: ${eventName}`);
+  safeInfo(`   Current event: ${eventName}`);
 
   // Check if user has an ignored role (exempt from rate limiting)
   const ignoredRoles = ignoredRolesList.split(",").map(r => r.trim());
@@ -77,19 +78,19 @@ async function main() {
   // If specific events are configured, check if current event should be limited
   if (limitedEvents.length > 0) {
     if (!limitedEvents.includes(eventName)) {
-      core.info(`✅ Event '${eventName}' is not subject to rate limiting`);
+      safeInfo(`✅ Event '${eventName}' is not subject to rate limiting`);
       core.info(`   Rate limiting applies only to: ${limitedEvents.join(", ")}`);
       core.setOutput("rate_limit_ok", "true");
       return;
     }
-    core.info(`   Event '${eventName}' is subject to rate limiting`);
+    safeInfo(`   Event '${eventName}' is subject to rate limiting`);
   } else {
     // When no specific events are configured, apply rate limiting only to
     // known programmatic triggers. Allow all other events.
     const programmaticEvents = ["workflow_dispatch", "repository_dispatch", "issue_comment", "pull_request_review", "pull_request_review_comment", "discussion_comment"];
 
     if (!programmaticEvents.includes(eventName)) {
-      core.info(`✅ Event '${eventName}' is not a programmatic trigger; skipping rate limiting`);
+      safeInfo(`✅ Event '${eventName}' is not a programmatic trigger; skipping rate limiting`);
       core.info(`   Rate limiting applies to: ${programmaticEvents.join(", ")}`);
       core.setOutput("rate_limit_ok", "true");
       return;

@@ -5,6 +5,7 @@
  * Check if user has admin or maintainer permissions
  * @returns {Promise<void>}
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const actor = context.actor;
   const { owner, repo } = context.repo;
@@ -29,7 +30,7 @@ async function main() {
     }
   } catch (repoError) {
     const errorMessage = repoError instanceof Error ? repoError.message : String(repoError);
-    core.warning(`Repository permission check failed: ${errorMessage}`);
+    safeWarning(`Repository permission check failed: ${errorMessage}`);
   }
 
   // Fail the workflow when team membership check fails (cancellation handled by activation job's if condition)

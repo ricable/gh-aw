@@ -14,6 +14,7 @@ const fs = require("fs");
  *
  * @returns {Promise<void>}
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
@@ -43,7 +44,7 @@ async function main() {
     // We need to check if there's actual diff output
     hasChanges = diffOutput.trim().length > 0;
   } catch (error) {
-    core.error(`Failed to check for workflow changes: ${getErrorMessage(error)}`);
+    safeError(`Failed to check for workflow changes: ${getErrorMessage(error)}`);
     throw error;
   }
 
@@ -65,14 +66,14 @@ async function main() {
       },
     });
   } catch (error) {
-    core.warning(`Could not capture detailed diff: ${getErrorMessage(error)}`);
+    safeWarning(`Could not capture detailed diff: ${getErrorMessage(error)}`);
   }
 
   // Search for existing open issue about workflow recompilation
   const issueTitle = "[agentics] agentic workflows out of sync";
   const searchQuery = `repo:${owner}/${repo} is:issue is:open in:title "${issueTitle}"`;
 
-  core.info(`Searching for existing issue with title: "${issueTitle}"`);
+  safeInfo(`Searching for existing issue with title: "${issueTitle}"`);
 
   try {
     const searchResult = await github.rest.search.issuesAndPullRequests({
@@ -116,7 +117,7 @@ async function main() {
       return;
     }
   } catch (error) {
-    core.error(`Failed to search for existing issues: ${getErrorMessage(error)}`);
+    safeError(`Failed to search for existing issues: ${getErrorMessage(error)}`);
     throw error;
   }
 
@@ -134,7 +135,7 @@ async function main() {
   try {
     issueTemplate = fs.readFileSync(templatePath, "utf8");
   } catch (error) {
-    core.error(`Failed to read issue template from ${templatePath}: ${getErrorMessage(error)}`);
+    safeError(`Failed to read issue template from ${templatePath}: ${getErrorMessage(error)}`);
     throw error;
   }
 
@@ -173,7 +174,7 @@ async function main() {
     // Write to job summary
     await core.summary.addHeading("Workflow Recompilation Needed", 2).addRaw(`Created issue [#${newIssue.data.number}](${newIssue.data.html_url}) to track workflow recompilation.`).write();
   } catch (error) {
-    core.error(`Failed to create issue: ${getErrorMessage(error)}`);
+    safeError(`Failed to create issue: ${getErrorMessage(error)}`);
     throw error;
   }
 }

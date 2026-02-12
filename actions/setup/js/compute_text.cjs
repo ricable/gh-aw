@@ -6,6 +6,7 @@
  * @param {string} content - The content to sanitize
  * @returns {string} The sanitized content
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const { sanitizeIncomingText, writeRedactedDomainsLog } = require("./sanitize_incoming_text.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -126,7 +127,7 @@ async function main() {
               const body = release.body || "";
               text = `${name}\n\n${body}`;
             } catch (error) {
-              core.warning(`Failed to fetch release from URL: ${getErrorMessage(error)}`);
+              safeWarning(`Failed to fetch release from URL: ${getErrorMessage(error)}`);
             }
           }
         } else if (releaseId) {
@@ -141,7 +142,7 @@ async function main() {
             const body = release.body || "";
             text = `${name}\n\n${body}`;
           } catch (error) {
-            core.warning(`Failed to fetch release by ID: ${getErrorMessage(error)}`);
+            safeWarning(`Failed to fetch release by ID: ${getErrorMessage(error)}`);
           }
         }
       }
@@ -159,7 +160,7 @@ async function main() {
   const sanitizedText = sanitizeIncomingText(text);
 
   // Display sanitized text in logs
-  core.info(`text: ${sanitizedText}`);
+  safeInfo(`text: ${sanitizedText}`);
 
   // Set the sanitized text as output
   core.setOutput("text", sanitizedText);

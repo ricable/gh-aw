@@ -5,6 +5,7 @@
  * mention resolution or filtering. It's designed to be imported by both
  * sanitize_content.cjs (full version) and sanitize_incoming_text.cjs (minimal version).
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Module-level set to collect redacted URL domains across sanitization calls.
@@ -531,8 +532,8 @@ function neutralizeGitHubReferences(s, allowedRepos) {
       const refText = owner && repo ? `${owner}/${repo}#${issueNum}` : `#${issueNum}`;
 
       // Log when a reference is escaped
-      if (typeof core !== "undefined" && core.info) {
-        core.info(`Escaped GitHub reference: ${refText} (not in allowed list)`);
+      if (typeof core !== "undefined" && typeof core.info === "function") {
+        safeInfo(`Escaped GitHub reference: ${refText} (not in allowed list)`);
       }
 
       return `${prefix}\`${refText}\``;

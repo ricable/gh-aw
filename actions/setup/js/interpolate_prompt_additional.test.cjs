@@ -4,8 +4,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url),
   __dirname = path.dirname(__filename),
-  core = { info: vi.fn(), setFailed: vi.fn() };
+  core = { info: vi.fn(), setFailed: vi.fn() },
+  safeInfo = vi.fn(),
+  safeDebug = vi.fn(),
+  safeWarning = vi.fn(),
+  safeError = vi.fn();
 global.core = core;
+global.safeInfo = safeInfo;
+global.safeDebug = safeDebug;
+global.safeWarning = safeWarning;
+global.safeError = safeError;
 const { isTruthy } = require("./is_truthy.cjs"),
   interpolatePromptScript = fs.readFileSync(path.join(__dirname, "interpolate_prompt.cjs"), "utf8"),
   renderMarkdownTemplateMatch = interpolatePromptScript.match(/function renderMarkdownTemplate\(markdown\)\s*{[\s\S]*?return result;[\s\S]*?}/);

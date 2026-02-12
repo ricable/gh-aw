@@ -6,7 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 const { sanitizeContent } = require("./sanitize_content.cjs");
 const { generateFooterWithExpiration } = require("./ephemerals.cjs");
 const { renderTemplate } = require("./messages_core.cjs");
-const { safeInfo } = require("./sanitized_logging.cjs");
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Search for or create the parent issue for all agentic workflow no-op runs
@@ -17,7 +17,7 @@ async function ensureAgentRunsIssue() {
   const parentTitle = "[agentics] No-Op Runs";
   const parentLabel = "agentic-workflows";
 
-  core.info(`Searching for no-op runs issue: "${parentTitle}"`);
+  safeInfo(`Searching for no-op runs issue: "${parentTitle}"`);
 
   // Search for existing no-op runs issue
   const searchQuery = `repo:${owner}/${repo} is:issue is:open label:${parentLabel} in:title "${parentTitle}"`;
@@ -38,7 +38,7 @@ async function ensureAgentRunsIssue() {
       };
     }
   } catch (error) {
-    core.warning(`Error searching for no-op runs issue: ${getErrorMessage(error)}`);
+    safeWarning(`Error searching for no-op runs issue: ${getErrorMessage(error)}`);
   }
 
   // Create no-op runs issue if it doesn't exist
@@ -70,7 +70,7 @@ async function ensureAgentRunsIssue() {
       node_id: newIssue.data.node_id,
     };
   } catch (error) {
-    core.error(`Failed to create no-op runs issue: ${getErrorMessage(error)}`);
+    safeError(`Failed to create no-op runs issue: ${getErrorMessage(error)}`);
     throw error;
   }
 }
@@ -91,7 +91,7 @@ async function main() {
     const agentConclusion = process.env.GH_AW_AGENT_CONCLUSION || "";
     const reportAsIssue = process.env.GH_AW_NOOP_REPORT_AS_ISSUE !== "false"; // Default to true
 
-    core.info(`Workflow name: ${workflowName}`);
+    safeInfo(`Workflow name: ${workflowName}`);
     core.info(`Run URL: ${runUrl}`);
     safeInfo(`No-op message: ${noopMessage}`);
     core.info(`Agent conclusion: ${agentConclusion}`);
@@ -139,7 +139,7 @@ async function main() {
     try {
       noopRunsIssue = await ensureAgentRunsIssue();
     } catch (error) {
-      core.warning(`Could not create no-op runs issue: ${getErrorMessage(error)}`);
+      safeWarning(`Could not create no-op runs issue: ${getErrorMessage(error)}`);
       // Don't fail the workflow if we can't create the issue
       return;
     }
@@ -168,11 +168,11 @@ async function main() {
 
       core.info(`✓ Posted no-op message to no-op runs issue #${noopRunsIssue.number}`);
     } catch (error) {
-      core.warning(`Failed to post comment to no-op runs issue: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to post comment to no-op runs issue: ${getErrorMessage(error)}`);
       // Don't fail the workflow
     }
   } catch (error) {
-    core.warning(`Error in handle_noop_message: ${getErrorMessage(error)}`);
+    safeWarning(`Error in handle_noop_message: ${getErrorMessage(error)}`);
     // Don't fail the workflow
   }
 }

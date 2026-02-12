@@ -4,6 +4,7 @@
 /**
  * Helper module for resolving allowed mentions from GitHub event payloads
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { resolveMentionsLazily, isPayloadUserBot } = require("./resolve_mentions.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
@@ -188,7 +189,7 @@ async function resolveAllowedMentionsFromPayload(context, github, core, mentions
 
     return allowedMentions;
   } catch (error) {
-    core.warning(`Failed to resolve mentions for output collector: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to resolve mentions for output collector: ${getErrorMessage(error)}`);
     // Return empty array on error
     return [];
   }

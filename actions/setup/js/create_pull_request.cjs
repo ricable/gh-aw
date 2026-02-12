@@ -19,6 +19,7 @@ const { generateWorkflowIdMarker } = require("./generate_footer.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "create_pull_request";
@@ -95,10 +96,10 @@ async function main(config = {}) {
     core.info(`Allowed repos: ${Array.from(allowedRepos).join(", ")}`);
   }
   if (envLabels.length > 0) {
-    core.info(`Default labels: ${envLabels.join(", ")}`);
+    safeInfo(`Default labels: ${envLabels.join(", ")}`);
   }
   if (titlePrefix) {
-    core.info(`Title prefix: ${titlePrefix}`);
+    safeInfo(`Title prefix: ${titlePrefix}`);
   }
   core.info(`Draft default: ${draftDefault}`);
   core.info(`If no changes: ${ifNoChanges}`);
@@ -133,7 +134,7 @@ async function main(config = {}) {
 
     const pullRequestItem = message;
 
-    core.info(`Processing create_pull_request: title=${pullRequestItem.title || "No title"}, bodyLength=${pullRequestItem.body?.length || 0}`);
+    safeInfo(`Processing create_pull_request: title=${pullRequestItem.title || "No title"}, bodyLength=${pullRequestItem.body?.length || 0}`);
 
     // Resolve and validate target repository
     const repoResult = resolveAndValidateRepo(pullRequestItem, defaultTargetRepo, allowedRepos, "pull request");
@@ -407,10 +408,10 @@ async function main(config = {}) {
     // Use draft setting from message if provided, otherwise use config default
     const draft = pullRequestItem.draft !== undefined ? pullRequestItem.draft : draftDefault;
 
-    core.info(`Creating pull request with title: ${title}`);
-    core.info(`Labels: ${JSON.stringify(labels)}`);
+    safeInfo(`Creating pull request with title: ${title}`);
+    safeInfo(`Labels: ${JSON.stringify(labels)}`);
     core.info(`Draft: ${draft}`);
-    core.info(`Body length: ${body.length}`);
+    safeInfo(`Body length: ${body.length}`);
 
     const randomHex = crypto.randomBytes(8).toString("hex");
     // Use branch name from JSONL if provided, otherwise generate unique branch name
@@ -420,10 +421,10 @@ async function main(config = {}) {
       branchName = `${workflowId}-${randomHex}`;
     } else {
       branchName = `${branchName}-${randomHex}`;
-      core.info(`Using branch name from JSONL with added salt: ${branchName}`);
+      safeInfo(`Using branch name from JSONL with added salt: ${branchName}`);
     }
 
-    core.info(`Generated branch name: ${branchName}`);
+    safeInfo(`Generated branch name: ${branchName}`);
     core.info(`Base branch: ${baseBranch}`);
 
     // Create a new branch using git CLI, ensuring it's based on the correct base branch
@@ -445,9 +446,9 @@ async function main(config = {}) {
     }
 
     // Handle branch creation/checkout
-    core.info(`Branch should not exist locally, creating new branch from base: ${branchName}`);
+    safeInfo(`Branch should not exist locally, creating new branch from base: ${branchName}`);
     await exec.exec(`git checkout -b ${branchName}`);
-    core.info(`Created new branch from base: ${branchName}`);
+    safeInfo(`Created new branch from base: ${branchName}`);
 
     // Apply the patch using git CLI (skip if empty)
     if (!isEmpty) {
@@ -466,7 +467,7 @@ async function main(config = {}) {
         await exec.exec("git am /tmp/gh-aw/aw.patch");
         core.info("Patch applied successfully");
       } catch (patchError) {
-        core.error(`Failed to apply patch: ${patchError instanceof Error ? patchError.message : String(patchError)}`);
+        safeError(`Failed to apply patch: ${patchError instanceof Error ? patchError.message : String(patchError)}`);
 
         // Investigate why the patch failed by logging git status and the failed patch
         try {
@@ -482,7 +483,7 @@ async function main(config = {}) {
           core.info("Failed patch content:");
           core.info(patchResult.stdout);
         } catch (investigateError) {
-          core.warning(`Failed to investigate patch failure: ${investigateError instanceof Error ? investigateError.message : String(investigateError)}`);
+          safeWarning(`Failed to investigate patch failure: ${investigateError instanceof Error ? investigateError.message : String(investigateError)}`);
         }
 
         return { success: false, error: "Failed to apply patch" };
@@ -498,24 +499,24 @@ async function main(config = {}) {
             remoteBranchExists = true;
           }
         } catch (checkError) {
-          core.info(`Remote branch check failed (non-fatal): ${checkError instanceof Error ? checkError.message : String(checkError)}`);
+          safeInfo(`Remote branch check failed (non-fatal): ${checkError instanceof Error ? checkError.message : String(checkError)}`);
         }
 
         if (remoteBranchExists) {
-          core.warning(`Remote branch ${branchName} already exists - appending random suffix`);
+          safeWarning(`Remote branch ${branchName} already exists - appending random suffix`);
           const extraHex = crypto.randomBytes(4).toString("hex");
           const oldBranch = branchName;
           branchName = `${branchName}-${extraHex}`;
           // Rename local branch
           await exec.exec(`git branch -m ${oldBranch} ${branchName}`);
-          core.info(`Renamed branch to ${branchName}`);
+          safeInfo(`Renamed branch to ${branchName}`);
         }
 
         await exec.exec(`git push origin ${branchName}`);
         core.info("Changes pushed to branch");
       } catch (pushError) {
         // Push failed - create fallback issue instead of PR
-        core.error(`Git push failed: ${pushError instanceof Error ? pushError.message : String(pushError)}`);
+        safeError(`Git push failed: ${pushError instanceof Error ? pushError.message : String(pushError)}`);
         core.warning("Git push operation failed - creating fallback issue instead of pull request");
 
         const runId = context.runId;
@@ -619,17 +620,17 @@ ${patchPreview}`;
               remoteBranchExists = true;
             }
           } catch (checkError) {
-            core.info(`Remote branch check failed (non-fatal): ${checkError instanceof Error ? checkError.message : String(checkError)}`);
+            safeInfo(`Remote branch check failed (non-fatal): ${checkError instanceof Error ? checkError.message : String(checkError)}`);
           }
 
           if (remoteBranchExists) {
-            core.warning(`Remote branch ${branchName} already exists - appending random suffix`);
+            safeWarning(`Remote branch ${branchName} already exists - appending random suffix`);
             const extraHex = crypto.randomBytes(4).toString("hex");
             const oldBranch = branchName;
             branchName = `${branchName}-${extraHex}`;
             // Rename local branch
             await exec.exec(`git branch -m ${oldBranch} ${branchName}`);
-            core.info(`Renamed branch to ${branchName}`);
+            safeInfo(`Renamed branch to ${branchName}`);
           }
 
           await exec.exec(`git push origin ${branchName}`);
@@ -684,7 +685,7 @@ ${patchPreview}`;
           issue_number: pullRequest.number,
           labels: labels,
         });
-        core.info(`Added labels to pull request: ${JSON.stringify(labels)}`);
+        safeInfo(`Added labels to pull request: ${JSON.stringify(labels)}`);
       }
 
       // Enable auto-merge if configured
@@ -704,7 +705,7 @@ ${patchPreview}`;
           );
           core.info(`Enabled auto-merge for pull request #${pullRequest.number}`);
         } catch (autoMergeError) {
-          core.warning(`Failed to enable auto-merge for PR #${pullRequest.number}: ${autoMergeError instanceof Error ? autoMergeError.message : String(autoMergeError)}`);
+          safeWarning(`Failed to enable auto-merge for PR #${pullRequest.number}: ${autoMergeError instanceof Error ? autoMergeError.message : String(autoMergeError)}`);
         }
       }
 
@@ -735,7 +736,7 @@ ${patchPreview}`;
       };
     } catch (prError) {
       const errorMessage = prError instanceof Error ? prError.message : String(prError);
-      core.warning(`Failed to create pull request: ${errorMessage}`);
+      safeWarning(`Failed to create pull request: ${errorMessage}`);
 
       // Check if the error is the specific "GitHub actions is not permitted to create or approve pull requests" error
       if (errorMessage.includes("GitHub Actions is not permitted to create or approve pull requests")) {

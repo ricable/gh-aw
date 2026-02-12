@@ -6,12 +6,13 @@
  * This script is used in the conclusion job to ensure the issue is unlocked
  * after agent workflow execution completes or fails
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
 async function main() {
   // Log actor and event information for debugging
-  core.info(`Unlock-issue debug: actor=${context.actor}, eventName=${context.eventName}`);
+  safeInfo(`Unlock-issue debug: actor=${context.actor}, eventName=${context.eventName}`);
 
   // Get issue number from context
   const issueNumber = context.issue.number;
@@ -58,7 +59,7 @@ async function main() {
     core.info(`✅ Successfully unlocked issue #${issueNumber}`);
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to unlock issue: ${errorMessage}`);
+    safeError(`Failed to unlock issue: ${errorMessage}`);
     core.setFailed(`Failed to unlock issue #${issueNumber}: ${errorMessage}`);
   }
 }

@@ -10,6 +10,7 @@ const { spawnSync } = require("child_process");
  * @returns {string} Command output
  * @throws {Error} If command fails
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function execGitSync(args, options = {}) {
   // Log the git command being executed for debugging (but redact credentials)
   const gitCommand = `git ${args
@@ -32,8 +33,8 @@ function execGitSync(args, options = {}) {
   });
 
   if (result.error) {
-    if (typeof core !== "undefined" && core.error) {
-      core.error(`Git command failed with error: ${result.error.message}`);
+    if (typeof core !== "undefined" && typeof core.error === "function") {
+      safeError(`Git command failed with error: ${result.error.message}`);
     }
     throw result.error;
   }

@@ -6,6 +6,7 @@
  * This script compares the last commit time of the source .md file
  * with the compiled .lock.yml file and warns if recompilation is needed
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { extractHashFromLockFile, computeFrontmatterHash, createGitHubFileReader } = require("./frontmatter_hash_pure.cjs");
@@ -57,7 +58,7 @@ async function main() {
       return null;
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.info(`Could not fetch commit for ${path}: ${errorMessage}`);
+      safeInfo(`Could not fetch commit for ${path}: ${errorMessage}`);
       return null;
     }
   }
@@ -95,7 +96,7 @@ async function main() {
       return { match, storedHash, recomputedHash };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.info(`Could not compute frontmatter hash: ${errorMessage}`);
+      safeInfo(`Could not compute frontmatter hash: ${errorMessage}`);
       return null;
     }
   }

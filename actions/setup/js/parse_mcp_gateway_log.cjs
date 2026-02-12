@@ -12,6 +12,7 @@ const { displayDirectories } = require("./display_file_helpers.cjs");
  *  - /tmp/gh-aw/mcp-logs/gateway.log (main gateway log, fallback)
  *  - /tmp/gh-aw/mcp-logs/stderr.log (stderr output, fallback)
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Prints all gateway-related files to core.info for debugging
@@ -37,7 +38,7 @@ async function main() {
     if (fs.existsSync(gatewayMdPath)) {
       const gatewayMdContent = fs.readFileSync(gatewayMdPath, "utf8");
       if (gatewayMdContent && gatewayMdContent.trim().length > 0) {
-        core.info(`Found gateway.md (${gatewayMdContent.length} bytes)`);
+        safeInfo(`Found gateway.md (${gatewayMdContent.length} bytes)`);
 
         // Write the markdown directly to the step summary
         core.summary.addRaw(gatewayMdContent).write();
@@ -54,7 +55,7 @@ async function main() {
     // Read gateway.log if it exists
     if (fs.existsSync(gatewayLogPath)) {
       gatewayLogContent = fs.readFileSync(gatewayLogPath, "utf8");
-      core.info(`Found gateway.log (${gatewayLogContent.length} bytes)`);
+      safeInfo(`Found gateway.log (${gatewayLogContent.length} bytes)`);
     } else {
       core.info(`No gateway.log found at: ${gatewayLogPath}`);
     }
@@ -62,7 +63,7 @@ async function main() {
     // Read stderr.log if it exists
     if (fs.existsSync(stderrLogPath)) {
       stderrLogContent = fs.readFileSync(stderrLogPath, "utf8");
-      core.info(`Found stderr.log (${stderrLogContent.length} bytes)`);
+      safeInfo(`Found stderr.log (${stderrLogContent.length} bytes)`);
     } else {
       core.info(`No stderr.log found at: ${stderrLogPath}`);
     }

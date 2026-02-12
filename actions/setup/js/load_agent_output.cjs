@@ -2,7 +2,7 @@
 /// <reference types="@actions/github-script" />
 
 const { getErrorMessage } = require("./error_helpers.cjs");
-
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const fs = require("fs");
 
 /**
@@ -68,7 +68,7 @@ function loadAgentOutput() {
     return { success: false };
   }
 
-  core.info(`Agent output content length: ${outputContent.length}`);
+  safeInfo(`Agent output content length: ${outputContent.length}`);
 
   // Parse the validated output JSON
   let validatedOutput;
@@ -77,7 +77,7 @@ function loadAgentOutput() {
   } catch (error) {
     const errorMessage = `Error parsing agent output JSON: ${getErrorMessage(error)}`;
     core.error(errorMessage);
-    core.info(`Failed to parse content:\n${truncateForLogging(outputContent)}`);
+    safeInfo(`Failed to parse content:\n${truncateForLogging(outputContent)}`);
     return { success: false, error: errorMessage };
   }
 

@@ -16,9 +16,10 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * @param {Record<string, string>} variables - Map of variable names to their values
  * @returns {string} - The interpolated content
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function interpolateVariables(content, variables) {
   core.info(`[interpolateVariables] Starting interpolation with ${Object.keys(variables).length} variables`);
-  core.info(`[interpolateVariables] Content length: ${content.length} characters`);
+  safeInfo(`[interpolateVariables] Content length: ${content.length} characters`);
 
   let result = content;
   let totalReplacements = 0;
@@ -29,12 +30,12 @@ function interpolateVariables(content, variables) {
     const matches = (content.match(pattern) || []).length;
 
     if (matches > 0) {
-      core.info(`[interpolateVariables] Replacing ${varName} (${matches} occurrence(s))`);
+      safeInfo(`[interpolateVariables] Replacing ${varName} (${matches} occurrence(s))`);
       core.info(`[interpolateVariables]   Value: ${value.substring(0, 100)}${value.length > 100 ? "..." : ""}`);
       result = result.replace(pattern, value);
       totalReplacements += matches;
     } else {
-      core.info(`[interpolateVariables] Variable ${varName} not found in content (unused)`);
+      safeInfo(`[interpolateVariables] Variable ${varName} not found in content (unused)`);
     }
   }
 
@@ -74,7 +75,7 @@ function renderMarkdownTemplate(markdown) {
     const bodyPreview = body.substring(0, 60).replace(/\n/g, "\\n");
 
     core.info(`[renderMarkdownTemplate] Block ${blockCount}: condition="${condTrimmed}" -> ${truthyResult ? "KEEP" : "REMOVE"}`);
-    core.info(`[renderMarkdownTemplate]   Body preview: "${bodyPreview}${body.length > 60 ? "..." : ""}"`);
+    safeInfo(`[renderMarkdownTemplate]   Body preview: "${bodyPreview}${body.length > 60 ? "..." : ""}"`);
 
     if (truthyResult) {
       // Keep body with leading newline if there was one before the opening tag
@@ -103,7 +104,7 @@ function renderMarkdownTemplate(markdown) {
     const bodyPreview = body.substring(0, 40).replace(/\n/g, "\\n");
 
     core.info(`[renderMarkdownTemplate] Inline ${inlineCount}: condition="${condTrimmed}" -> ${truthyResult ? "KEEP" : "REMOVE"}`);
-    core.info(`[renderMarkdownTemplate]   Body preview: "${bodyPreview}${body.length > 40 ? "..." : ""}"`);
+    safeInfo(`[renderMarkdownTemplate]   Body preview: "${bodyPreview}${body.length > 40 ? "..." : ""}"`);
 
     if (truthyResult) {
       keptInline++;
@@ -159,7 +160,7 @@ async function main() {
     let content = fs.readFileSync(promptPath, "utf8");
     const originalLength = content.length;
     core.info(`[main] Original content length: ${originalLength} characters`);
-    core.info(`[main] First 200 characters: ${content.substring(0, 200).replace(/\n/g, "\\n")}`);
+    safeInfo(`[main] First 200 characters: ${content.substring(0, 200).replace(/\n/g, "\\n")}`);
 
     // Step 1: Process runtime imports (files and URLs)
     core.info("\n========================================");
@@ -237,8 +238,8 @@ async function main() {
     core.info("[main] STEP 4: Writing Output");
     core.info("========================================");
     core.info(`Writing processed content back to: ${promptPath}`);
-    core.info(`Final content length: ${content.length} characters`);
-    core.info(`Total length change: ${originalLength} -> ${content.length} (${content.length > originalLength ? "+" : ""}${content.length - originalLength})`);
+    safeInfo(`Final content length: ${content.length} characters`);
+    safeInfo(`Total length change: ${originalLength} -> ${content.length} (${content.length > originalLength ? "+" : ""}${content.length - originalLength})`);
 
     fs.writeFileSync(promptPath, content, "utf8");
 

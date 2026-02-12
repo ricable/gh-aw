@@ -11,6 +11,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * The token must be set at the step level via the `github-token` parameter in GitHub Actions.
  * This approach is required for compatibility with actions/github-script@v8.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Map agent names to their GitHub bot login names
@@ -62,7 +63,7 @@ async function getAvailableAgentLogins(owner, repo) {
     return available.sort();
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    core.debug(`Failed to list available agent logins: ${errorMessage}`);
+    safeDebug(`Failed to list available agent logins: ${errorMessage}`);
     return [];
   }
 }
@@ -97,7 +98,7 @@ async function findAgent(owner, repo, agentName) {
 
     const loginName = AGENT_LOGIN_NAMES[agentName];
     if (!loginName) {
-      core.error(`Unknown agent: ${agentName}. Supported agents: ${Object.keys(AGENT_LOGIN_NAMES).join(", ")}`);
+      safeError(`Unknown agent: ${agentName}. Supported agents: ${Object.keys(AGENT_LOGIN_NAMES).join(", ")}`);
       return null;
     }
 
@@ -109,7 +110,7 @@ async function findAgent(owner, repo, agentName) {
     const knownValues = Object.values(AGENT_LOGIN_NAMES);
     const available = actors.filter(a => a?.login && knownValues.includes(a.login)).map(a => a.login);
 
-    core.warning(`${agentName} coding agent (${loginName}) is not available as an assignee for this repository`);
+    safeWarning(`${agentName} coding agent (${loginName}) is not available as an assignee for this repository`);
     if (available.length > 0) {
       core.info(`Available assignable coding agents: ${available.join(", ")}`);
     } else {
@@ -121,7 +122,7 @@ async function findAgent(owner, repo, agentName) {
     return null;
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to find ${agentName} agent: ${errorMessage}`);
+    safeError(`Failed to find ${agentName} agent: ${errorMessage}`);
 
     // Re-throw authentication/permission errors so they can be handled by the caller
     // This allows ignore-if-missing logic to work properly
@@ -183,7 +184,7 @@ async function getIssueDetails(owner, repo, issueNumber) {
     };
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to get issue details: ${errorMessage}`);
+    safeError(`Failed to get issue details: ${errorMessage}`);
     // Re-throw the error to preserve the original error message for permission error detection
     throw error;
   }
@@ -233,7 +234,7 @@ async function getPullRequestDetails(owner, repo, pullNumber) {
     };
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to get pull request details: ${errorMessage}`);
+    safeError(`Failed to get pull request details: ${errorMessage}`);
     // Re-throw the error to preserve the original error message for permission error detection
     throw error;
   }
@@ -340,7 +341,7 @@ async function assignAgentToIssue(assignableId, agentId, currentAssignees, agent
 
     // Debug: surface the raw GraphQL error structure for troubleshooting fine-grained permission issues
     try {
-      core.debug(`Raw GraphQL error message: ${errorMessage}`);
+      safeDebug(`Raw GraphQL error message: ${errorMessage}`);
       if (error && typeof error === "object") {
         // Common GraphQL error shapes: error.errors (array), error.data, error.response
         const details = {
@@ -394,7 +395,7 @@ async function assignAgentToIssue(assignableId, agentId, currentAssignees, agent
           },
         });
         if (fallbackResp?.addAssigneesToAssignable) {
-          core.info(`Fallback succeeded: agent '${agentName}' added via addAssigneesToAssignable.`);
+          safeInfo(`Fallback succeeded: agent '${agentName}' added via addAssigneesToAssignable.`);
           return true;
         }
         core.warning("Fallback mutation returned unexpected response; proceeding with permission guidance.");
@@ -404,7 +405,7 @@ async function assignAgentToIssue(assignableId, agentId, currentAssignees, agent
       }
       logPermissionError(agentName);
     } else {
-      core.error(`Failed to assign ${agentName}: ${errorMessage}`);
+      safeError(`Failed to assign ${agentName}: ${errorMessage}`);
     }
     return false;
   }
@@ -415,7 +416,7 @@ async function assignAgentToIssue(assignableId, agentId, currentAssignees, agent
  * @param {string} agentName - Agent name for error messages
  */
 function logPermissionError(agentName) {
-  core.error(`Failed to assign ${agentName}: Insufficient permissions`);
+  safeError(`Failed to assign ${agentName}: Insufficient permissions`);
   core.error("");
   core.error("Assigning Copilot agents requires:");
   core.error("  1. All four workflow permissions:");
@@ -492,7 +493,7 @@ async function assignAgentToIssueByName(owner, repo, issueNumber, agentName) {
 
   try {
     // Find agent using the github object authenticated via step-level github-token
-    core.info(`Looking for ${agentName} coding agent...`);
+    safeInfo(`Looking for ${agentName} coding agent...`);
     const agentId = await findAgent(owner, repo, agentName);
     if (!agentId) {
       const error = `${agentName} coding agent is not available for this repository`;
@@ -501,7 +502,7 @@ async function assignAgentToIssueByName(owner, repo, issueNumber, agentName) {
       const enrichedError = available.length > 0 ? `${error} (available agents: ${available.join(", ")})` : error;
       return { success: false, error: enrichedError };
     }
-    core.info(`Found ${agentName} coding agent (ID: ${agentId})`);
+    safeInfo(`Found ${agentName} coding agent (ID: ${agentId})`);
 
     // Get issue details (ID and current assignees) via GraphQL
     core.info("Getting issue details...");
@@ -514,19 +515,19 @@ async function assignAgentToIssueByName(owner, repo, issueNumber, agentName) {
 
     // Check if agent is already assigned
     if (issueDetails.currentAssignees.some(a => a.id === agentId)) {
-      core.info(`${agentName} is already assigned to issue #${issueNumber}`);
+      safeInfo(`${agentName} is already assigned to issue #${issueNumber}`);
       return { success: true };
     }
 
     // Assign agent using GraphQL mutation (no allowed list filtering in this helper)
-    core.info(`Assigning ${agentName} coding agent to issue #${issueNumber}...`);
+    safeInfo(`Assigning ${agentName} coding agent to issue #${issueNumber}...`);
     const success = await assignAgentToIssue(issueDetails.issueId, agentId, issueDetails.currentAssignees, agentName, null);
 
     if (!success) {
       return { success: false, error: `Failed to assign ${agentName} via GraphQL` };
     }
 
-    core.info(`Successfully assigned ${agentName} coding agent to issue #${issueNumber}`);
+    safeInfo(`Successfully assigned ${agentName} coding agent to issue #${issueNumber}`);
     return { success: true };
   } catch (error) {
     const errorMessage = getErrorMessage(error);

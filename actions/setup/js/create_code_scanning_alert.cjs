@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const fs = require("fs");
@@ -24,8 +25,8 @@ async function main(config = {}) {
   const workflowFilename = config.workflow_filename || "workflow";
 
   core.info(`Create code scanning alert configuration: max=${maxFindings === 0 ? "unlimited" : maxFindings}`);
-  core.info(`Driver name: ${driverName}`);
-  core.info(`Workflow filename for rule ID prefix: ${workflowFilename}`);
+  safeInfo(`Driver name: ${driverName}`);
+  safeInfo(`Workflow filename for rule ID prefix: ${workflowFilename}`);
 
   // Track how many items we've processed for max limit
   let processedCount = 0;
@@ -245,7 +246,7 @@ async function main(config = {}) {
       core.setOutput("artifact_uploaded", "pending");
       core.setOutput("codeql_uploaded", "pending");
     } catch (error) {
-      core.error(`✗ Failed to write SARIF file: ${getErrorMessage(error)}`);
+      safeError(`✗ Failed to write SARIF file: ${getErrorMessage(error)}`);
       return {
         success: false,
         error: `Failed to write SARIF file: ${getErrorMessage(error)}`,

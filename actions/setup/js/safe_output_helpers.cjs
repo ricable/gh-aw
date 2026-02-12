@@ -5,6 +5,7 @@
  * Shared helper functions for safe-output scripts
  * Provides common validation and target resolution logic
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Parse a comma-separated list of allowed items from environment variable
@@ -251,7 +252,7 @@ function loadCustomSafeOutputJobTypes() {
   } catch (error) {
     if (typeof core !== "undefined") {
       const { getErrorMessage } = require("./error_helpers.cjs");
-      core.warning(`Failed to parse GH_AW_SAFE_OUTPUT_JOBS: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to parse GH_AW_SAFE_OUTPUT_JOBS: ${getErrorMessage(error)}`);
     }
     return new Set();
   }

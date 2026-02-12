@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { generateFooterWithMessages } = require("./messages_footer.cjs");
 const { getRepositoryUrl } = require("./get_repository_url.cjs");
@@ -355,7 +356,7 @@ async function main(config = {}) {
       itemNumber = typeof item.item_number === "number" ? item.item_number : parseInt(String(item.item_number), 10);
 
       if (isNaN(itemNumber) || itemNumber <= 0) {
-        core.warning(`Invalid item_number specified: ${item.item_number}`);
+        safeWarning(`Invalid item_number specified: ${item.item_number}`);
         return {
           success: false,
           error: `Invalid item_number specified: ${item.item_number}`,
@@ -401,7 +402,7 @@ async function main(config = {}) {
         }
 
         itemNumber = targetResult.number;
-        core.info(`Resolved target ${targetResult.contextType} #${itemNumber} (target config: ${commentTarget})`);
+        safeInfo(`Resolved target ${targetResult.contextType} #${itemNumber} (target config: ${commentTarget})`);
       }
     }
 
@@ -564,7 +565,7 @@ async function main(config = {}) {
 
           if (isDiscussion404) {
             // Neither issue/PR nor discussion found - truly doesn't exist
-            core.warning(`Target #${itemNumber} was not found as issue, PR, or discussion (may have been deleted): ${discussionErrorMessage}`);
+            safeWarning(`Target #${itemNumber} was not found as issue, PR, or discussion (may have been deleted): ${discussionErrorMessage}`);
             return {
               success: true,
               warning: `Target not found: ${discussionErrorMessage}`,
@@ -573,7 +574,7 @@ async function main(config = {}) {
           }
 
           // Other error when trying as discussion
-          core.error(`Failed to add comment to discussion: ${discussionErrorMessage}`);
+          safeError(`Failed to add comment to discussion: ${discussionErrorMessage}`);
           return {
             success: false,
             error: discussionErrorMessage,
@@ -583,7 +584,7 @@ async function main(config = {}) {
 
       if (is404) {
         // Treat 404s as warnings - the target was deleted between execution and safe output processing
-        core.warning(`Target was not found (may have been deleted): ${errorMessage}`);
+        safeWarning(`Target was not found (may have been deleted): ${errorMessage}`);
         return {
           success: true,
           warning: `Target not found: ${errorMessage}`,
@@ -592,7 +593,7 @@ async function main(config = {}) {
       }
 
       // For non-404 errors, fail as before
-      core.error(`Failed to add comment: ${errorMessage}`);
+      safeError(`Failed to add comment: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

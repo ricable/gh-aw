@@ -5,7 +5,7 @@ const createTestableFunction = scriptContent => {
   const beforeMainCall = scriptContent.match(/^([\s\S]*?)\s*module\.exports\s*=\s*{[\s\S]*?};?\s*$/);
   if (!beforeMainCall) throw new Error("Could not extract script content before module.exports");
   let scriptBody = beforeMainCall[1];
-  // Mock the error_helpers and messages_core modules
+  // Mock the error_helpers, messages_core, and sanitized_logging modules
   const mockRequire = module => {
     if (module === "./error_helpers.cjs") {
       return { getErrorMessage: error => (error instanceof Error ? error.message : String(error)) };
@@ -22,6 +22,14 @@ const createTestableFunction = scriptContent => {
             return null;
           }
         },
+      };
+    }
+    if (module === "./sanitized_logging.cjs") {
+      return {
+        safeInfo: vi.fn(),
+        safeDebug: vi.fn(),
+        safeWarning: vi.fn(),
+        safeError: vi.fn(),
       };
     }
     throw new Error(`Module ${module} not mocked in test`);

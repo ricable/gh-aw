@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { generateFooter } = require("./generate_footer.cjs");
 const { getRepositoryUrl } = require("./get_repository_url.cjs");
@@ -64,7 +65,7 @@ async function main(config = {}) {
 
     const commentItem = message;
 
-    core.info(`Processing create_pull_request_review_comment: path=${commentItem.path}, line=${commentItem.line}, bodyLength=${commentItem.body?.length || 0}`);
+    safeInfo(`Processing create_pull_request_review_comment: path=${commentItem.path}, line=${commentItem.line}, bodyLength=${commentItem.body?.length || 0}`);
 
     // Resolve and validate target repository
     const repoResult = resolveAndValidateRepo(commentItem, defaultTargetRepo, allowedRepos, "PR review comment");
@@ -186,7 +187,7 @@ async function main(config = {}) {
         pullRequest = fullPR;
         core.info(`Fetched full pull request details for PR #${pullRequestNumber} in ${itemRepo}`);
       } catch (error) {
-        core.warning(`Failed to fetch pull request details for PR #${pullRequestNumber}: ${getErrorMessage(error)}`);
+        safeWarning(`Failed to fetch pull request details for PR #${pullRequestNumber}: ${getErrorMessage(error)}`);
         return {
           success: false,
           error: `Failed to fetch pull request details: ${getErrorMessage(error)}`,
@@ -250,7 +251,7 @@ async function main(config = {}) {
     body += generateFooter(workflowName, runUrl, workflowSource, workflowSourceURL, triggeringIssueNumber, triggeringPRNumber, triggeringDiscussionNumber);
 
     core.info(`Creating review comment on PR #${pullRequestNumber} in ${itemRepo} at ${commentItem.path}:${line}${startLine ? ` (lines ${startLine}-${line})` : ""} [${side}]`);
-    core.info(`Comment content length: ${body.length}`);
+    safeInfo(`Comment content length: ${body.length}`);
 
     try {
       // Prepare the request parameters
@@ -286,7 +287,7 @@ async function main(config = {}) {
         repo: itemRepo,
       };
     } catch (error) {
-      core.error(`✗ Failed to create review comment: ${getErrorMessage(error)}`);
+      safeError(`✗ Failed to create review comment: ${getErrorMessage(error)}`);
       return {
         success: false,
         error: getErrorMessage(error),

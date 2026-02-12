@@ -7,6 +7,7 @@
  * This module provides helper functions for displaying file contents
  * in GitHub Actions logs with collapsible groups and proper formatting.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const fs = require("fs");
 
@@ -21,19 +22,19 @@ function displayFileContent(filePath, fileName, maxBytes = 64 * 1024) {
     const stats = fs.statSync(filePath);
 
     if (stats.isDirectory()) {
-      core.info(`  ${fileName}/ (directory)`);
+      safeInfo(`  ${fileName}/ (directory)`);
       return;
     }
 
     // Handle empty files
     if (stats.size === 0) {
-      core.info(`  ${fileName} (empty file)`);
+      safeInfo(`  ${fileName} (empty file)`);
       return;
     }
 
     // Handle files too large to read
     if (stats.size >= 1024 * 1024) {
-      core.info(`  ${fileName} (file too large to display, ${stats.size} bytes)`);
+      safeInfo(`  ${fileName} (file too large to display, ${stats.size} bytes)`);
       return;
     }
 
@@ -43,7 +44,7 @@ function displayFileContent(filePath, fileName, maxBytes = 64 * 1024) {
     const shouldDisplayContent = displayExtensions.includes(fileExtension);
 
     if (!shouldDisplayContent) {
-      core.info(`  ${fileName} (content not displayed for ${fileExtension} files)`);
+      safeInfo(`  ${fileName} (content not displayed for ${fileExtension} files)`);
       return;
     }
 
@@ -60,12 +61,12 @@ function displayFileContent(filePath, fileName, maxBytes = 64 * 1024) {
     }
     if (wasTruncated) {
       core.info(`...`);
-      core.info(`(truncated, showing first ${maxBytes} bytes of ${content.length} total)`);
+      safeInfo(`(truncated, showing first ${maxBytes} bytes of ${content.length} total)`);
     }
     core.endGroup();
   } catch (/** @type {unknown} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    core.warning(`Could not display file ${fileName}: ${errorMessage}`);
+    safeWarning(`Could not display file ${fileName}: ${errorMessage}`);
   }
 }
 
@@ -98,7 +99,7 @@ function displayDirectory(dirPath, maxBytes = 64 * 1024) {
     }
   } catch (/** @type {unknown} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    core.error(`Error reading directory ${dirPath}: ${errorMessage}`);
+    safeError(`Error reading directory ${dirPath}: ${errorMessage}`);
   }
 
   core.endGroup();

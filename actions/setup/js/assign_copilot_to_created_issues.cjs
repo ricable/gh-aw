@@ -10,6 +10,7 @@ const { sleep } = require("./error_recovery.cjs");
  * This script reads the issues_to_assign_copilot output and assigns copilot to each issue.
  * It uses the agent token (GH_AW_AGENT_TOKEN) for the GraphQL mutation.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 async function main() {
   // Prefer explicit env var (works in consolidated safe_outputs mode where the
@@ -71,12 +72,12 @@ async function main() {
     try {
       // Find agent (reuse cached ID for same repo)
       if (!agentId) {
-        core.info(`Looking for ${agentName} coding agent...`);
+        safeInfo(`Looking for ${agentName} coding agent...`);
         agentId = await findAgent(owner, repo, agentName);
         if (!agentId) {
           throw new Error(`${agentName} coding agent is not available for this repository`);
         }
-        core.info(`Found ${agentName} coding agent (ID: ${agentId})`);
+        safeInfo(`Found ${agentName} coding agent (ID: ${agentId})`);
       }
 
       // Get issue details
@@ -90,7 +91,7 @@ async function main() {
 
       // Check if agent is already assigned
       if (issueDetails.currentAssignees.some(a => a.id === agentId)) {
-        core.info(`${agentName} is already assigned to issue #${issueNumber}`);
+        safeInfo(`${agentName} is already assigned to issue #${issueNumber}`);
         results.push({
           repo: repoSlug,
           issue_number: issueNumber,
@@ -101,14 +102,14 @@ async function main() {
       }
 
       // Assign agent using GraphQL mutation (no allowed list filtering)
-      core.info(`Assigning ${agentName} coding agent to issue #${issueNumber}...`);
+      safeInfo(`Assigning ${agentName} coding agent to issue #${issueNumber}...`);
       const success = await assignAgentToIssue(issueDetails.issueId, agentId, issueDetails.currentAssignees, agentName, null);
 
       if (!success) {
         throw new Error(`Failed to assign ${agentName} via GraphQL`);
       }
 
-      core.info(`Successfully assigned ${agentName} coding agent to issue #${issueNumber}`);
+      safeInfo(`Successfully assigned ${agentName} coding agent to issue #${issueNumber}`);
       results.push({
         repo: repoSlug,
         issue_number: issueNumber,
@@ -116,7 +117,7 @@ async function main() {
       });
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to assign ${agentName} to issue #${issueNumber} in ${repoSlug}: ${errorMessage}`);
+      safeError(`Failed to assign ${agentName} to issue #${issueNumber} in ${repoSlug}: ${errorMessage}`);
       results.push({
         repo: repoSlug,
         issue_number: issueNumber,

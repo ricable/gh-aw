@@ -1,6 +1,8 @@
 // @ts-check
 /// <reference types="@actions/github-script" />
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
+
 /**
  * Secret Validation Script
  *
@@ -628,7 +630,7 @@ async function main() {
       test: "GitHub REST API",
       ...restResult,
     });
-    core.info(`  ${statusEmoji(restResult.status)} ${restResult.message}`);
+    safeInfo(`  ${statusEmoji(restResult.status)} ${restResult.message}`);
 
     const graphqlResult = await testGitHubGraphQLAPI(ghAwToken, owner, repo);
     results.push({
@@ -636,7 +638,7 @@ async function main() {
       test: "GitHub GraphQL API",
       ...graphqlResult,
     });
-    core.info(`  ${statusEmoji(graphqlResult.status)} ${graphqlResult.message}`);
+    safeInfo(`  ${statusEmoji(graphqlResult.status)} ${graphqlResult.message}`);
 
     // Test GH_AW_GITHUB_MCP_SERVER_TOKEN
     core.info("Testing GH_AW_GITHUB_MCP_SERVER_TOKEN...");
@@ -647,7 +649,7 @@ async function main() {
       test: "GitHub REST API",
       ...mcpRestResult,
     });
-    core.info(`  ${statusEmoji(mcpRestResult.status)} ${mcpRestResult.message}`);
+    safeInfo(`  ${statusEmoji(mcpRestResult.status)} ${mcpRestResult.message}`);
 
     // Test GH_AW_PROJECT_GITHUB_TOKEN
     core.info("Testing GH_AW_PROJECT_GITHUB_TOKEN...");
@@ -658,7 +660,7 @@ async function main() {
       test: "GitHub REST API",
       ...projectRestResult,
     });
-    core.info(`  ${statusEmoji(projectRestResult.status)} ${projectRestResult.message}`);
+    safeInfo(`  ${statusEmoji(projectRestResult.status)} ${projectRestResult.message}`);
 
     // Test GH_AW_COPILOT_TOKEN
     core.info("Testing GH_AW_COPILOT_TOKEN...");
@@ -669,7 +671,7 @@ async function main() {
       test: "Copilot CLI Availability",
       ...copilotResult,
     });
-    core.info(`  ${statusEmoji(copilotResult.status)} ${copilotResult.message}`);
+    safeInfo(`  ${statusEmoji(copilotResult.status)} ${copilotResult.message}`);
 
     // Test ANTHROPIC_API_KEY
     core.info("Testing ANTHROPIC_API_KEY...");
@@ -680,7 +682,7 @@ async function main() {
       test: "Anthropic Claude API",
       ...anthropicResult,
     });
-    core.info(`  ${statusEmoji(anthropicResult.status)} ${anthropicResult.message}`);
+    safeInfo(`  ${statusEmoji(anthropicResult.status)} ${anthropicResult.message}`);
 
     // Test OPENAI_API_KEY
     core.info("Testing OPENAI_API_KEY...");
@@ -691,7 +693,7 @@ async function main() {
       test: "OpenAI API",
       ...openaiResult,
     });
-    core.info(`  ${statusEmoji(openaiResult.status)} ${openaiResult.message}`);
+    safeInfo(`  ${statusEmoji(openaiResult.status)} ${openaiResult.message}`);
 
     // Test BRAVE_API_KEY
     core.info("Testing BRAVE_API_KEY...");
@@ -702,7 +704,7 @@ async function main() {
       test: "Brave Search API",
       ...braveResult,
     });
-    core.info(`  ${statusEmoji(braveResult.status)} ${braveResult.message}`);
+    safeInfo(`  ${statusEmoji(braveResult.status)} ${braveResult.message}`);
 
     // Test NOTION_API_TOKEN
     core.info("Testing NOTION_API_TOKEN...");
@@ -713,7 +715,7 @@ async function main() {
       test: "Notion API",
       ...notionResult,
     });
-    core.info(`  ${statusEmoji(notionResult.status)} ${notionResult.message}`);
+    safeInfo(`  ${statusEmoji(notionResult.status)} ${notionResult.message}`);
 
     // Generate markdown report
     core.info("Generating report...");

@@ -5,6 +5,7 @@
  * GitHub API helper functions
  * Provides common GitHub API operations with consistent error handling
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -46,7 +47,7 @@ async function getFileContent(github, owner, repo, path, ref) {
     return response.data.content || null;
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.info(`Could not fetch content for ${path}: ${errorMessage}`);
+    safeInfo(`Could not fetch content for ${path}: ${errorMessage}`);
     return null;
   }
 }

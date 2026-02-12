@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 const { resolveTargetRepoConfig, resolveAndValidateRepo } = require("./repo_helpers.cjs");
@@ -84,10 +85,10 @@ async function main(config = {}) {
 
   core.info(`Close issue configuration: max=${maxCount}`);
   if (requiredLabels.length > 0) {
-    core.info(`Required labels: ${requiredLabels.join(", ")}`);
+    safeInfo(`Required labels: ${requiredLabels.join(", ")}`);
   }
   if (requiredTitlePrefix) {
-    core.info(`Required title prefix: ${requiredTitlePrefix}`);
+    safeInfo(`Required title prefix: ${requiredTitlePrefix}`);
   }
   core.info(`Default target repo: ${defaultTargetRepo}`);
   if (allowedRepos.size > 0) {
@@ -134,7 +135,7 @@ async function main(config = {}) {
     if (item.issue_number !== undefined) {
       issueNumber = parseInt(String(item.issue_number), 10);
       if (isNaN(issueNumber)) {
-        core.warning(`Invalid issue number: ${item.issue_number}`);
+        safeWarning(`Invalid issue number: ${item.issue_number}`);
         return {
           success: false,
           error: `Invalid issue number: ${item.issue_number}`,
@@ -172,7 +173,7 @@ async function main(config = {}) {
         const issueLabels = issue.labels.map(l => (typeof l === "string" ? l : l.name || ""));
         const missingLabels = requiredLabels.filter(required => !issueLabels.includes(required));
         if (missingLabels.length > 0) {
-          core.warning(`Issue #${issueNumber} missing required labels: ${missingLabels.join(", ")}`);
+          safeWarning(`Issue #${issueNumber} missing required labels: ${missingLabels.join(", ")}`);
           return {
             success: false,
             error: `Missing required labels: ${missingLabels.join(", ")}`,
@@ -182,7 +183,7 @@ async function main(config = {}) {
 
       // Validate required title prefix if configured
       if (requiredTitlePrefix && !issue.title.startsWith(requiredTitlePrefix)) {
-        core.warning(`Issue #${issueNumber} title doesn't start with "${requiredTitlePrefix}"`);
+        safeWarning(`Issue #${issueNumber} title doesn't start with "${requiredTitlePrefix}"`);
         return {
           success: false,
           error: `Title doesn't start with "${requiredTitlePrefix}"`,
@@ -207,7 +208,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to close issue #${issueNumber}: ${errorMessage}`);
+      safeError(`Failed to close issue #${issueNumber}: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

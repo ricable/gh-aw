@@ -1,6 +1,8 @@
 // @ts-check
 /// <reference types="@actions/github-script" />
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
+
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
@@ -53,7 +55,7 @@ async function executePRUpdate(github, context, prNumber, updateData) {
       runId: context.runId,
     });
 
-    core.info(`Will update body (length: ${apiData.body.length})`);
+    safeInfo(`Will update body (length: ${apiData.body.length})`);
   }
 
   const { data: pr } = await github.rest.pulls.update({

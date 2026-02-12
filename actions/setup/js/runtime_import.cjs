@@ -18,6 +18,7 @@ const http = require("http");
  * @param {string} content - The file content to check
  * @returns {boolean} - True if content starts with front matter
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function hasFrontMatter(content) {
   return content.trimStart().startsWith("---\n") || content.trimStart().startsWith("---\r\n");
 }
@@ -355,7 +356,7 @@ function evaluateExpression(expr) {
     } catch (error) {
       // If evaluation fails, log but don't throw
       const errorMessage = error instanceof Error ? error.message : String(error);
-      core.warning(`Failed to evaluate expression "${trimmed}": ${errorMessage}`);
+      safeWarning(`Failed to evaluate expression "${trimmed}": ${errorMessage}`);
     }
   }
 
@@ -522,7 +523,7 @@ async function processUrlImport(url, optional, startLine, endLine) {
   } catch (error) {
     if (optional) {
       const errorMessage = getErrorMessage(error);
-      core.warning(`Optional runtime import URL failed: ${url}: ${errorMessage}`);
+      safeWarning(`Optional runtime import URL failed: ${url}: ${errorMessage}`);
       return "";
     }
     throw error;

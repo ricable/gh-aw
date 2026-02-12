@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "remove_labels";
@@ -23,7 +24,7 @@ async function main(config = {}) {
 
   core.info(`Remove labels configuration: max=${maxCount}`);
   if (allowedLabels.length > 0) {
-    core.info(`Allowed labels to remove: ${allowedLabels.join(", ")}`);
+    safeInfo(`Allowed labels to remove: ${allowedLabels.join(", ")}`);
   }
 
   // Track how many items we've processed for max limit
@@ -61,7 +62,7 @@ async function main(config = {}) {
 
     const contextType = context.payload?.pull_request ? "pull request" : "issue";
     const requestedLabels = message.labels ?? [];
-    core.info(`Requested labels to remove: ${JSON.stringify(requestedLabels)}`);
+    safeInfo(`Requested labels to remove: ${JSON.stringify(requestedLabels)}`);
 
     // If no labels provided, return a helpful message with allowed labels if configured
     if (!requestedLabels || requestedLabels.length === 0) {
@@ -92,7 +93,7 @@ async function main(config = {}) {
         };
       }
       // For other validation errors, return error
-      core.warning(`Label validation failed: ${labelsResult.error}`);
+      safeWarning(`Label validation failed: ${labelsResult.error}`);
       return {
         success: false,
         error: labelsResult.error ?? "Invalid labels",
@@ -111,7 +112,7 @@ async function main(config = {}) {
       };
     }
 
-    core.info(`Removing ${uniqueLabels.length} labels from ${contextType} #${itemNumber}: ${JSON.stringify(uniqueLabels)}`);
+    safeInfo(`Removing ${uniqueLabels.length} labels from ${contextType} #${itemNumber}: ${JSON.stringify(uniqueLabels)}`);
 
     // Track successfully removed labels
     const removedLabels = [];
@@ -126,21 +127,21 @@ async function main(config = {}) {
           name: label,
         });
         removedLabels.push(label);
-        core.info(`Removed label "${label}" from ${contextType} #${itemNumber}`);
+        safeInfo(`Removed label "${label}" from ${contextType} #${itemNumber}`);
       } catch (error) {
         // Label might not exist on the issue/PR - this is not a failure
         const errorMessage = getErrorMessage(error);
         if (errorMessage.includes("Label does not exist") || errorMessage.includes("404")) {
-          core.info(`Label "${label}" was not present on ${contextType} #${itemNumber}, skipping`);
+          safeInfo(`Label "${label}" was not present on ${contextType} #${itemNumber}, skipping`);
         } else {
-          core.warning(`Failed to remove label "${label}": ${errorMessage}`);
+          safeWarning(`Failed to remove label "${label}": ${errorMessage}`);
           failedLabels.push({ label, error: errorMessage });
         }
       }
     }
 
     if (removedLabels.length > 0) {
-      core.info(`Successfully removed ${removedLabels.length} labels from ${contextType} #${itemNumber}`);
+      safeInfo(`Successfully removed ${removedLabels.length} labels from ${contextType} #${itemNumber}`);
     }
 
     return {

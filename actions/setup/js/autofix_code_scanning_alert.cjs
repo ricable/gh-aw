@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "autofix_code_scanning_alert";
@@ -63,11 +64,11 @@ async function main(config = {}) {
     // Parse alert number
     const alertNumber = parseInt(String(message.alert_number), 10);
     if (isNaN(alertNumber) || alertNumber <= 0) {
-      core.warning(`Invalid alert_number: ${message.alert_number}`);
+      safeWarning(`Invalid alert_number: ${message.alert_number}`);
       return { success: false, error: `Invalid alert_number: ${message.alert_number}` };
     }
 
-    core.info(`Processing autofix_code_scanning_alert: alert_number=${alertNumber}, fix_description="${message.fix_description.substring(0, 50)}..."`);
+    safeInfo(`Processing autofix_code_scanning_alert: alert_number=${alertNumber}, fix_description="${message.fix_description.substring(0, 50)}..."`);
 
     // Staged mode: collect for preview
     if (isStaged) {
@@ -83,8 +84,8 @@ async function main(config = {}) {
     // Create autofix via GitHub REST API
     try {
       core.info(`Creating autofix for code scanning alert ${alertNumber}`);
-      core.info(`Fix description: ${message.fix_description}`);
-      core.info(`Fix code length: ${message.fix_code.length} characters`);
+      safeInfo(`Fix description: ${message.fix_description}`);
+      safeInfo(`Fix code length: ${message.fix_code.length} characters`);
 
       // Call the GitHub REST API to create the autofix
       // Reference: https://docs.github.com/en/rest/code-scanning/code-scanning?apiVersion=2022-11-28#create-an-autofix-for-a-code-scanning-alert
@@ -111,7 +112,7 @@ async function main(config = {}) {
       return { success: true, alertNumber, autofixUrl };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`✗ Failed to create autofix for alert ${alertNumber}: ${errorMessage}`);
+      safeError(`✗ Failed to create autofix for alert ${alertNumber}: ${errorMessage}`);
 
       // Provide helpful error messages
       if (errorMessage.includes("404")) {

@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 const fs = require("fs");
 const path = require("path");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   // Initialize outputs to empty strings to ensure they're always set
   core.setOutput("session_number", "");
@@ -31,7 +32,7 @@ async function main() {
     core.info("Agent output content is empty");
     return;
   }
-  core.info(`Agent output content length: ${outputContent.length}`);
+  safeInfo(`Agent output content length: ${outputContent.length}`);
 
   let validatedOutput;
   try {
@@ -134,7 +135,7 @@ async function main() {
           core.error(`You must configure a Personal Access Token (PAT) as COPILOT_GITHUB_TOKEN or GH_AW_GITHUB_TOKEN.`);
           core.error(`See documentation: https://github.github.com/gh-aw/reference/safe-outputs/#agent-task-creation-create-agent-session`);
         } else {
-          core.error(`Task ${index + 1}: Failed to create agent session: ${errorMessage}`);
+          safeError(`Task ${index + 1}: Failed to create agent session: ${errorMessage}`);
         }
         continue;
       }
@@ -161,7 +162,7 @@ async function main() {
         createdTasks.push({ number: "", url: output });
       }
     } catch (error) {
-      core.error(`Task ${index + 1}: Error creating agent session: ${getErrorMessage(error)}`);
+      safeError(`Task ${index + 1}: Error creating agent session: ${getErrorMessage(error)}`);
     }
   }
 

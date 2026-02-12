@@ -7,6 +7,7 @@
  * This module provides functionality to generate step summaries for safe-output messages.
  * Each processed safe-output generates a summary enclosed in a <details> section.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { displayFileContent } = require("./display_file_helpers.cjs");
 
@@ -109,7 +110,7 @@ async function writeSafeOutputSummaries(results, messages) {
           displayFileContent(safeOutputsFile, "safe-outputs.jsonl", 5000);
         }
       } catch (error) {
-        core.debug(`Could not read raw safe-output file: ${error instanceof Error ? error.message : String(error)}`);
+        safeDebug(`Could not read raw safe-output file: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }
@@ -141,7 +142,7 @@ async function writeSafeOutputSummaries(results, messages) {
     await core.summary.addRaw(summaryContent).write();
     core.info(`📝 Safe output summaries written to step summary`);
   } catch (error) {
-    core.warning(`Failed to write safe output summaries: ${error instanceof Error ? error.message : String(error)}`);
+    safeWarning(`Failed to write safe output summaries: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

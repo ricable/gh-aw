@@ -3,6 +3,7 @@
 
 const { parseRequiredPermissions, parseAllowedBots, checkRepositoryPermission, checkBotStatus } = require("./check_permissions_utils.cjs");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const { eventName } = context;
   const actor = context.actor;
@@ -15,13 +16,13 @@ async function main() {
   if (eventName === "workflow_dispatch") {
     const hasWriteRole = requiredPermissions.includes("write");
     if (hasWriteRole) {
-      core.info(`✅ Event ${eventName} does not require validation (write role allowed)`);
+      safeInfo(`✅ Event ${eventName} does not require validation (write role allowed)`);
       core.setOutput("is_team_member", "true");
       core.setOutput("result", "safe_event");
       return;
     }
     // If write is not allowed, continue with permission check
-    core.info(`Event ${eventName} requires validation (write role not allowed)`);
+    safeInfo(`Event ${eventName} requires validation (write role not allowed)`);
   }
 
   // skip check for other safe events
@@ -35,7 +36,7 @@ async function main() {
   // - Validates combined state of multiple PRs before merging
   const safeEvents = ["schedule", "merge_group"];
   if (safeEvents.includes(eventName)) {
-    core.info(`✅ Event ${eventName} does not require validation`);
+    safeInfo(`✅ Event ${eventName} does not require validation`);
     core.setOutput("is_team_member", "true");
     core.setOutput("result", "safe_event");
     return;

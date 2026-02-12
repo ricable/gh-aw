@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "add_labels";
@@ -25,7 +26,7 @@ async function main(config = {}) {
 
   core.info(`Add labels configuration: max=${maxCount}`);
   if (allowedLabels.length > 0) {
-    core.info(`Allowed labels: ${allowedLabels.join(", ")}`);
+    safeInfo(`Allowed labels: ${allowedLabels.join(", ")}`);
   }
   core.info(`Default target repo: ${defaultTargetRepo}`);
   if (allowedRepos.size > 0) {
@@ -76,7 +77,7 @@ async function main(config = {}) {
 
     const contextType = context.payload?.pull_request ? "pull request" : "issue";
     const requestedLabels = message.labels ?? [];
-    core.info(`Requested labels: ${JSON.stringify(requestedLabels)}`);
+    safeInfo(`Requested labels: ${JSON.stringify(requestedLabels)}`);
 
     // If no labels provided, return a helpful message with allowed labels if configured
     if (requestedLabels.length === 0) {
@@ -100,7 +101,7 @@ async function main(config = {}) {
         };
       }
       // For other validation errors, return error
-      core.warning(`Label validation failed: ${labelsResult.error}`);
+      safeWarning(`Label validation failed: ${labelsResult.error}`);
       return {
         success: false,
         error: labelsResult.error ?? "Invalid labels",
@@ -120,7 +121,7 @@ async function main(config = {}) {
       };
     }
 
-    core.info(`Adding ${uniqueLabels.length} labels to ${contextType} #${itemNumber} in ${itemRepo}: ${JSON.stringify(uniqueLabels)}`);
+    safeInfo(`Adding ${uniqueLabels.length} labels to ${contextType} #${itemNumber} in ${itemRepo}: ${JSON.stringify(uniqueLabels)}`);
 
     try {
       await github.rest.issues.addLabels({
@@ -130,7 +131,7 @@ async function main(config = {}) {
         labels: uniqueLabels,
       });
 
-      core.info(`Successfully added ${uniqueLabels.length} labels to ${contextType} #${itemNumber} in ${itemRepo}`);
+      safeInfo(`Successfully added ${uniqueLabels.length} labels to ${contextType} #${itemNumber} in ${itemRepo}`);
       return {
         success: true,
         number: itemNumber,
@@ -139,7 +140,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to add labels: ${errorMessage}`);
+      safeError(`Failed to add labels: ${errorMessage}`);
       return { success: false, error: errorMessage };
     }
   };

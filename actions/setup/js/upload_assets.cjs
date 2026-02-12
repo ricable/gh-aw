@@ -6,6 +6,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { loadAgentOutput } = require("./load_agent_output.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Normalizes a branch name to be a valid git branch name.
@@ -68,7 +69,7 @@ async function main() {
 
   // Normalize the branch name to ensure it's a valid git branch name
   const normalizedBranchName = normalizeBranchName(branchName);
-  core.info(`Using assets branch: ${normalizedBranchName}`);
+  safeInfo(`Using assets branch: ${normalizedBranchName}`);
 
   const result = loadAgentOutput();
   if (!result.success) {
@@ -97,7 +98,7 @@ async function main() {
     try {
       await exec.exec(`git rev-parse --verify origin/${normalizedBranchName}`);
       await exec.exec(`git checkout -B ${normalizedBranchName} origin/${normalizedBranchName}`);
-      core.info(`Checked out existing branch from origin: ${normalizedBranchName}`);
+      safeInfo(`Checked out existing branch from origin: ${normalizedBranchName}`);
     } catch (originError) {
       // Validate that branch starts with "assets/" prefix before creating orphaned branch
       if (!normalizedBranchName.startsWith("assets/")) {
@@ -110,7 +111,7 @@ async function main() {
       }
 
       // Branch doesn't exist on origin and has valid prefix, create orphaned branch
-      core.info(`Creating new orphaned branch: ${normalizedBranchName}`);
+      safeInfo(`Creating new orphaned branch: ${normalizedBranchName}`);
       await exec.exec(`git checkout --orphan ${normalizedBranchName}`);
       await exec.exec(`git rm -rf .`);
       await exec.exec(`git clean -fdx`);
@@ -143,7 +144,7 @@ async function main() {
 
       // Check if file already exists in the branch
       if (fs.existsSync(targetFileName)) {
-        core.info(`Asset ${targetFileName} already exists, skipping`);
+        safeInfo(`Asset ${targetFileName} already exists, skipping`);
         continue;
       }
 
@@ -157,7 +158,7 @@ async function main() {
         uploadCount++;
         hasChanges = true;
 
-        core.info(`Added asset: ${targetFileName} (${size} bytes)`);
+        safeInfo(`Added asset: ${targetFileName} (${size} bytes)`);
       } catch (error) {
         core.setFailed(`Failed to process asset ${fileName}: ${getErrorMessage(error)}`);
         return;
@@ -173,7 +174,7 @@ async function main() {
       } else {
         await exec.exec(`git push origin ${normalizedBranchName}`);
         core.summary.addRaw("## Assets").addRaw(`Successfully uploaded **${uploadCount}** assets to branch \`${normalizedBranchName}\``).addRaw("");
-        core.info(`Successfully uploaded ${uploadCount} assets to branch ${normalizedBranchName}`);
+        safeInfo(`Successfully uploaded ${uploadCount} assets to branch ${normalizedBranchName}`);
       }
 
       for (const asset of uploadItems) {

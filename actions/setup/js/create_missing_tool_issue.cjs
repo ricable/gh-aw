@@ -9,6 +9,7 @@ const fs = require("fs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "create_missing_tool_issue";
@@ -24,9 +25,9 @@ async function main(config = {}) {
   const envLabels = config.labels ? (Array.isArray(config.labels) ? config.labels : config.labels.split(",")).map(label => String(label).trim()).filter(label => label) : [];
   const maxCount = config.max || 1; // Default to 1 to create only one issue per workflow run
 
-  core.info(`Title prefix: ${titlePrefix}`);
+  safeInfo(`Title prefix: ${titlePrefix}`);
   if (envLabels.length > 0) {
-    core.info(`Default labels: ${envLabels.join(", ")}`);
+    safeInfo(`Default labels: ${envLabels.join(", ")}`);
   }
   core.info(`Max count: ${maxCount}`);
 
@@ -51,7 +52,7 @@ async function main(config = {}) {
     // Create issue title
     const issueTitle = `${titlePrefix} ${workflowName}`;
 
-    core.info(`Checking for existing issue with title: "${issueTitle}"`);
+    safeInfo(`Checking for existing issue with title: "${issueTitle}"`);
 
     // Search for existing open issue with this title
     const searchQuery = `repo:${owner}/${repo} is:issue is:open in:title "${issueTitle}"`;
@@ -157,7 +158,7 @@ async function main(config = {}) {
         };
       }
     } catch (error) {
-      core.warning(`Failed to create or update issue: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to create or update issue: ${getErrorMessage(error)}`);
       return {
         success: false,
         error: getErrorMessage(error),

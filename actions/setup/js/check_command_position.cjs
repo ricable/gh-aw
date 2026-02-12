@@ -6,6 +6,7 @@
  * This prevents accidental command triggers from words appearing later in content
  * Supports multiple command names - checks if any of them match
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const commandsJSON = process.env.GH_AW_COMMANDS;
 
@@ -53,7 +54,7 @@ async function main() {
       text = context.payload.comment?.body || "";
     } else {
       // For non-comment events, pass the check
-      core.info(`Event ${eventName} does not require command position check`);
+      safeInfo(`Event ${eventName} does not require command position check`);
       core.setOutput("command_position_ok", "true");
       core.setOutput("matched_command", "");
       return;

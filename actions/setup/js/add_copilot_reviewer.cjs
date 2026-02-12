@@ -13,6 +13,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * Environment variables:
  * - PR_NUMBER: The pull request number to add the reviewer to
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 // GitHub Copilot reviewer bot username
 const COPILOT_REVIEWER_BOT = "copilot-pull-request-reviewer[bot]";
@@ -54,7 +55,7 @@ Successfully added Copilot as a reviewer to PR #${prNumber}.`
       .write();
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to add Copilot as reviewer: ${errorMessage}`);
+    safeError(`Failed to add Copilot as reviewer: ${errorMessage}`);
     core.setFailed(`Failed to add Copilot as reviewer to PR #${prNumber}: ${errorMessage}`);
   }
 }

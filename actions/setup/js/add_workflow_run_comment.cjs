@@ -10,6 +10,7 @@ const { generateWorkflowIdMarker } = require("./generate_footer.cjs");
  * This script ONLY creates comments - it does NOT add reactions.
  * Use add_reaction.cjs in the pre-activation job to add reactions first for immediate feedback.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const runId = context.runId;
   const githubServer = process.env.GITHUB_SERVER_URL || "https://github.com";
@@ -92,9 +93,9 @@ async function main() {
     await addCommentWithWorkflowLink(commentEndpoint, runUrl, eventName);
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to create comment: ${errorMessage}`);
+    safeError(`Failed to create comment: ${errorMessage}`);
     // Don't fail the job - just warn since this is not critical
-    core.warning(`Failed to create comment with workflow link: ${errorMessage}`);
+    safeWarning(`Failed to create comment with workflow link: ${errorMessage}`);
   }
 }
 
@@ -203,7 +204,7 @@ async function addCommentWithWorkflowLink(endpoint, runUrl, eventName) {
     core.info(`Successfully created discussion comment with workflow link`);
     core.info(`Comment ID: ${comment.id}`);
     core.info(`Comment URL: ${comment.url}`);
-    core.info(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
+    safeInfo(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
     core.setOutput("comment-id", comment.id);
     core.setOutput("comment-url", comment.url);
     core.setOutput("comment-repo", `${context.repo.owner}/${context.repo.repo}`);
@@ -247,7 +248,7 @@ async function addCommentWithWorkflowLink(endpoint, runUrl, eventName) {
     core.info(`Successfully created discussion comment with workflow link`);
     core.info(`Comment ID: ${comment.id}`);
     core.info(`Comment URL: ${comment.url}`);
-    core.info(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
+    safeInfo(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
     core.setOutput("comment-id", comment.id);
     core.setOutput("comment-url", comment.url);
     core.setOutput("comment-repo", `${context.repo.owner}/${context.repo.repo}`);
@@ -265,7 +266,7 @@ async function addCommentWithWorkflowLink(endpoint, runUrl, eventName) {
   core.info(`Successfully created comment with workflow link`);
   core.info(`Comment ID: ${createResponse.data.id}`);
   core.info(`Comment URL: ${createResponse.data.html_url}`);
-  core.info(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
+  safeInfo(`Comment Repo: ${context.repo.owner}/${context.repo.repo}`);
   core.setOutput("comment-id", createResponse.data.id.toString());
   core.setOutput("comment-url", createResponse.data.html_url);
   core.setOutput("comment-repo", `${context.repo.owner}/${context.repo.repo}`);

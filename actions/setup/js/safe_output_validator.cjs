@@ -9,6 +9,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * Load and parse the safe outputs configuration from config.json
  * @returns {object} The parsed configuration object
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function loadSafeOutputsConfig() {
   const configPath = "/opt/gh-aw/safeoutputs/config.json";
   try {
@@ -19,7 +20,7 @@ function loadSafeOutputsConfig() {
     const configContent = fs.readFileSync(configPath, "utf8");
     return JSON.parse(configContent);
   } catch (error) {
-    core.warning(`Failed to load config: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to load config: ${getErrorMessage(error)}`);
     return {};
   }
 }
@@ -116,7 +117,7 @@ function validateLabels(labels, allowedLabels = undefined, maxCount = 3) {
 
   // Apply max count limit
   if (uniqueLabels.length > maxCount) {
-    core.info(`Too many labels (${uniqueLabels.length}), limiting to ${maxCount}`);
+    safeInfo(`Too many labels (${uniqueLabels.length}), limiting to ${maxCount}`);
     return { valid: true, value: uniqueLabels.slice(0, maxCount) };
   }
 

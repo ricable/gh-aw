@@ -19,6 +19,7 @@
  * @param {any} core - GitHub Actions core library
  * @returns {Promise<void>}
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function determineAutomaticLockdown(github, context, core) {
   try {
     core.info("Determining automatic lockdown mode for GitHub MCP server");
@@ -54,7 +55,7 @@ async function determineAutomaticLockdown(github, context, core) {
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    core.error(`Failed to determine automatic lockdown mode: ${errorMessage}`);
+    safeError(`Failed to determine automatic lockdown mode: ${errorMessage}`);
     // Default to lockdown mode for safety
     core.setOutput("lockdown", "true");
     core.setOutput("visibility", "unknown");

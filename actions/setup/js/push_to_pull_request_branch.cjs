@@ -11,6 +11,7 @@ const { replaceTemporaryIdReferences } = require("./temporary_id.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "push_to_pull_request_branch";
@@ -39,14 +40,14 @@ async function main(config = {}) {
     core.info(`Base branch: ${baseBranch}`);
   }
   if (titlePrefix) {
-    core.info(`Title prefix: ${titlePrefix}`);
+    safeInfo(`Title prefix: ${titlePrefix}`);
   }
   if (envLabels.length > 0) {
-    core.info(`Required labels: ${envLabels.join(", ")}`);
+    safeInfo(`Required labels: ${envLabels.join(", ")}`);
   }
   core.info(`If no changes: ${ifNoChanges}`);
   if (commitTitleSuffix) {
-    core.info(`Commit title suffix: ${commitTitleSuffix}`);
+    safeInfo(`Commit title suffix: ${commitTitleSuffix}`);
   }
   core.info(`Max patch size: ${maxSizeKb} KB`);
   core.info(`Max count: ${maxCount || "unlimited"}`);
@@ -92,7 +93,7 @@ async function main(config = {}) {
       const msg = "Patch file contains error message - cannot push without changes";
       core.error("Patch file generation failed");
       core.error(`Patch file location: /tmp/gh-aw/aw.patch`);
-      core.error(`Patch file size: ${Buffer.byteLength(patchContent, "utf8")} bytes`);
+      safeError(`Patch file size: ${Buffer.byteLength(patchContent, "utf8")} bytes`);
       const previewLength = Math.min(500, patchContent.length);
       core.error(`Patch file preview (first ${previewLength} characters):`);
       core.error(patchContent.substring(0, previewLength));
@@ -204,13 +205,13 @@ async function main(config = {}) {
       prTitle = pullRequest.title || "";
       prLabels = pullRequest.labels.map(label => label.name);
     } catch (error) {
-      core.info(`Warning: Could not fetch PR ${pullNumber} details: ${getErrorMessage(error)}`);
+      safeInfo(`Warning: Could not fetch PR ${pullNumber} details: ${getErrorMessage(error)}`);
       return { success: false, error: `Failed to determine branch name for PR ${pullNumber}` };
     }
 
-    core.info(`Target branch: ${branchName}`);
-    core.info(`PR title: ${prTitle}`);
-    core.info(`PR labels: ${prLabels.join(", ")}`);
+    safeInfo(`Target branch: ${branchName}`);
+    safeInfo(`PR title: ${prTitle}`);
+    safeInfo(`PR labels: ${prLabels.join(", ")}`);
 
     // Validate title prefix if specified
     if (titlePrefix && !prTitle.startsWith(titlePrefix)) {
@@ -226,20 +227,20 @@ async function main(config = {}) {
     }
 
     if (titlePrefix) {
-      core.info(`✓ Title prefix validation passed: "${titlePrefix}"`);
+      safeInfo(`✓ Title prefix validation passed: "${titlePrefix}"`);
     }
     if (envLabels.length > 0) {
-      core.info(`✓ Labels validation passed: ${envLabels.join(", ")}`);
+      safeInfo(`✓ Labels validation passed: ${envLabels.join(", ")}`);
     }
 
     const hasChanges = !isEmpty;
 
     // Switch to or create the target branch
-    core.info(`Switching to branch: ${branchName}`);
+    safeInfo(`Switching to branch: ${branchName}`);
 
     // Fetch the specific target branch from origin
     try {
-      core.info(`Fetching branch: ${branchName}`);
+      safeInfo(`Fetching branch: ${branchName}`);
       await exec.exec(`git fetch origin ${branchName}:refs/remotes/origin/${branchName}`);
     } catch (fetchError) {
       return { success: false, error: `Failed to fetch branch ${branchName}: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}` };
@@ -255,7 +256,7 @@ async function main(config = {}) {
     // Checkout the branch from origin
     try {
       await exec.exec(`git checkout -B ${branchName} origin/${branchName}`);
-      core.info(`Checked out existing branch from origin: ${branchName}`);
+      safeInfo(`Checked out existing branch from origin: ${branchName}`);
     } catch (checkoutError) {
       return { success: false, error: `Failed to checkout branch ${branchName}: ${checkoutError instanceof Error ? checkoutError.message : String(checkoutError)}` };
     }
@@ -265,7 +266,7 @@ async function main(config = {}) {
       core.info("Applying patch...");
       try {
         if (commitTitleSuffix) {
-          core.info(`Appending commit title suffix: "${commitTitleSuffix}"`);
+          safeInfo(`Appending commit title suffix: "${commitTitleSuffix}"`);
 
           // Read the patch file
           let patchContent = fs.readFileSync("/tmp/gh-aw/aw.patch", "utf8");
@@ -275,7 +276,7 @@ async function main(config = {}) {
 
           // Write the modified patch back
           fs.writeFileSync("/tmp/gh-aw/aw.patch", patchContent, "utf8");
-          core.info(`Patch modified with commit title suffix: "${commitTitleSuffix}"`);
+          safeInfo(`Patch modified with commit title suffix: "${commitTitleSuffix}"`);
         }
 
         // Log first 100 lines of patch for debugging
@@ -293,9 +294,9 @@ async function main(config = {}) {
 
         // Push the applied commits to the branch
         await exec.exec(`git push origin ${branchName}`);
-        core.info(`Changes committed and pushed to branch: ${branchName}`);
+        safeInfo(`Changes committed and pushed to branch: ${branchName}`);
       } catch (error) {
-        core.error(`Failed to apply patch: ${getErrorMessage(error)}`);
+        safeError(`Failed to apply patch: ${getErrorMessage(error)}`);
 
         // Investigate patch failure
         try {
@@ -321,7 +322,7 @@ async function main(config = {}) {
           core.info("Failed patch (full):");
           core.info(patchFullResult.stdout);
         } catch (investigateError) {
-          core.warning(`Failed to investigate patch failure: ${investigateError instanceof Error ? investigateError.message : String(investigateError)}`);
+          safeWarning(`Failed to investigate patch failure: ${investigateError instanceof Error ? investigateError.message : String(investigateError)}`);
         }
 
         return { success: false, error: "Failed to apply patch" };

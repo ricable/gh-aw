@@ -6,12 +6,13 @@
  * This script is used in the activation job when lock-for-agent is enabled
  * to prevent concurrent modifications during agent workflow execution
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
 async function main() {
   // Log actor and event information for debugging
-  core.info(`Lock-issue debug: actor=${context.actor}, eventName=${context.eventName}`);
+  safeInfo(`Lock-issue debug: actor=${context.actor}, eventName=${context.eventName}`);
 
   // Get issue number from context
   const issueNumber = context.issue.number;
@@ -62,7 +63,7 @@ async function main() {
     core.setOutput("locked", "true");
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to lock issue: ${errorMessage}`);
+    safeError(`Failed to lock issue: ${errorMessage}`);
     core.setFailed(`Failed to lock issue #${issueNumber}: ${errorMessage}`);
     core.setOutput("locked", "false");
   }

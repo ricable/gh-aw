@@ -10,6 +10,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {'issue' | 'pull_request'} EntityType
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * @typedef {Object} EntityConfig
@@ -130,7 +131,7 @@ async function generateCloseEntityStagedPreview(config, items, requiredLabels, r
 
   // Write to step summary
   await core.summary.addRaw(summaryContent).write();
-  core.info(`📝 ${config.displayNameCapitalized} close preview written to step summary`);
+  safeInfo(`📝 ${config.displayNameCapitalized} close preview written to step summary`);
 }
 
 /**
@@ -245,7 +246,7 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
   const requiredTitlePrefix = handlerConfig.required_title_prefix || "";
   const target = handlerConfig.target || "triggering";
 
-  core.info(`Configuration: requiredLabels=${requiredLabels.join(",")}, requiredTitlePrefix=${requiredTitlePrefix}, target=${target}`);
+  safeInfo(`Configuration: requiredLabels=${requiredLabels.join(",")}, requiredTitlePrefix=${requiredTitlePrefix}, target=${target}`);
 
   // Check if we're in the correct entity context
   const isEntityContext = config.contextEvents.some(event => context.eventName === event);
@@ -258,7 +259,7 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
 
   // Validate context based on target configuration
   if (target === "triggering" && !isEntityContext) {
-    core.info(`Target is "triggering" but not running in ${config.displayName} context, skipping ${config.displayName} close`);
+    safeInfo(`Target is "triggering" but not running in ${config.displayName} context, skipping ${config.displayName} close`);
     return;
   }
 
@@ -271,7 +272,7 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
   // Process each item
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    core.info(`Processing ${config.itemTypeDisplay} item ${i + 1}/${items.length}: bodyLength=${item.body.length}`);
+    safeInfo(`Processing ${config.itemTypeDisplay} item ${i + 1}/${items.length}: bodyLength=${item.body.length}`);
 
     // Resolve entity number
     const resolved = resolveEntityNumber(config, target, item, isEntityContext);
@@ -287,19 +288,19 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
 
       // Apply label filter
       if (!checkLabelFilter(entity.labels, requiredLabels)) {
-        core.info(`${config.displayNameCapitalized} #${entityNumber} does not have required labels: ${requiredLabels.join(", ")}`);
+        safeInfo(`${config.displayNameCapitalized} #${entityNumber} does not have required labels: ${requiredLabels.join(", ")}`);
         continue;
       }
 
       // Apply title prefix filter
       if (!checkTitlePrefixFilter(entity.title, requiredTitlePrefix)) {
-        core.info(`${config.displayNameCapitalized} #${entityNumber} does not have required title prefix: ${requiredTitlePrefix}`);
+        safeInfo(`${config.displayNameCapitalized} #${entityNumber} does not have required title prefix: ${requiredTitlePrefix}`);
         continue;
       }
 
       // Check if already closed
       if (entity.state === "closed") {
-        core.info(`${config.displayNameCapitalized} #${entityNumber} is already closed, skipping`);
+        safeInfo(`${config.displayNameCapitalized} #${entityNumber} is already closed, skipping`);
         continue;
       }
 
@@ -308,11 +309,11 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
 
       // Add comment before closing
       const comment = await callbacks.addComment(github, context.repo.owner, context.repo.repo, entityNumber, commentBody);
-      core.info(`✓ Added comment to ${config.displayName} #${entityNumber}: ${comment.html_url}`);
+      safeInfo(`✓ Added comment to ${config.displayName} #${entityNumber}: ${comment.html_url}`);
 
       // Close the entity
       const closedEntity = await callbacks.closeEntity(github, context.repo.owner, context.repo.repo, entityNumber);
-      core.info(`✓ Closed ${config.displayName} #${entityNumber}: ${closedEntity.html_url}`);
+      safeInfo(`✓ Closed ${config.displayName} #${entityNumber}: ${closedEntity.html_url}`);
 
       closedEntities.push({
         entity: closedEntity,
@@ -328,7 +329,7 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
         core.setOutput("comment_url", comment.html_url);
       }
     } catch (error) {
-      core.error(`✗ Failed to close ${config.displayName} #${entityNumber}: ${getErrorMessage(error)}`);
+      safeError(`✗ Failed to close ${config.displayName} #${entityNumber}: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -343,7 +344,7 @@ async function processCloseEntityItems(config, callbacks, handlerConfig = {}) {
     await core.summary.addRaw(summaryContent).write();
   }
 
-  core.info(`Successfully closed ${closedEntities.length} ${config.displayName}(s)`);
+  safeInfo(`Successfully closed ${closedEntities.length} ${config.displayName}(s)`);
   return closedEntities;
 }
 

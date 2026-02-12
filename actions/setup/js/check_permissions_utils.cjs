@@ -7,6 +7,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * Shared utility for repository permission validation
  * Used by both check_permissions.cjs and check_membership.cjs
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * Parse required permissions from environment variable
@@ -62,12 +63,12 @@ async function checkBotStatus(actor, owner, repo) {
       }
       // For other errors, we'll treat as inactive to be safe
       const errorMessage = getErrorMessage(botError);
-      core.warning(`Failed to check bot status: ${errorMessage}`);
+      safeWarning(`Failed to check bot status: ${errorMessage}`);
       return { isBot: true, isActive: false, error: errorMessage };
     }
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.warning(`Error checking bot status: ${errorMessage}`);
+    safeWarning(`Error checking bot status: ${errorMessage}`);
     return { isBot: false, isActive: false, error: errorMessage };
   }
 }
@@ -106,7 +107,7 @@ async function checkRepositoryPermission(actor, owner, repo, requiredPermissions
     return { authorized: false, permission };
   } catch (repoError) {
     const errorMessage = getErrorMessage(repoError);
-    core.warning(`Repository permission check failed: ${errorMessage}`);
+    safeWarning(`Repository permission check failed: ${errorMessage}`);
     return { authorized: false, error: errorMessage };
   }
 }

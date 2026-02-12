@@ -9,6 +9,7 @@ const { resolveTarget } = require("./safe_output_helpers.cjs");
 const { loadTemporaryIdMap, resolveRepoIssueTarget } = require("./temporary_id.cjs");
 const { sleep } = require("./error_recovery.cjs");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const result = loadAgentOutput();
   if (!result.success) {
@@ -143,7 +144,7 @@ async function main() {
     if (item.issue_number != null) {
       const resolvedTarget = resolveRepoIssueTarget(item.issue_number, temporaryIdMap, targetOwner, targetRepo);
       if (!resolvedTarget.resolved) {
-        core.error(resolvedTarget.errorMessage || `Failed to resolve issue target: ${item.issue_number}`);
+        safeError(resolvedTarget.errorMessage || `Failed to resolve issue target: ${item.issue_number}`);
         results.push({
           issue_number: item.issue_number,
           pull_number: item.pull_number ?? null,
@@ -215,7 +216,7 @@ async function main() {
 
     // Check if agent is supported
     if (!AGENT_LOGIN_NAMES[agentName]) {
-      core.warning(`Agent "${agentName}" is not supported. Supported agents: ${Object.keys(AGENT_LOGIN_NAMES).join(", ")}`);
+      safeWarning(`Agent "${agentName}" is not supported. Supported agents: ${Object.keys(AGENT_LOGIN_NAMES).join(", ")}`);
       results.push({
         issue_number: issueNumber,
         pull_number: pullNumber,
@@ -228,7 +229,7 @@ async function main() {
 
     // Check if agent is in allowed list (if configured)
     if (allowedAgents && !allowedAgents.includes(agentName)) {
-      core.error(`Agent "${agentName}" is not in the allowed list. Allowed agents: ${allowedAgents.join(", ")}`);
+      safeError(`Agent "${agentName}" is not in the allowed list. Allowed agents: ${allowedAgents.join(", ")}`);
       results.push({
         issue_number: issueNumber,
         pull_number: pullNumber,
@@ -244,13 +245,13 @@ async function main() {
       // Find agent (use cache if available) - uses built-in github object authenticated via github-token
       let agentId = agentCache[agentName];
       if (!agentId) {
-        core.info(`Looking for ${agentName} coding agent...`);
+        safeInfo(`Looking for ${agentName} coding agent...`);
         agentId = await findAgent(effectiveOwner, effectiveRepo, agentName);
         if (!agentId) {
           throw new Error(`${agentName} coding agent is not available for this repository`);
         }
         agentCache[agentName] = agentId;
-        core.info(`Found ${agentName} coding agent (ID: ${agentId})`);
+        safeInfo(`Found ${agentName} coding agent (ID: ${agentId})`);
       }
 
       // Get issue or PR details (ID and current assignees) via GraphQL
@@ -281,7 +282,7 @@ async function main() {
 
       // Check if agent is already assigned
       if (currentAssignees.some(a => a.id === agentId)) {
-        core.info(`${agentName} is already assigned to ${type} #${number}`);
+        safeInfo(`${agentName} is already assigned to ${type} #${number}`);
         results.push({
           issue_number: issueNumber,
           pull_number: pullNumber,
@@ -293,14 +294,14 @@ async function main() {
 
       // Assign agent using GraphQL mutation - uses built-in github object authenticated via github-token
       // Pass the allowed list so existing assignees are filtered before calling replaceActorsForAssignable
-      core.info(`Assigning ${agentName} coding agent to ${type} #${number}...`);
+      safeInfo(`Assigning ${agentName} coding agent to ${type} #${number}...`);
       const success = await assignAgentToIssue(assignableId, agentId, currentAssignees, agentName, allowedAgents);
 
       if (!success) {
         throw new Error(`Failed to assign ${agentName} via GraphQL`);
       }
 
-      core.info(`Successfully assigned ${agentName} coding agent to ${type} #${number}`);
+      safeInfo(`Successfully assigned ${agentName} coding agent to ${type} #${number}`);
       results.push({
         issue_number: issueNumber,
         pull_number: pullNumber,
@@ -320,8 +321,8 @@ async function main() {
 
       // If ignore-if-error is enabled and this is an auth error, log warning and skip
       if (ignoreIfError && isAuthError) {
-        core.warning(`Agent assignment failed for ${agentName} on ${type} #${number} due to authentication/permission error. Skipping due to ignore-if-error=true.`);
-        core.info(`Error details: ${errorMessage}`);
+        safeWarning(`Agent assignment failed for ${agentName} on ${type} #${number} due to authentication/permission error. Skipping due to ignore-if-error=true.`);
+        safeInfo(`Error details: ${errorMessage}`);
         results.push({
           issue_number: issueNumber,
           pull_number: pullNumber,
@@ -343,7 +344,7 @@ async function main() {
           core.debug("Failed to enrich unavailable agent message with available list");
         }
       }
-      core.error(`Failed to assign agent "${agentName}" to ${type} #${number}: ${errorMessage}`);
+      safeError(`Failed to assign agent "${agentName}" to ${type} #${number}: ${errorMessage}`);
       results.push({
         issue_number: issueNumber,
         pull_number: pullNumber,

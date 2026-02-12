@@ -5,6 +5,7 @@
  * Error recovery utilities for safe output operations
  * Provides retry logic with exponential backoff for transient failures
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -86,14 +87,14 @@ async function withRetry(operation, config = {}, operationName = "operation") {
   for (let attempt = 0; attempt <= fullConfig.maxRetries; attempt++) {
     try {
       if (attempt > 0) {
-        core.info(`Retry attempt ${attempt}/${fullConfig.maxRetries} for ${operationName} after ${delay}ms delay`);
+        safeInfo(`Retry attempt ${attempt}/${fullConfig.maxRetries} for ${operationName} after ${delay}ms delay`);
         await sleep(delay);
       }
 
       const result = await operation();
 
       if (attempt > 0) {
-        core.info(`✓ ${operationName} succeeded on retry attempt ${attempt}`);
+        safeInfo(`✓ ${operationName} succeeded on retry attempt ${attempt}`);
       }
 
       return result;
@@ -103,7 +104,7 @@ async function withRetry(operation, config = {}, operationName = "operation") {
 
       // Check if this error should be retried
       if (!fullConfig.shouldRetry(error)) {
-        core.debug(`${operationName} failed with non-retryable error: ${errorMsg}`);
+        safeDebug(`${operationName} failed with non-retryable error: ${errorMsg}`);
         throw enhanceError(error, {
           operation: operationName,
           attempt: attempt + 1,
@@ -114,7 +115,7 @@ async function withRetry(operation, config = {}, operationName = "operation") {
 
       // If this was the last attempt, throw the enhanced error
       if (attempt === fullConfig.maxRetries) {
-        core.warning(`${operationName} failed after ${fullConfig.maxRetries} retry attempts: ${errorMsg}`);
+        safeWarning(`${operationName} failed after ${fullConfig.maxRetries} retry attempts: ${errorMsg}`);
         throw enhanceError(error, {
           operation: operationName,
           attempt: attempt + 1,
@@ -125,7 +126,7 @@ async function withRetry(operation, config = {}, operationName = "operation") {
       }
 
       // Log the retry attempt
-      core.warning(`${operationName} failed (attempt ${attempt + 1}/${fullConfig.maxRetries + 1}): ${errorMsg}`);
+      safeWarning(`${operationName} failed (attempt ${attempt + 1}/${fullConfig.maxRetries + 1}): ${errorMsg}`);
 
       // Calculate next delay with exponential backoff
       delay = Math.min(delay * fullConfig.backoffMultiplier, fullConfig.maxDelayMs);

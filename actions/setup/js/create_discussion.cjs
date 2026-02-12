@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "create_discussion";
@@ -155,7 +156,7 @@ async function handleFallbackToIssue(createIssueHandler, item, qualifiedItemRepo
     }
   } catch (fallbackError) {
     const fallbackErrorMessage = getErrorMessage(fallbackError);
-    core.error(`Fallback to create-issue failed: ${fallbackErrorMessage}`);
+    safeError(`Fallback to create-issue failed: ${fallbackErrorMessage}`);
     return {
       success: false,
       error: `${contextMessage} and fallback to issue threw an error: ${fallbackErrorMessage}`,
@@ -260,7 +261,7 @@ async function main(config = {}) {
       if (!errorMessage) {
         throw new Error("Internal error: repoValidation.error should not be null when valid is false");
       }
-      core.warning(`Skipping discussion: ${errorMessage}`);
+      safeWarning(`Skipping discussion: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,
@@ -302,7 +303,7 @@ async function main(config = {}) {
 
         // Check if this is a permissions error and fallback is enabled
         if (fallbackToIssue && createIssueHandler && isPermissionsError(errorMessage)) {
-          core.warning(`Failed to fetch discussion info due to permissions: ${errorMessage}`);
+          safeWarning(`Failed to fetch discussion info due to permissions: ${errorMessage}`);
           core.info(`Falling back to create-issue for ${qualifiedItemRepo}`);
 
           return await handleFallbackToIssue(createIssueHandler, item, qualifiedItemRepo, resolvedTemporaryIds, "Failed to fetch discussion info");
@@ -334,7 +335,7 @@ async function main(config = {}) {
     }
 
     const categoryId = resolvedCategory.id;
-    core.info(`Using category: ${resolvedCategory.name} (${resolvedCategory.matchType})`);
+    safeInfo(`Using category: ${resolvedCategory.name} (${resolvedCategory.matchType})`);
 
     // Build title
     let title = item.title ? item.title.trim() : "";
@@ -386,7 +387,7 @@ async function main(config = {}) {
     bodyLines.push("");
     const body = bodyLines.join("\n").trim();
 
-    core.info(`Creating discussion in ${qualifiedItemRepo} with title: ${title}`);
+    safeInfo(`Creating discussion in ${qualifiedItemRepo} with title: ${title}`);
 
     try {
       const createDiscussionMutation = `
@@ -437,7 +438,7 @@ async function main(config = {}) {
 
       // Check if this is a permissions error and fallback is enabled
       if (fallbackToIssue && createIssueHandler && isPermissionsError(errorMessage)) {
-        core.warning(`Discussion creation failed due to permissions: ${errorMessage}`);
+        safeWarning(`Discussion creation failed due to permissions: ${errorMessage}`);
         core.info(`Falling back to create-issue for ${qualifiedItemRepo}`);
 
         return await handleFallbackToIssue(createIssueHandler, item, qualifiedItemRepo, resolvedTemporaryIds, "Discussion creation failed");

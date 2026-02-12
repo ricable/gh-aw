@@ -9,6 +9,7 @@ const crypto = require("crypto");
  * Regex pattern for matching temporary ID references in text
  * Format: #aw_XXXXXXXXXXXX (aw_ prefix + 12 hex characters)
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const TEMPORARY_ID_PATTERN = /#(aw_[0-9a-f]{12})/gi;
 
 /**
@@ -118,7 +119,7 @@ function loadTemporaryIdMap() {
     return result;
   } catch (error) {
     if (typeof core !== "undefined") {
-      core.warning(`Failed to parse temporary ID map: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to parse temporary ID map: ${getErrorMessage(error)}`);
     }
     return new Map();
   }
@@ -328,7 +329,7 @@ function loadTemporaryProjectMap() {
     return result;
   } catch (error) {
     if (typeof core !== "undefined") {
-      core.warning(`Failed to parse temporary project map: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to parse temporary project map: ${getErrorMessage(error)}`);
     }
     return new Map();
   }

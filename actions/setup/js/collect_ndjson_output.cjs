@@ -5,6 +5,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 const { repairJson, sanitizePrototypePollution } = require("./json_repair_helpers.cjs");
 const { AGENT_OUTPUT_FILENAME, TMP_GH_AW_PATH } = require("./constants.cjs");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   try {
     const fs = require("fs");
@@ -24,7 +25,7 @@ async function main() {
         core.info(`Loaded validation config from ${validationConfigPath}`);
       }
     } catch (error) {
-      core.warning(`Failed to read validation config from ${validationConfigPath}: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to read validation config from ${validationConfigPath}: ${getErrorMessage(error)}`);
     }
 
     // Extract mentions configuration from validation config
@@ -153,14 +154,14 @@ async function main() {
     try {
       if (fs.existsSync(configPath)) {
         const configFileContent = fs.readFileSync(configPath, "utf8");
-        core.info(`[INGESTION] Raw config content: ${configFileContent}`);
+        safeInfo(`[INGESTION] Raw config content: ${configFileContent}`);
         safeOutputsConfig = JSON.parse(configFileContent);
         core.info(`[INGESTION] Parsed config keys: ${JSON.stringify(Object.keys(safeOutputsConfig))}`);
       } else {
         core.info(`[INGESTION] Config file does not exist at: ${configPath}`);
       }
     } catch (error) {
-      core.warning(`Failed to read config file from ${configPath}: ${getErrorMessage(error)}`);
+      safeWarning(`Failed to read config file from ${configPath}: ${getErrorMessage(error)}`);
     }
 
     core.info(`[INGESTION] Output file path: ${outputFile}`);
@@ -178,8 +179,8 @@ async function main() {
     if (outputContent.trim() === "") {
       core.info("Output file is empty");
     }
-    core.info(`Raw output content length: ${outputContent.length}`);
-    core.info(`[INGESTION] First 500 chars of output: ${outputContent.substring(0, 500)}`);
+    safeInfo(`Raw output content length: ${outputContent.length}`);
+    safeInfo(`[INGESTION] First 500 chars of output: ${outputContent.substring(0, 500)}`);
     let expectedOutputTypes = {};
     if (safeOutputsConfig) {
       try {
@@ -332,7 +333,7 @@ async function main() {
     const errorMsg = getErrorMessage(error);
     core.error(`Failed to ingest agent output: ${errorMsg}`);
     if (error instanceof Error && error.stack) {
-      core.error(`Stack trace: ${error.stack}`);
+      safeError(`Stack trace: ${error.stack}`);
     }
     core.setFailed(`Agent output ingestion failed: ${errorMsg}`);
     throw error;

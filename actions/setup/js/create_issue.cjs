@@ -37,7 +37,7 @@ const { renderTemplate } = require("./messages_core.cjs");
 const { createExpirationLine, addExpirationToFooter } = require("./ephemerals.cjs");
 const { MAX_SUB_ISSUES, getSubIssueCount } = require("./sub_issue_helpers.cjs");
 const { closeOlderIssues } = require("./close_older_issues.cjs");
-const { safeInfo } = require("./sanitized_logging.cjs");
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const fs = require("fs");
 
 /**
@@ -98,7 +98,7 @@ async function searchForExistingParent(owner, repo, markerComment) {
 
     return null;
   } catch (error) {
-    core.warning(`Could not search for existing parent issues: ${getErrorMessage(error)}`);
+    safeWarning(`Could not search for existing parent issues: ${getErrorMessage(error)}`);
     return null;
   }
 }
@@ -141,7 +141,7 @@ async function findOrCreateParentIssue({ groupId, owner, repo, titlePrefix, labe
     core.info(`Created new parent issue #${parentIssue.number}: ${parentIssue.html_url}`);
     return parentIssue.number;
   } catch (error) {
-    core.error(`Failed to create parent issue: ${getErrorMessage(error)}`);
+    safeError(`Failed to create parent issue: ${getErrorMessage(error)}`);
     return null;
   }
 }
@@ -209,13 +209,13 @@ async function main(config = {}) {
     core.info(`Allowed repos: ${Array.from(allowedRepos).join(", ")}`);
   }
   if (envLabels.length > 0) {
-    core.info(`Default labels: ${envLabels.join(", ")}`);
+    safeInfo(`Default labels: ${envLabels.join(", ")}`);
   }
   if (envAssignees.length > 0) {
     core.info(`Default assignees: ${envAssignees.join(", ")}`);
   }
   if (titlePrefix) {
-    core.info(`Title prefix: ${titlePrefix}`);
+    safeInfo(`Title prefix: ${titlePrefix}`);
   }
   if (expiresHours > 0) {
     core.info(`Issues expire after: ${expiresHours} hours`);
@@ -284,7 +284,7 @@ async function main(config = {}) {
       if (!errorMessage) {
         throw new Error("Internal error: repoValidation.error should not be null when valid is false");
       }
-      core.warning(`Skipping issue: ${errorMessage}`);
+      safeWarning(`Skipping issue: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,
@@ -323,21 +323,21 @@ async function main(config = {}) {
         if (resolvedParent) {
           effectiveParentIssueNumber = resolvedParent.number;
           effectiveParentRepo = resolvedParent.repo;
-          core.info(`Resolved parent temporary ID '${message.parent}' to ${effectiveParentRepo}#${effectiveParentIssueNumber}`);
+          safeInfo(`Resolved parent temporary ID '${message.parent}' to ${effectiveParentRepo}#${effectiveParentIssueNumber}`);
         } else {
-          core.warning(`Parent temporary ID '${message.parent}' not found in map. Ensure parent issue is created before sub-issues.`);
+          safeWarning(`Parent temporary ID '${message.parent}' not found in map. Ensure parent issue is created before sub-issues.`);
         }
       } else {
         // Check if it looks like a malformed temporary ID
         if (parentWithoutHash.startsWith("aw_")) {
-          core.warning(`Invalid temporary ID format for parent: '${message.parent}'. Temporary IDs must be in format 'aw_' followed by exactly 12 hexadecimal characters (0-9, a-f). Example: 'aw_abc123def456'`);
+          safeWarning(`Invalid temporary ID format for parent: '${message.parent}'. Temporary IDs must be in format 'aw_' followed by exactly 12 hexadecimal characters (0-9, a-f). Example: 'aw_abc123def456'`);
         } else {
           // It's a real issue number
           const parsed = parseInt(parentWithoutHash, 10);
           if (!isNaN(parsed)) {
             effectiveParentIssueNumber = parsed;
           } else {
-            core.warning(`Invalid parent value: ${message.parent}. Expected either a valid temporary ID (format: aw_XXXXXXXXXXXX where X is a hex digit) or a numeric issue number.`);
+            safeWarning(`Invalid parent value: ${message.parent}. Expected either a valid temporary ID (format: aw_XXXXXXXXXXXX where X is a hex digit) or a numeric issue number.`);
           }
         }
       }
@@ -435,11 +435,11 @@ async function main(config = {}) {
     const body = bodyLines.join("\n").trim();
 
     safeInfo(`Creating issue in ${qualifiedItemRepo} with title: ${title}`);
-    core.info(`Labels: ${labels.join(", ")}`);
+    safeInfo(`Labels: ${labels.join(", ")}`);
     if (assignees.length > 0) {
       core.info(`Assignees: ${assignees.join(", ")}`);
     }
-    core.info(`Body length: ${body.length}`);
+    safeInfo(`Body length: ${body.length}`);
 
     try {
       const { data: issue } = await github.rest.issues.create({
@@ -475,7 +475,7 @@ async function main(config = {}) {
             }
           } catch (error) {
             // Log error but don't fail the workflow
-            core.warning(`Failed to close older issues: ${getErrorMessage(error)}`);
+            safeWarning(`Failed to close older issues: ${getErrorMessage(error)}`);
           }
         } else {
           core.warning("Close older issues enabled but GH_AW_WORKFLOW_ID environment variable not set - skipping");
@@ -579,7 +579,7 @@ async function main(config = {}) {
 
           core.info("✓ Successfully linked issue #" + issue.number + " as sub-issue of #" + effectiveParentIssueNumber);
         } catch (error) {
-          core.info(`Warning: Could not link sub-issue to parent: ${getErrorMessage(error)}`);
+          safeInfo(`Warning: Could not link sub-issue to parent: ${getErrorMessage(error)}`);
           core.info(`Error details: ${error instanceof Error ? error.stack : String(error)}`);
           // Fallback: add a comment if sub-issue linking fails
           try {
@@ -592,7 +592,7 @@ async function main(config = {}) {
             });
             core.info("✓ Added comment to parent issue #" + effectiveParentIssueNumber + " (sub-issue linking not available)");
           } catch (commentError) {
-            core.info(`Warning: Could not add comment to parent issue: ${commentError instanceof Error ? commentError.message : String(commentError)}`);
+            safeInfo(`Warning: Could not add comment to parent issue: ${commentError instanceof Error ? commentError.message : String(commentError)}`);
           }
         }
       } else if (effectiveParentIssueNumber && effectiveParentRepo !== qualifiedItemRepo) {
@@ -618,7 +618,7 @@ async function main(config = {}) {
           error: "Issues disabled for repository",
         };
       }
-      core.error(`✗ Failed to create issue "${title}" in ${qualifiedItemRepo}: ${errorMessage}`);
+      safeError(`✗ Failed to create issue "${title}" in ${qualifiedItemRepo}: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

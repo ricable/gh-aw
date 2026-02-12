@@ -20,6 +20,7 @@
  *
  * Both camelCase and snake_case placeholder formats are supported.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /**
  * @typedef {Object} SafeOutputMessages
@@ -55,7 +56,7 @@ function getMessages() {
     // Parse JSON with camelCase keys from Go struct (using json struct tags)
     return JSON.parse(messagesEnv);
   } catch (error) {
-    core.warning(`Failed to parse GH_AW_SAFE_OUTPUT_MESSAGES: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to parse GH_AW_SAFE_OUTPUT_MESSAGES: ${getErrorMessage(error)}`);
     return null;
   }
 }

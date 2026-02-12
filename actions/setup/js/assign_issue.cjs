@@ -8,6 +8,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * Assign an issue to a user or bot (including copilot)
  * This script handles assigning issues after they are created
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 async function main() {
   // Validate required environment variables
@@ -46,7 +47,7 @@ async function main() {
     if (agentName) {
       // Use GraphQL API for agent assignment
       // The token is set at the step level via github-token parameter
-      core.info(`Detected coding agent: ${agentName}. Using GraphQL API for assignment.`);
+      safeInfo(`Detected coding agent: ${agentName}. Using GraphQL API for assignment.`);
 
       // Get repository owner and repo from context
       const { owner, repo } = context.repo;
@@ -56,7 +57,7 @@ async function main() {
       if (!agentId) {
         throw new Error(`${agentName} coding agent is not available for this repository`);
       }
-      core.info(`Found ${agentName} coding agent (ID: ${agentId})`);
+      safeInfo(`Found ${agentName} coding agent (ID: ${agentId})`);
 
       // Get issue details
       const issueDetails = await getIssueDetails(owner, repo, issueNum);
@@ -66,7 +67,7 @@ async function main() {
 
       // Check if agent is already assigned
       if (issueDetails.currentAssignees.some(a => a.id === agentId)) {
-        core.info(`${agentName} is already assigned to issue #${issueNum}`);
+        safeInfo(`${agentName} is already assigned to issue #${issueNum}`);
       } else {
         // Assign agent using GraphQL mutation - uses built-in github object authenticated via github-token (no allowed list filtering)
         const success = await assignAgentToIssue(issueDetails.issueId, agentId, issueDetails.currentAssignees, agentName, null);
@@ -88,7 +89,7 @@ async function main() {
     await core.summary.addRaw(`## Issue Assignment\n\nSuccessfully assigned issue #${issueNum} to \`${trimmedAssignee}\`.\n`).write();
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    core.error(`Failed to assign issue: ${errorMessage}`);
+    safeError(`Failed to assign issue: ${errorMessage}`);
     core.setFailed(`Failed to assign issue #${issueNum} to ${trimmedAssignee}: ${errorMessage}`);
   }
 }

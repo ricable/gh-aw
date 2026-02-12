@@ -6,6 +6,7 @@
  * @param {string} content - The content to sanitize
  * @returns {string} The sanitized content
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const { sanitizeContent, writeRedactedDomainsLog } = require("./sanitize_content.cjs");
 
 async function main() {
@@ -29,7 +30,7 @@ async function main() {
     core.setOutput("output", "");
   } else {
     const sanitizedContent = sanitizeContent(outputContent);
-    core.info(`Collected agentic output (sanitized): ${sanitizedContent.substring(0, 200)}${sanitizedContent.length > 200 ? "..." : ""}`);
+    safeInfo(`Collected agentic output (sanitized): ${sanitizedContent.substring(0, 200)}${sanitizedContent.length > 200 ? "..." : ""}`);
     core.setOutput("output", sanitizedContent);
   }
 

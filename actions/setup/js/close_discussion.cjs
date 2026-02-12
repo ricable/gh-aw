@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -156,10 +157,10 @@ async function main(config = {}) {
 
   core.info(`Close discussion configuration: max=${maxCount}`);
   if (requiredLabels.length > 0) {
-    core.info(`Required labels: ${requiredLabels.join(", ")}`);
+    safeInfo(`Required labels: ${requiredLabels.join(", ")}`);
   }
   if (requiredTitlePrefix) {
-    core.info(`Required title prefix: ${requiredTitlePrefix}`);
+    safeInfo(`Required title prefix: ${requiredTitlePrefix}`);
   }
 
   // Track how many items we've processed for max limit
@@ -190,7 +191,7 @@ async function main(config = {}) {
     if (item.discussion_number !== undefined) {
       discussionNumber = parseInt(String(item.discussion_number), 10);
       if (isNaN(discussionNumber)) {
-        core.warning(`Invalid discussion number: ${item.discussion_number}`);
+        safeWarning(`Invalid discussion number: ${item.discussion_number}`);
         return {
           success: false,
           error: `Invalid discussion number: ${item.discussion_number}`,
@@ -218,7 +219,7 @@ async function main(config = {}) {
         const discussionLabels = discussion.labels.nodes.map(l => l.name);
         const missingLabels = requiredLabels.filter(required => !discussionLabels.includes(required));
         if (missingLabels.length > 0) {
-          core.warning(`Discussion #${discussionNumber} missing required labels: ${missingLabels.join(", ")}`);
+          safeWarning(`Discussion #${discussionNumber} missing required labels: ${missingLabels.join(", ")}`);
           return {
             success: false,
             error: `Missing required labels: ${missingLabels.join(", ")}`,
@@ -228,7 +229,7 @@ async function main(config = {}) {
 
       // Validate required title prefix if configured
       if (requiredTitlePrefix && !discussion.title.startsWith(requiredTitlePrefix)) {
-        core.warning(`Discussion #${discussionNumber} title doesn't start with "${requiredTitlePrefix}"`);
+        safeWarning(`Discussion #${discussionNumber} title doesn't start with "${requiredTitlePrefix}"`);
         return {
           success: false,
           error: `Title doesn't start with "${requiredTitlePrefix}"`,
@@ -257,7 +258,7 @@ async function main(config = {}) {
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to close discussion #${discussionNumber}: ${errorMessage}`);
+      safeError(`Failed to close discussion #${discussionNumber}: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

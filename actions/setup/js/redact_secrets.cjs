@@ -6,6 +6,7 @@
  * This script processes all .txt, .json, .log, .md, .mdx, .yml, .jsonl files under /tmp/gh-aw and /opt/gh-aw
  * and redacts any strings matching the actual secret values provided via environment variables.
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const fs = require("fs");
 const path = require("path");
 /**
@@ -35,7 +36,7 @@ function findFiles(dir, extensions) {
       }
     }
   } catch (error) {
-    core.warning(`Failed to scan directory ${dir}: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to scan directory ${dir}: ${getErrorMessage(error)}`);
   }
   return results;
 }
@@ -94,7 +95,7 @@ function redactBuiltInPatterns(content) {
       }
       redactionCount += matches.length;
       detectedPatterns.push(name);
-      core.info(`Redacted ${matches.length} occurrence(s) of ${name}`);
+      safeInfo(`Redacted ${matches.length} occurrence(s) of ${name}`);
     }
   }
 
@@ -161,7 +162,7 @@ function processFile(filePath, secretValues) {
     }
     return totalRedactions;
   } catch (error) {
-    core.warning(`Failed to process file ${filePath}: ${getErrorMessage(error)}`);
+    safeWarning(`Failed to process file ${filePath}: ${getErrorMessage(error)}`);
     return 0;
   }
 }

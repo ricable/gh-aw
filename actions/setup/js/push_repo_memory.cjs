@@ -34,6 +34,7 @@ const { execGitSync } = require("./git_helpers.cjs");
  *   GH_TOKEN: GitHub token for authentication
  *   GITHUB_RUN_ID: Workflow run ID for commit messages
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 async function main() {
   const artifactDir = process.env.ARTIFACT_DIR;
@@ -103,7 +104,7 @@ async function main() {
   }
 
   // Checkout or create the memory branch
-  core.info(`Checking out branch: ${branchName}...`);
+  safeInfo(`Checking out branch: ${branchName}...`);
   try {
     const repoUrl = `https://x-access-token:${ghToken}@github.com/${targetRepo}.git`;
 
@@ -111,14 +112,14 @@ async function main() {
     try {
       execGitSync(["fetch", repoUrl, `${branchName}:${branchName}`], { stdio: "pipe" });
       execGitSync(["checkout", branchName], { stdio: "inherit" });
-      core.info(`Checked out existing branch: ${branchName}`);
+      safeInfo(`Checked out existing branch: ${branchName}`);
     } catch (fetchError) {
       // Branch doesn't exist, create orphan branch
-      core.info(`Branch ${branchName} does not exist, creating orphan branch...`);
+      safeInfo(`Branch ${branchName} does not exist, creating orphan branch...`);
       execGitSync(["checkout", "--orphan", branchName], { stdio: "inherit" });
       // Use --ignore-unmatch to avoid failure when directory is empty
       execGitSync(["rm", "-r", "-f", "--ignore-unmatch", "."], { stdio: "pipe" });
-      core.info(`Created orphan branch: ${branchName}`);
+      safeInfo(`Created orphan branch: ${branchName}`);
     }
   } catch (error) {
     core.setFailed(`Failed to checkout branch: ${getErrorMessage(error)}`);
@@ -303,21 +304,21 @@ async function main() {
   }
 
   // Pull with merge strategy (ours wins on conflicts)
-  core.info(`Pulling latest changes from ${branchName}...`);
+  safeInfo(`Pulling latest changes from ${branchName}...`);
   try {
     const repoUrl = `https://x-access-token:${ghToken}@github.com/${targetRepo}.git`;
     execGitSync(["pull", "--no-rebase", "-X", "ours", repoUrl, branchName], { stdio: "inherit" });
   } catch (error) {
     // Pull might fail if branch doesn't exist yet or on conflicts - this is acceptable
-    core.warning(`Pull failed (this may be expected): ${getErrorMessage(error)}`);
+    safeWarning(`Pull failed (this may be expected): ${getErrorMessage(error)}`);
   }
 
   // Push changes
-  core.info(`Pushing changes to ${branchName}...`);
+  safeInfo(`Pushing changes to ${branchName}...`);
   try {
     const repoUrl = `https://x-access-token:${ghToken}@github.com/${targetRepo}.git`;
     execGitSync(["push", repoUrl, `HEAD:${branchName}`], { stdio: "inherit" });
-    core.info(`Successfully pushed changes to ${branchName} branch`);
+    safeInfo(`Successfully pushed changes to ${branchName} branch`);
   } catch (error) {
     core.setFailed(`Failed to push changes: ${getErrorMessage(error)}`);
     return;

@@ -3,6 +3,7 @@
 
 const { parseRequiredPermissions, checkRepositoryPermission } = require("./check_permissions_utils.cjs");
 
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function main() {
   const { eventName, actor, repo } = context;
   const { owner, repo: repoName } = repo;
@@ -18,7 +19,7 @@ async function main() {
   // - Validates combined state of multiple PRs before merging
   const safeEvents = ["workflow_dispatch", "schedule", "merge_group"];
   if (safeEvents.includes(eventName)) {
-    core.info(`✅ Event ${eventName} does not require validation`);
+    safeInfo(`✅ Event ${eventName} does not require validation`);
     return;
   }
 

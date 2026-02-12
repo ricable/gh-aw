@@ -15,6 +15,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * @param {boolean} [options.supportsDirectories=false] - Whether the parser supports reading from directories
  * @returns {Promise<void>}
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 async function runLogParser(options) {
   const fs = require("fs");
   const path = require("path");
@@ -38,7 +39,7 @@ async function runLogParser(options) {
     const stat = fs.statSync(logPath);
     if (stat.isDirectory()) {
       if (!supportsDirectories) {
-        core.info(`Log path is a directory but ${parserName} parser does not support directories: ${logPath}`);
+        safeInfo(`Log path is a directory but ${parserName} parser does not support directories: ${logPath}`);
         return;
       }
 
@@ -131,7 +132,7 @@ async function runLogParser(options) {
         try {
           safeOutputsContent = fs.readFileSync(safeOutputsPath, "utf8");
         } catch (error) {
-          core.warning(`Failed to read safe outputs file: ${getErrorMessage(error)}`);
+          safeWarning(`Failed to read safe outputs file: ${getErrorMessage(error)}`);
         }
       }
 
@@ -179,7 +180,7 @@ async function runLogParser(options) {
         core.summary.addRaw(fullMarkdown).write();
       } else {
         // Fallback: just log success message for parsers without log entries
-        core.info(`${parserName} log parsed successfully`);
+        safeInfo(`${parserName} log parsed successfully`);
 
         // Add safe outputs preview to core.info (fallback path)
         if (safeOutputsContent) {
@@ -206,7 +207,7 @@ async function runLogParser(options) {
         core.summary.addRaw(fullMarkdown).write();
       }
     } else {
-      core.error(`Failed to parse ${parserName} log`);
+      safeError(`Failed to parse ${parserName} log`);
     }
 
     // Handle MCP server failures if present

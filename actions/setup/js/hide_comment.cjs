@@ -4,6 +4,7 @@
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const { getErrorMessage } = require("./error_helpers.cjs");
 
@@ -123,7 +124,7 @@ async function main(config = {}) {
       }
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      core.error(`Failed to hide comment: ${errorMessage}`);
+      safeError(`Failed to hide comment: ${errorMessage}`);
       return {
         success: false,
         error: errorMessage,

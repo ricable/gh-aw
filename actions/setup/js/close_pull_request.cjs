@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 const HANDLER_TYPE = "close_pull_request";
 
@@ -83,10 +84,10 @@ async function main(config = {}) {
 
   core.info(`Close pull request configuration: max=${maxCount}`);
   if (requiredLabels.length > 0) {
-    core.info(`Required labels: ${requiredLabels.join(", ")}`);
+    safeInfo(`Required labels: ${requiredLabels.join(", ")}`);
   }
   if (requiredTitlePrefix) {
-    core.info(`Required title prefix: ${requiredTitlePrefix}`);
+    safeInfo(`Required title prefix: ${requiredTitlePrefix}`);
   }
 
   // Track how many items we've processed for max limit
@@ -117,7 +118,7 @@ async function main(config = {}) {
     if (item.pull_request_number !== undefined) {
       prNumber = parseInt(String(item.pull_request_number), 10);
       if (isNaN(prNumber)) {
-        core.warning(`Invalid pull request number: ${item.pull_request_number}`);
+        safeWarning(`Invalid pull request number: ${item.pull_request_number}`);
         return {
           success: false,
           error: `Invalid pull request number: ${item.pull_request_number}`,
@@ -164,7 +165,7 @@ async function main(config = {}) {
 
     // Check label filter
     if (!checkLabelFilter(pr.labels, requiredLabels)) {
-      core.info(`Skipping PR #${prNumber}: does not match label filter (required: ${requiredLabels.join(", ")})`);
+      safeInfo(`Skipping PR #${prNumber}: does not match label filter (required: ${requiredLabels.join(", ")})`);
       return {
         success: false,
         error: `PR does not match required labels`,
@@ -173,7 +174,7 @@ async function main(config = {}) {
 
     // Check title prefix filter
     if (!checkTitlePrefixFilter(pr.title, requiredTitlePrefix)) {
-      core.info(`Skipping PR #${prNumber}: title does not start with '${requiredTitlePrefix}'`);
+      safeInfo(`Skipping PR #${prNumber}: title does not start with '${requiredTitlePrefix}'`);
       return {
         success: false,
         error: `PR title does not start with required prefix`,
@@ -198,7 +199,7 @@ async function main(config = {}) {
     // Close the PR
     try {
       const closedPR = await closePullRequest(github, owner, repo, prNumber);
-      core.info(`✓ Closed PR #${prNumber}: ${closedPR.title}`);
+      safeInfo(`✓ Closed PR #${prNumber}: ${closedPR.title}`);
       return {
         success: true,
         pull_request_number: closedPR.number,

@@ -10,9 +10,10 @@ const { normalizeTemporaryId, isTemporaryId } = require("./temporary_id.cjs");
  * @param {Error & { errors?: Array<{ type?: string, message: string, path?: unknown, locations?: unknown }>, request?: unknown, data?: unknown }} error - GraphQL error
  * @param {string} operation - Operation description
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 function logGraphQLError(error, operation) {
   core.info(`GraphQL Error during: ${operation}`);
-  core.info(`Message: ${getErrorMessage(error)}`);
+  safeInfo(`Message: ${getErrorMessage(error)}`);
 
   const errorList = Array.isArray(error.errors) ? error.errors : [];
   const hasInsufficientScopes = errorList.some(e => e?.type === "INSUFFICIENT_SCOPES");
@@ -27,9 +28,9 @@ function logGraphQLError(error, operation) {
   }
 
   if (error.errors) {
-    core.info(`Errors array (${error.errors.length} error(s)):`);
+    safeInfo(`Errors array (${error.errors.length} error(s)):`);
     error.errors.forEach((err, idx) => {
-      core.info(`  [${idx + 1}] ${err.message}`);
+      safeInfo(`  [${idx + 1}] ${err.message}`);
       if (err.type) core.info(`      Type: ${err.type}`);
       if (err.path) core.info(`      Path: ${JSON.stringify(err.path)}`);
       if (err.locations) core.info(`      Locations: ${JSON.stringify(err.locations)}`);
@@ -77,7 +78,7 @@ async function getOwnerId(ownerType, ownerLogin) {
  * @returns {Promise<{ projectId: string, projectNumber: number, projectTitle: string, projectUrl: string, itemId?: string }>} Created project info
  */
 async function createProjectV2(ownerId, title) {
-  core.info(`Creating project with title: "${title}"`);
+  safeInfo(`Creating project with title: "${title}"`);
 
   const result = await github.graphql(
     `mutation($ownerId: ID!, $title: String!) {
@@ -94,7 +95,7 @@ async function createProjectV2(ownerId, title) {
   );
 
   const project = result.createProjectV2.projectV2;
-  core.info(`✓ Created project #${project.number}: ${project.title}`);
+  safeInfo(`✓ Created project #${project.number}: ${project.title}`);
   core.info(`  URL: ${project.url}`);
 
   return {
@@ -271,14 +272,14 @@ async function createProjectView(projectUrl, viewConfig) {
           ...(visibleFields ? { visible_fields: visibleFields } : {}),
         };
 
-  core.info(`Creating project view: ${name} (${layout})...`);
+  safeInfo(`Creating project view: ${name} (${layout})...`);
   const response = await github.request(route, params);
   const created = response?.data;
 
   if (created?.id) {
-    core.info(`✓ Created view: ${name} (ID: ${created.id})`);
+    safeInfo(`✓ Created view: ${name} (ID: ${created.id})`);
   } else {
-    core.info(`✓ Created view: ${name}`);
+    safeInfo(`✓ Created view: ${name}`);
   }
 }
 
@@ -309,7 +310,7 @@ async function main(config = {}, githubClient = null) {
   }
   core.info(`Max count: ${maxCount}`);
   if (config.title_prefix) {
-    core.info(`Title prefix: ${titlePrefix}`);
+    safeInfo(`Title prefix: ${titlePrefix}`);
   }
   if (configuredViews.length > 0) {
     core.info(`Found ${configuredViews.length} configured view(s) in frontmatter`);
@@ -377,11 +378,11 @@ async function main(config = {}, githubClient = null) {
         if (issueTitle) {
           // Use the issue title with the configured prefix
           title = `${titlePrefix}: ${issueTitle}`;
-          core.info(`Generated title from issue: "${title}"`);
+          safeInfo(`Generated title from issue: "${title}"`);
         } else if (issueNumber) {
           // Fallback to issue number if no title is available
           title = `${titlePrefix} #${issueNumber}`;
-          core.info(`Generated title from issue number: "${title}"`);
+          safeInfo(`Generated title from issue number: "${title}"`);
         } else {
           throw new Error("Missing required field 'title' in create_project call and unable to generate from context");
         }
@@ -396,7 +397,7 @@ async function main(config = {}, githubClient = null) {
       // Determine owner type (org or user)
       const ownerType = owner_type || "org"; // Default to org if not specified
 
-      core.info(`Creating project "${title}" for ${ownerType}/${targetOwner}`);
+      safeInfo(`Creating project "${title}" for ${ownerType}/${targetOwner}`);
 
       // Get owner ID
       const ownerId = await getOwnerId(ownerType, targetOwner);
@@ -435,11 +436,11 @@ async function main(config = {}, githubClient = null) {
           const viewConfig = configuredViews[i];
           try {
             await createProjectView(projectInfo.projectUrl, viewConfig);
-            core.info(`✓ Created view ${i + 1}/${configuredViews.length}: ${viewConfig.name} (${viewConfig.layout})`);
+            safeInfo(`✓ Created view ${i + 1}/${configuredViews.length}: ${viewConfig.name} (${viewConfig.layout})`);
           } catch (err) {
             // prettier-ignore
             const error = /** @type {Error & { errors?: Array<{ type?: string, message: string, path?: unknown, locations?: unknown }>, request?: unknown, data?: unknown }} */ (err);
-            core.error(`Failed to create configured view ${i + 1}: ${viewConfig.name}`);
+            safeError(`Failed to create configured view ${i + 1}: ${viewConfig.name}`);
             logGraphQLError(error, `Creating configured view: ${viewConfig.name}`);
           }
         }

@@ -8,6 +8,7 @@ const { getWorkflowIdMarkerContent } = require("./generate_footer.cjs");
 /**
  * Maximum number of older discussions to close
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const MAX_CLOSE_COUNT = 10;
 
 /**
@@ -117,7 +118,7 @@ async function searchOlderDiscussions(github, owner, repo, workflowId, categoryI
         }
 
         filteredCount++;
-        core.info(`  ✓ Discussion #${d.number} matches criteria: ${d.title}`);
+        safeInfo(`  ✓ Discussion #${d.number} matches criteria: ${d.title}`);
         return true;
       }
     )
@@ -202,9 +203,9 @@ async function closeOlderDiscussions(github, owner, repo, workflowId, categoryId
   core.info("Starting closeOlderDiscussions operation");
   core.info("=".repeat(70));
 
-  core.info(`Search criteria: workflow ID marker: "${getWorkflowIdMarkerContent(workflowId)}"`);
+  safeInfo(`Search criteria: workflow ID marker: "${getWorkflowIdMarkerContent(workflowId)}"`);
   core.info(`New discussion reference: #${newDiscussion.number} (${newDiscussion.url})`);
-  core.info(`Workflow: ${workflowName}`);
+  safeInfo(`Workflow: ${workflowName}`);
   core.info(`Run URL: ${runUrl}`);
   core.info("");
 
@@ -219,7 +220,7 @@ async function closeOlderDiscussions(github, owner, repo, workflowId, categoryId
   core.info("");
   core.info(`Found ${olderDiscussions.length} older discussion(s) matching the criteria`);
   for (const discussion of olderDiscussions) {
-    core.info(`  - Discussion #${discussion.number}: ${discussion.title}`);
+    safeInfo(`  - Discussion #${discussion.number}: ${discussion.title}`);
     core.info(`    URL: ${discussion.url}`);
   }
 
@@ -242,7 +243,7 @@ async function closeOlderDiscussions(github, owner, repo, workflowId, categoryId
     const discussion = discussionsToClose[i];
     core.info("-".repeat(70));
     core.info(`Processing discussion ${i + 1}/${discussionsToClose.length}: #${discussion.number}`);
-    core.info(`  Title: ${discussion.title}`);
+    safeInfo(`  Title: ${discussion.title}`);
     core.info(`  URL: ${discussion.url}`);
 
     try {
@@ -254,7 +255,7 @@ async function closeOlderDiscussions(github, owner, repo, workflowId, categoryId
         runUrl,
       });
 
-      core.info(`  Message length: ${closingMessage.length} characters`);
+      safeInfo(`  Message length: ${closingMessage.length} characters`);
       core.info("");
 
       // Add comment first
@@ -273,9 +274,9 @@ async function closeOlderDiscussions(github, owner, repo, workflowId, categoryId
     } catch (error) {
       core.info("");
       core.error(`✗ Failed to close discussion #${discussion.number}`);
-      core.error(`  Error: ${getErrorMessage(error)}`);
+      safeError(`  Error: ${getErrorMessage(error)}`);
       if (error instanceof Error && error.stack) {
-        core.error(`  Stack trace: ${error.stack}`);
+        safeError(`  Stack trace: ${error.stack}`);
       }
       // Continue with other discussions even if one fails
     }

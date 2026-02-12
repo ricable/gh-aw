@@ -6,6 +6,7 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 /**
  * @typedef {import('./types/handler-factory').HandlerFactoryFunction} HandlerFactoryFunction
  */
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 
 /** @type {string} Safe output type handled by this module */
 const HANDLER_TYPE = "missing_tool";
@@ -42,7 +43,7 @@ async function main(config = {}) {
 
     // Validate required fields (only reason is required now)
     if (!message.reason) {
-      core.warning(`missing_tool message missing 'reason' field: ${JSON.stringify(message)}`);
+      safeWarning(`missing_tool message missing 'reason' field: ${JSON.stringify(message)}`);
       return {
         success: false,
         error: "Missing required field: reason",

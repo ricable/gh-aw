@@ -4,6 +4,7 @@
 const { getErrorMessage } = require("./error_helpers.cjs");
 
 // Maximum number of sub-issues per parent issue
+const { safeInfo, safeDebug, safeWarning, safeError } = require("./sanitized_logging.cjs");
 const MAX_SUB_ISSUES = 64;
 
 /**
@@ -35,7 +36,7 @@ async function getSubIssueCount(owner, repo, issueNumber) {
 
     return result?.repository?.issue?.subIssues?.totalCount || 0;
   } catch (error) {
-    core.warning(`Could not check sub-issue count for #${issueNumber}: ${getErrorMessage(error)}`);
+    safeWarning(`Could not check sub-issue count for #${issueNumber}: ${getErrorMessage(error)}`);
     return null;
   }
 }
