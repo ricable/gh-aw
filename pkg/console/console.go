@@ -464,7 +464,7 @@ func RenderTableAsJSON(config TableConfig) (string, error) {
 	}
 
 	// Create array of objects, where each object has header names as keys
-	var result []map[string]string
+	result := make([]map[string]string, 0, len(config.Rows))
 	for _, row := range config.Rows {
 		obj := make(map[string]string)
 		for i, cell := range row {

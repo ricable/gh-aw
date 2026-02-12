@@ -221,11 +221,12 @@ func buildTableConfig(val reflect.Value, title string) TableConfig {
 	}
 
 	// Build headers from struct fields
-	var headers []string
-	var fieldIndices []int
-	var fieldTags []consoleTag
+	numFields := elemType.NumField()
+	headers := make([]string, 0, numFields)
+	fieldIndices := make([]int, 0, numFields)
+	fieldTags := make([]consoleTag, 0, numFields)
 
-	for i := 0; i < elemType.NumField(); i++ {
+	for i := 0; i < numFields; i++ {
 		field := elemType.Field(i)
 		tag := parseConsoleTag(field.Tag.Get("console"))
 

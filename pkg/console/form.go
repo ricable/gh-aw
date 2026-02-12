@@ -42,7 +42,7 @@ func RunForm(fields []FormField) error {
 	}
 
 	// Build form fields
-	var huhFields []huh.Field
+	huhFields := make([]huh.Field, 0, len(fields))
 	for _, field := range fields {
 		switch field.Type {
 		case "input":
