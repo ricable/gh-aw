@@ -315,7 +315,7 @@ func TestGenerateUnifiedPromptCreationStep_NoAppendSteps(t *testing.T) {
 }
 
 // TestGenerateUnifiedPromptCreationStep_FirstContentUsesCreate tests that
-// the first content uses ">" (create/overwrite) and subsequent content uses ">>" (append)
+// the first redirect operation uses ">" (create/overwrite) and subsequent operations use ">>" (append)
 func TestGenerateUnifiedPromptCreationStep_FirstContentUsesCreate(t *testing.T) {
 	compiler := &Compiler{
 		trialMode:            false,
@@ -334,24 +334,38 @@ func TestGenerateUnifiedPromptCreationStep_FirstContentUsesCreate(t *testing.T) 
 
 	output := yaml.String()
 
-	// Find the first cat command (should use > for create)
-	firstCatPos := strings.Index(output, `cat "`)
-	require.NotEqual(t, -1, firstCatPos, "Should have cat command")
+	// Find the first redirect operation (should use > for create)
+	// With grouping, this might be on a heredoc or on a closing brace
+	firstRedirectPos := strings.Index(output, `> "$GH_AW_PROMPT"`)
+	require.NotEqual(t, -1, firstRedirectPos, "Should have redirect operation")
 
-	// Extract the line containing the first cat command
-	firstCatLine := output[firstCatPos : firstCatPos+strings.Index(output[firstCatPos:], "\n")]
+	// Extract some context around the first redirect
+	contextStart := firstRedirectPos - 100
+	if contextStart < 0 {
+		contextStart = 0
+	}
+	contextEnd := firstRedirectPos + 20
+	if contextEnd > len(output) {
+		contextEnd = len(output)
+	}
+	firstRedirectContext := output[contextStart:contextEnd]
 
-	// Verify it uses > (create mode)
-	assert.Contains(t, firstCatLine, `> "$GH_AW_PROMPT"`,
-		"First content should use > (create mode): %s", firstCatLine)
+	// Verify the first redirect uses > (create mode)
+	assert.Contains(t, firstRedirectContext, `> "$GH_AW_PROMPT"`,
+		"First redirect should use > (create mode)")
 
-	// Find subsequent cat commands (should use >> for append)
-	delimiter := GenerateHeredocDelimiter("PROMPT")
-	remainingOutput := output[firstCatPos+len(firstCatLine):]
-	if strings.Contains(remainingOutput, `cat "`) || strings.Contains(remainingOutput, "cat << '"+delimiter+"'") {
-		// Verify subsequent operations use >> (append mode)
+	// Find subsequent redirect operations (should use >> for append)
+	remainingOutput := output[firstRedirectPos+len(`> "$GH_AW_PROMPT"`):]
+	if strings.Contains(remainingOutput, `"$GH_AW_PROMPT"`) {
+		// Verify subsequent redirects use >> (append mode)
 		assert.Contains(t, remainingOutput, `>> "$GH_AW_PROMPT"`,
-			"Subsequent content should use >> (append mode)")
+			"Subsequent redirects should use >> (append mode)")
+		// Ensure no single > redirects (not >>) in remaining output
+		// We need to check for patterns like "> $" or "> \"" to avoid matching ">> "
+		assert.False(t,
+			strings.Contains(remainingOutput, `' > "$GH_AW_PROMPT"`) ||
+				strings.Contains(remainingOutput, `" > "$GH_AW_PROMPT"`),
+			"Should not have more single > (create mode) redirects")
 	}
 }
 

@@ -373,7 +373,8 @@ This is a test workflow with playwright enabled.
 	}
 
 	// Test 2: Verify the cat command for playwright prompt file is included
-	if !strings.Contains(lockStr, "cat \"/opt/gh-aw/prompts/playwright_prompt.md\" >> \"$GH_AW_PROMPT\"") {
+	// With grouped redirects, the cat command may not have an individual redirect
+	if !strings.Contains(lockStr, "cat \"/opt/gh-aw/prompts/playwright_prompt.md\"") {
 		t.Error("Expected cat command for playwright prompt file in generated workflow")
 	}
 

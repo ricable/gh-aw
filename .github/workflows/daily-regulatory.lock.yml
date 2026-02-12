@@ -1015,53 +1015,57 @@ jobs:
           cat << 'GH_AW_PROMPT_EOF' > "$GH_AW_PROMPT"
           <system>
           GH_AW_PROMPT_EOF
-          cat "/opt/gh-aw/prompts/temp_folder_prompt.md" >> "$GH_AW_PROMPT"
-          cat "/opt/gh-aw/prompts/markdown.md" >> "$GH_AW_PROMPT"
-          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          <safe-outputs>
-          <description>GitHub API Access Instructions</description>
-          <important>
-          The gh CLI is NOT authenticated. Do NOT use gh commands for GitHub operations.
-          </important>
-          <instructions>
-          To create or modify GitHub resources (issues, discussions, pull requests, etc.), you MUST call the appropriate safe output tool. Simply writing content will NOT work - the workflow requires actual tool calls.
-          
-          Discover available tools from the safeoutputs MCP server.
-          
-          **Critical**: Tool calls write structured data that downstream jobs process. Without tool calls, follow-up actions will be skipped.
-          
-          **Note**: If you made no other safe output tool calls during this workflow execution, call the "noop" tool to provide a status message indicating completion or that no actions were needed.
-          </instructions>
-          </safe-outputs>
-          <github-context>
-          The following GitHub context information is available for this workflow:
-          {{#if __GH_AW_GITHUB_ACTOR__ }}
-          - **actor**: __GH_AW_GITHUB_ACTOR__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_REPOSITORY__ }}
-          - **repository**: __GH_AW_GITHUB_REPOSITORY__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_WORKSPACE__ }}
-          - **workspace**: __GH_AW_GITHUB_WORKSPACE__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_ISSUE_NUMBER__ }}
-          - **issue-number**: #__GH_AW_GITHUB_EVENT_ISSUE_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__ }}
-          - **discussion-number**: #__GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__ }}
-          - **pull-request-number**: #__GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_COMMENT_ID__ }}
-          - **comment-id**: __GH_AW_GITHUB_EVENT_COMMENT_ID__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_RUN_ID__ }}
-          - **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__
-          {{/if}}
-          </github-context>
-          
-          GH_AW_PROMPT_EOF
+          {
+            cat "/opt/gh-aw/prompts/temp_folder_prompt.md"
+            cat "/opt/gh-aw/prompts/markdown.md"
+            cat << 'GH_AW_PROMPT_EOF'
+            <safe-outputs>
+            <description>GitHub API Access Instructions</description>
+            <important>
+            The gh CLI is NOT authenticated. Do NOT use gh commands for GitHub operations.
+            </important>
+            <instructions>
+            To create or modify GitHub resources (issues, discussions, pull requests, etc.), you MUST call the appropriate safe output tool. Simply writing content will NOT work - the workflow requires actual tool calls.
+            
+            Discover available tools from the safeoutputs MCP server.
+            
+            **Critical**: Tool calls write structured data that downstream jobs process. Without tool calls, follow-up actions will be skipped.
+            
+            **Note**: If you made no other safe output tool calls during this workflow execution, call the "noop" tool to provide a status message indicating completion or that no actions were needed.
+            </instructions>
+            </safe-outputs>
+            GH_AW_PROMPT_EOF
+            cat << 'GH_AW_PROMPT_EOF'
+            <github-context>
+            The following GitHub context information is available for this workflow:
+            {{#if __GH_AW_GITHUB_ACTOR__ }}
+            - **actor**: __GH_AW_GITHUB_ACTOR__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_REPOSITORY__ }}
+            - **repository**: __GH_AW_GITHUB_REPOSITORY__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_WORKSPACE__ }}
+            - **workspace**: __GH_AW_GITHUB_WORKSPACE__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_EVENT_ISSUE_NUMBER__ }}
+            - **issue-number**: #__GH_AW_GITHUB_EVENT_ISSUE_NUMBER__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__ }}
+            - **discussion-number**: #__GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__ }}
+            - **pull-request-number**: #__GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_EVENT_COMMENT_ID__ }}
+            - **comment-id**: __GH_AW_GITHUB_EVENT_COMMENT_ID__
+            {{/if}}
+            {{#if __GH_AW_GITHUB_RUN_ID__ }}
+            - **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__
+            {{/if}}
+            </github-context>
+            
+            GH_AW_PROMPT_EOF
+          } >> "$GH_AW_PROMPT"
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           </system>
           GH_AW_PROMPT_EOF

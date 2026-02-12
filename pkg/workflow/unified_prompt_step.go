@@ -444,8 +444,7 @@ func (c *Compiler) generateUnifiedPromptCreationStep(yaml *strings.Builder, buil
 	yaml.WriteString("        run: |\n")
 	yaml.WriteString("          bash /opt/gh-aw/actions/create_prompt_first.sh\n")
 
-	// Track if we're inside a heredoc and whether we're writing the first content
-	inHeredoc := false
+	// Track whether we're writing the first content (uses > instead of >>)
 	isFirstContent := true
 
 	// 1. Write built-in sections first (prepended), wrapped in <system> tags
@@ -461,149 +460,20 @@ func (c *Compiler) generateUnifiedPromptCreationStep(yaml *strings.Builder, buil
 		yaml.WriteString("          " + delimiter + "\n")
 	}
 
-	for i, section := range builtinSections {
-		unifiedPromptLog.Printf("Writing built-in section %d/%d: hasCondition=%v, isFile=%v",
-			i+1, len(builtinSections), section.ShellCondition != "", section.IsFile)
-
-		if section.ShellCondition != "" {
-			// Close heredoc if open, add conditional
-			if inHeredoc {
-				yaml.WriteString("          " + delimiter + "\n")
-				inHeredoc = false
-			}
-			fmt.Fprintf(yaml, "          if %s; then\n", section.ShellCondition)
-
-			if section.IsFile {
-				// File reference inside conditional
-				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				if isFirstContent {
-					yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
-					isFirstContent = false
-				} else {
-					yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
-				}
-			} else {
-				// Inline content inside conditional - open heredoc, write content, close
-				if isFirstContent {
-					yaml.WriteString("            cat << '" + delimiter + "' > \"$GH_AW_PROMPT\"\n")
-					isFirstContent = false
-				} else {
-					yaml.WriteString("            cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
-				}
-				normalizedContent := normalizeLeadingWhitespace(section.Content)
-				cleanedContent := removeConsecutiveEmptyLines(normalizedContent)
-				contentLines := strings.Split(cleanedContent, "\n")
-				for _, line := range contentLines {
-					yaml.WriteString("            " + line + "\n")
-				}
-				yaml.WriteString("            " + delimiter + "\n")
-			}
-
-			yaml.WriteString("          fi\n")
-		} else {
-			// Unconditional section
-			if section.IsFile {
-				// Close heredoc if open
-				if inHeredoc {
-					yaml.WriteString("          " + delimiter + "\n")
-					inHeredoc = false
-				}
-				// Cat the file
-				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				if isFirstContent {
-					yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
-					isFirstContent = false
-				} else {
-					yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
-				}
-			} else {
-				// Inline content - open heredoc if not already open
-				if !inHeredoc {
-					if isFirstContent {
-						yaml.WriteString("          cat << '" + delimiter + "' > \"$GH_AW_PROMPT\"\n")
-						isFirstContent = false
-					} else {
-						yaml.WriteString("          cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
-					}
-					inHeredoc = true
-				}
-				// Write content directly to open heredoc
-				normalizedContent := normalizeLeadingWhitespace(section.Content)
-				cleanedContent := removeConsecutiveEmptyLines(normalizedContent)
-				contentLines := strings.Split(cleanedContent, "\n")
-				for _, line := range contentLines {
-					yaml.WriteString("          " + line + "\n")
-				}
-			}
-		}
-	}
+	// Write built-in sections with grouped redirects to avoid SC2129
+	writeGroupedPromptSections(yaml, builtinSections, delimiter, "          ", &isFirstContent)
 
 	// Close system tag for built-in prompts
 	if len(builtinSections) > 0 {
-		// Close heredoc if open
-		if inHeredoc {
-			yaml.WriteString("          " + delimiter + "\n")
-			inHeredoc = false
-		}
 		yaml.WriteString("          cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
 		yaml.WriteString("          </system>\n")
 		yaml.WriteString("          " + delimiter + "\n")
 	}
 
-	// 2. Write user prompt chunks (appended after built-in sections)
-	for chunkIdx, chunk := range userPromptChunks {
-		unifiedPromptLog.Printf("Writing user prompt chunk %d/%d", chunkIdx+1, len(userPromptChunks))
-
-		// Check if this chunk is a runtime-import macro
-		if strings.HasPrefix(chunk, "{{#runtime-import ") && strings.HasSuffix(chunk, "}}") {
-			// This is a runtime-import macro - write it using heredoc for safe escaping
-			unifiedPromptLog.Print("Detected runtime-import macro, writing directly")
-
-			// Close heredoc if open before writing runtime-import macro
-			if inHeredoc {
-				yaml.WriteString("          " + delimiter + "\n")
-				inHeredoc = false
-			}
-
-			// Write the macro directly with proper indentation
-			// Write the macro using a heredoc to avoid potential escaping issues
-			if isFirstContent {
-				yaml.WriteString("          cat << '" + delimiter + "' > \"$GH_AW_PROMPT\"\n")
-				isFirstContent = false
-			} else {
-				yaml.WriteString("          cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
-			}
-			yaml.WriteString("          " + chunk + "\n")
-			yaml.WriteString("          " + delimiter + "\n")
-			continue
-		}
-
-		// Regular chunk - close heredoc if open before starting new chunk
-		if inHeredoc {
-			yaml.WriteString("          " + delimiter + "\n")
-			inHeredoc = false
-		}
-
-		// Each user prompt chunk is written as a separate heredoc append
-		if isFirstContent {
-			yaml.WriteString("          cat << '" + delimiter + "' > \"$GH_AW_PROMPT\"\n")
-			isFirstContent = false
-		} else {
-			yaml.WriteString("          cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
-		}
-
-		lines := strings.Split(chunk, "\n")
-		for _, line := range lines {
-			yaml.WriteString("          ")
-			yaml.WriteString(line)
-			yaml.WriteByte('\n')
-		}
-		yaml.WriteString("          " + delimiter + "\n")
-	}
-
-	// Close heredoc if still open
-	if inHeredoc {
-		yaml.WriteString("          " + delimiter + "\n")
+	// 2. Write user prompt chunks with grouped redirects (appended after built-in sections)
+	if len(userPromptChunks) > 0 {
+		// Group consecutive non-runtime-import chunks together
+		writeGroupedUserPromptChunks(yaml, userPromptChunks, delimiter, "          ", &isFirstContent)
 	}
 
 	// Generate JavaScript-based placeholder substitution step (replaces multiple sed calls)
@@ -613,4 +483,205 @@ func (c *Compiler) generateUnifiedPromptCreationStep(yaml *strings.Builder, buil
 	}
 
 	unifiedPromptLog.Print("Unified prompt creation step generated successfully")
+}
+
+// writeGroupedPromptSections writes prompt sections with grouped redirects to avoid SC2129 warnings.
+// It groups consecutive unconditional sections into a single { ... } >> block.
+// The first operation uses > (create/overwrite) instead of >> (append).
+func writeGroupedPromptSections(yaml *strings.Builder, sections []PromptSection, delimiter string, indent string, isFirstContent *bool) {
+	i := 0
+	for i < len(sections) {
+		section := sections[i]
+		
+		if section.ShellCondition != "" {
+			// Conditional section - write individually (can't group across conditionals)
+			writeConditionalPromptSection(yaml, section, delimiter, indent, isFirstContent)
+			i++
+		} else {
+			// Start grouping consecutive unconditional sections
+			groupStart := i
+			groupEnd := i + 1
+			
+			// Find consecutive unconditional sections
+			for groupEnd < len(sections) && sections[groupEnd].ShellCondition == "" {
+				groupEnd++
+			}
+			
+			groupSize := groupEnd - groupStart
+			unifiedPromptLog.Printf("Grouping %d consecutive unconditional sections starting at index %d", groupSize, groupStart)
+			
+			if groupSize == 1 {
+				// Single section - write directly without grouping braces
+				writeUnconditionalPromptSection(yaml, section, delimiter, indent, isFirstContent)
+			} else {
+				// Multiple sections - group with braces to avoid SC2129
+				redirectOp := ">>"
+				if *isFirstContent {
+					redirectOp = ">"
+					*isFirstContent = false
+				}
+				
+				yaml.WriteString(indent + "{\n")
+				for j := groupStart; j < groupEnd; j++ {
+					writeUnconditionalPromptSectionContent(yaml, sections[j], delimiter, indent+"  ")
+				}
+				yaml.WriteString(indent + "} " + redirectOp + " \"$GH_AW_PROMPT\"\n")
+			}
+			
+			i = groupEnd
+		}
+	}
+}
+
+// writeConditionalPromptSection writes a single conditional prompt section
+func writeConditionalPromptSection(yaml *strings.Builder, section PromptSection, delimiter string, indent string, isFirstContent *bool) {
+	fmt.Fprintf(yaml, "%sif %s; then\n", indent, section.ShellCondition)
+	
+	redirectOp := ">>"
+	if *isFirstContent {
+		redirectOp = ">"
+		*isFirstContent = false
+	}
+	
+	if section.IsFile {
+		// File reference inside conditional
+		promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
+		yaml.WriteString(indent + "  " + fmt.Sprintf("cat \"%s\" %s \"$GH_AW_PROMPT\"\n", promptPath, redirectOp))
+	} else {
+		// Inline content inside conditional - open heredoc, write content, close
+		yaml.WriteString(indent + "  " + "cat << '" + delimiter + "' " + redirectOp + " \"$GH_AW_PROMPT\"\n")
+		normalizedContent := normalizeLeadingWhitespace(section.Content)
+		cleanedContent := removeConsecutiveEmptyLines(normalizedContent)
+		contentLines := strings.Split(cleanedContent, "\n")
+		for _, line := range contentLines {
+			yaml.WriteString(indent + "  " + line + "\n")
+		}
+		yaml.WriteString(indent + "  " + delimiter + "\n")
+	}
+	
+	yaml.WriteString(indent + "fi\n")
+}
+
+// writeUnconditionalPromptSection writes a single unconditional prompt section (no grouping)
+func writeUnconditionalPromptSection(yaml *strings.Builder, section PromptSection, delimiter string, indent string, isFirstContent *bool) {
+	redirectOp := ">>"
+	if *isFirstContent {
+		redirectOp = ">"
+		*isFirstContent = false
+	}
+	
+	if section.IsFile {
+		// File reference - simple cat with redirect
+		promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
+		yaml.WriteString(indent + fmt.Sprintf("cat \"%s\" %s \"$GH_AW_PROMPT\"\n", promptPath, redirectOp))
+	} else {
+		// Inline content - heredoc with redirect
+		yaml.WriteString(indent + "cat << '" + delimiter + "' " + redirectOp + " \"$GH_AW_PROMPT\"\n")
+		normalizedContent := normalizeLeadingWhitespace(section.Content)
+		cleanedContent := removeConsecutiveEmptyLines(normalizedContent)
+		contentLines := strings.Split(cleanedContent, "\n")
+		for _, line := range contentLines {
+			yaml.WriteString(indent + line + "\n")
+		}
+		yaml.WriteString(indent + delimiter + "\n")
+	}
+}
+
+// writeUnconditionalPromptSectionContent writes the content of an unconditional prompt section
+// without the redirect (for use inside grouped braces)
+func writeUnconditionalPromptSectionContent(yaml *strings.Builder, section PromptSection, delimiter string, indent string) {
+	if section.IsFile {
+		// File reference - simple cat without redirect
+		promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
+		yaml.WriteString(indent + fmt.Sprintf("cat \"%s\"\n", promptPath))
+	} else {
+		// Inline content - heredoc without redirect
+		yaml.WriteString(indent + "cat << '" + delimiter + "'\n")
+		normalizedContent := normalizeLeadingWhitespace(section.Content)
+		cleanedContent := removeConsecutiveEmptyLines(normalizedContent)
+		contentLines := strings.Split(cleanedContent, "\n")
+		for _, line := range contentLines {
+			yaml.WriteString(indent + line + "\n")
+		}
+		yaml.WriteString(indent + delimiter + "\n")
+	}
+}
+
+// writeGroupedUserPromptChunks writes user prompt chunks with grouped redirects to avoid SC2129 warnings.
+// It groups consecutive non-runtime-import chunks into a single { ... } >> block.
+func writeGroupedUserPromptChunks(yaml *strings.Builder, chunks []string, delimiter string, indent string, isFirstContent *bool) {
+	i := 0
+	for i < len(chunks) {
+		chunk := chunks[i]
+		
+		// Check if this chunk is a runtime-import macro
+		if strings.HasPrefix(chunk, "{{#runtime-import ") && strings.HasSuffix(chunk, "}}") {
+			// Runtime-import macro - write individually (can't group)
+			unifiedPromptLog.Printf("Writing runtime-import chunk %d", i+1)
+			writeUserPromptChunk(yaml, chunk, delimiter, indent, isFirstContent)
+			i++
+		} else {
+			// Start grouping consecutive non-runtime-import chunks
+			groupStart := i
+			groupEnd := i + 1
+			
+			// Find consecutive non-runtime-import chunks
+			for groupEnd < len(chunks) {
+				nextChunk := chunks[groupEnd]
+				if strings.HasPrefix(nextChunk, "{{#runtime-import ") && strings.HasSuffix(nextChunk, "}}") {
+					break // Stop at runtime-import
+				}
+				groupEnd++
+			}
+			
+			groupSize := groupEnd - groupStart
+			unifiedPromptLog.Printf("Grouping %d consecutive user prompt chunks starting at index %d", groupSize, groupStart)
+			
+			if groupSize == 1 {
+				// Single chunk - write directly without grouping braces
+				writeUserPromptChunk(yaml, chunk, delimiter, indent, isFirstContent)
+			} else {
+				// Multiple chunks - group with braces to avoid SC2129
+				redirectOp := ">>"
+				if *isFirstContent {
+					redirectOp = ">"
+					*isFirstContent = false
+				}
+				
+				yaml.WriteString(indent + "{\n")
+				for j := groupStart; j < groupEnd; j++ {
+					writeUserPromptChunkContent(yaml, chunks[j], delimiter, indent+"  ")
+				}
+				yaml.WriteString(indent + "} " + redirectOp + " \"$GH_AW_PROMPT\"\n")
+			}
+			
+			i = groupEnd
+		}
+	}
+}
+
+// writeUserPromptChunk writes a single user prompt chunk with redirect
+func writeUserPromptChunk(yaml *strings.Builder, chunk string, delimiter string, indent string, isFirstContent *bool) {
+	redirectOp := ">>"
+	if *isFirstContent {
+		redirectOp = ">"
+		*isFirstContent = false
+	}
+	
+	yaml.WriteString(indent + "cat << '" + delimiter + "' " + redirectOp + " \"$GH_AW_PROMPT\"\n")
+	lines := strings.Split(chunk, "\n")
+	for _, line := range lines {
+		yaml.WriteString(indent + line + "\n")
+	}
+	yaml.WriteString(indent + delimiter + "\n")
+}
+
+// writeUserPromptChunkContent writes a user prompt chunk without redirect (for use inside grouped braces)
+func writeUserPromptChunkContent(yaml *strings.Builder, chunk string, delimiter string, indent string) {
+	yaml.WriteString(indent + "cat << '" + delimiter + "'\n")
+	lines := strings.Split(chunk, "\n")
+	for _, line := range lines {
+		yaml.WriteString(indent + line + "\n")
+	}
+	yaml.WriteString(indent + delimiter + "\n")
 }
