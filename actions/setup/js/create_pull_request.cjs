@@ -72,6 +72,7 @@ async function main(config = {}) {
   const maxSizeKb = config.max_patch_size ? parseInt(String(config.max_patch_size), 10) : 1024;
   const { defaultTargetRepo, allowedRepos } = resolveTargetRepoConfig(config);
   const includeFooter = config.footer !== false; // Default to true (include footer)
+  const fallbackAsIssue = config.fallback_as_issue !== false; // Default to true (fallback enabled)
 
   // Environment validation - fail early if required variables are missing
   const workflowId = process.env.GH_AW_WORKFLOW_ID;
@@ -514,8 +515,20 @@ async function main(config = {}) {
         await exec.exec(`git push origin ${branchName}`);
         core.info("Changes pushed to branch");
       } catch (pushError) {
-        // Push failed - create fallback issue instead of PR
+        // Push failed - create fallback issue instead of PR (if fallback is enabled)
         core.error(`Git push failed: ${pushError instanceof Error ? pushError.message : String(pushError)}`);
+
+        if (!fallbackAsIssue) {
+          // Fallback is disabled - return error without creating issue
+          core.error("fallback-as-issue is disabled - not creating fallback issue");
+          const error = `Failed to push changes: ${pushError instanceof Error ? pushError.message : String(pushError)}`;
+          return {
+            success: false,
+            error,
+            error_type: "push_failed",
+          };
+        }
+
         core.warning("Git push operation failed - creating fallback issue instead of pull request");
 
         const runId = context.runId;
@@ -749,6 +762,16 @@ ${patchPreview}`;
           success: false,
           error: errorMessage,
           error_type: "permission_denied",
+        };
+      }
+
+      if (!fallbackAsIssue) {
+        // Fallback is disabled - return error without creating issue
+        core.error("fallback-as-issue is disabled - not creating fallback issue");
+        return {
+          success: false,
+          error: errorMessage,
+          error_type: "pr_creation_failed",
         };
       }
 

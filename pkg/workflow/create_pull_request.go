@@ -9,22 +9,31 @@ import (
 
 var createPRLog = logger.New("workflow:create_pull_request")
 
+// getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true)
+func getFallbackAsIssue(config *CreatePullRequestsConfig) bool {
+	if config == nil || config.FallbackAsIssue == nil {
+		return true // Default
+	}
+	return *config.FallbackAsIssue
+}
+
 // CreatePullRequestsConfig holds configuration for creating GitHub pull requests from agent output
 type CreatePullRequestsConfig struct {
 	BaseSafeOutputConfig `yaml:",inline"`
 	TitlePrefix          string   `yaml:"title-prefix,omitempty"`
 	Labels               []string `yaml:"labels,omitempty"`
-	AllowedLabels        []string `yaml:"allowed-labels,omitempty"` // Optional list of allowed labels. If omitted, any labels are allowed (including creating new ones).
-	Reviewers            []string `yaml:"reviewers,omitempty"`      // List of users/bots to assign as reviewers to the pull request
-	Draft                *bool    `yaml:"draft,omitempty"`          // Pointer to distinguish between unset (nil) and explicitly false
-	IfNoChanges          string   `yaml:"if-no-changes,omitempty"`  // Behavior when no changes to push: "warn" (default), "error", or "ignore"
-	AllowEmpty           bool     `yaml:"allow-empty,omitempty"`    // Allow creating PR without patch file or with empty patch (useful for preparing feature branches)
-	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`    // Target repository in format "owner/repo" for cross-repository pull requests
-	AllowedRepos         []string `yaml:"allowed-repos,omitempty"`  // List of additional repositories that pull requests can be created in (additionally to the target-repo)
-	Expires              int      `yaml:"expires,omitempty"`        // Hours until the pull request expires and should be automatically closed (only for same-repo PRs)
-	AutoMerge            bool     `yaml:"auto-merge,omitempty"`     // Enable auto-merge for the pull request when all required checks pass
-	BaseBranch           string   `yaml:"base-branch,omitempty"`    // Base branch for the pull request (defaults to github.ref_name if not specified)
-	Footer               *bool    `yaml:"footer,omitempty"`         // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
+	AllowedLabels        []string `yaml:"allowed-labels,omitempty"`    // Optional list of allowed labels. If omitted, any labels are allowed (including creating new ones).
+	Reviewers            []string `yaml:"reviewers,omitempty"`         // List of users/bots to assign as reviewers to the pull request
+	Draft                *bool    `yaml:"draft,omitempty"`             // Pointer to distinguish between unset (nil) and explicitly false
+	IfNoChanges          string   `yaml:"if-no-changes,omitempty"`     // Behavior when no changes to push: "warn" (default), "error", or "ignore"
+	AllowEmpty           bool     `yaml:"allow-empty,omitempty"`       // Allow creating PR without patch file or with empty patch (useful for preparing feature branches)
+	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`       // Target repository in format "owner/repo" for cross-repository pull requests
+	AllowedRepos         []string `yaml:"allowed-repos,omitempty"`     // List of additional repositories that pull requests can be created in (additionally to the target-repo)
+	Expires              int      `yaml:"expires,omitempty"`           // Hours until the pull request expires and should be automatically closed (only for same-repo PRs)
+	AutoMerge            bool     `yaml:"auto-merge,omitempty"`        // Enable auto-merge for the pull request when all required checks pass
+	BaseBranch           string   `yaml:"base-branch,omitempty"`       // Base branch for the pull request (defaults to github.ref_name if not specified)
+	Footer               *bool    `yaml:"footer,omitempty"`            // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
+	FallbackAsIssue      *bool    `yaml:"fallback-as-issue,omitempty"` // When true (default), creates an issue if PR creation fails. When false, no fallback occurs and issues: write permission is not requested.
 }
 
 // buildCreateOutputPullRequestJob creates the create_pull_request job
@@ -38,8 +47,9 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 		if data.SafeOutputs.CreatePullRequests.Draft != nil {
 			draftValue = *data.SafeOutputs.CreatePullRequests.Draft
 		}
-		createPRLog.Printf("Building create-pull-request job: workflow=%s, main_job=%s, draft=%v, reviewers=%d",
-			data.Name, mainJobName, draftValue, len(data.SafeOutputs.CreatePullRequests.Reviewers))
+		fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
+		createPRLog.Printf("Building create-pull-request job: workflow=%s, main_job=%s, draft=%v, reviewers=%d, fallback_as_issue=%v",
+			data.Name, mainJobName, draftValue, len(data.SafeOutputs.CreatePullRequests.Reviewers), fallbackAsIssue)
 	}
 
 	// Build pre-steps for patch download, checkout, and git config
@@ -91,6 +101,10 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 
 	// Pass the auto-merge configuration
 	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_AUTO_MERGE: %q\n", fmt.Sprintf("%t", data.SafeOutputs.CreatePullRequests.AutoMerge)))
+
+	// Pass the fallback-as-issue configuration - default to true for backwards compatibility
+	fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
+	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %q\n", fmt.Sprintf("%t", fallbackAsIssue)))
 
 	// Pass the maximum patch size configuration
 	maxPatchSize := 1024 // Default value
@@ -151,6 +165,18 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 		"error_message":       "${{ steps.create_pull_request.outputs.error_message }}",
 	}
 
+	// Choose permissions based on fallback-as-issue setting
+	var permissions *Permissions
+	if fallbackAsIssue {
+		// Default: include issues: write for fallback behavior
+		permissions = NewPermissionsContentsWriteIssuesWritePRWrite()
+		createPRLog.Print("Using permissions with issues:write (fallback-as-issue enabled)")
+	} else {
+		// Fallback disabled: only need contents: write and pull-requests: write
+		permissions = NewPermissionsContentsWritePRWrite()
+		createPRLog.Print("Using permissions without issues:write (fallback-as-issue disabled)")
+	}
+
 	// Use the shared builder function to create the job
 	return c.buildSafeOutputJob(data, SafeOutputJobConfig{
 		JobName:        "create_pull_request",
@@ -159,7 +185,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 		MainJobName:    mainJobName,
 		CustomEnvVars:  customEnvVars,
 		Script:         "", // Legacy - handler manager uses require() to load handler from /tmp/gh-aw/actions
-		Permissions:    NewPermissionsContentsWriteIssuesWritePRWrite(),
+		Permissions:    permissions,
 		Outputs:        outputs,
 		PreSteps:       preSteps,
 		PostSteps:      postSteps,

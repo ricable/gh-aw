@@ -2631,6 +2631,13 @@ safe-outputs:
     # (optional)
     footer: true
 
+    # Controls the fallback behavior when pull request creation fails. When true
+    # (default), an issue is created as a fallback with the patch content. When false,
+    # no issue is created and the workflow fails with an error. Setting to false also
+    # removes the issues:write permission requirement.
+    # (optional)
+    fallback-as-issue: true
+
   # Option 2: Enable pull request creation with default configuration
   create-pull-request: null
 
