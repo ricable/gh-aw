@@ -134,7 +134,7 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 	// Delete caches with throttling protection
 	successCount := 0
 	failedCount := 0
-	
+
 	// Start spinner for bulk operations
 	var spinner *console.SpinnerWrapper
 	if !config.Verbose && len(cachesToDelete) > 1 {
@@ -151,7 +151,7 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 		if err := deleteCache(cache.ID, config.Ref, config.Verbose); err != nil {
 			cacheDeleteLog.Printf("Failed to delete cache %d: %v", cache.ID, err)
 			failedCount++
-			
+
 			// Check for rate limiting
 			if strings.Contains(err.Error(), "rate limit") || strings.Contains(err.Error(), "403") {
 				if spinner != nil {
@@ -161,7 +161,7 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 				fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Wait a few minutes before retrying, or delete remaining caches individually."))
 				break
 			}
-			
+
 			if !config.Verbose {
 				// Only show error for non-verbose mode
 				fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Failed to delete cache %d: %v", cache.ID, err)))
@@ -170,13 +170,13 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 		}
 
 		successCount++
-		
+
 		// Add small delay between deletes to avoid rate limiting
 		if i < len(cachesToDelete)-1 && len(cachesToDelete) > 5 {
 			time.Sleep(200 * time.Millisecond)
 		}
 	}
-	
+
 	if spinner != nil {
 		spinner.Stop()
 	}
@@ -215,7 +215,7 @@ func deleteCache(cacheID int64, ref string, verbose bool) error {
 	}
 
 	_, err := workflow.RunGHCombined("Deleting cache...", args...)
-	
+
 	if spinner != nil {
 		if err != nil {
 			spinner.Stop()
@@ -261,7 +261,7 @@ func listCaches(keyPrefix string, limit int, verbose bool) ([]CacheEntry, error)
 	}
 
 	output, err := workflow.RunGHCombined("Listing caches...", args...)
-	
+
 	if !verbose {
 		if err != nil {
 			spinner.Stop()

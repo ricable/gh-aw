@@ -20,10 +20,13 @@ like 'memory-<workflow>-<run-id>'. This command helps manage these caches by lis
 downloading, and deleting them.
 
 Available subcommands:
+  • list       - List cache artifacts for workflows
   • download   - Download cache artifacts for a workflow
   • delete     - Delete cache artifacts for a workflow
 
 Examples:
+  gh aw cache list                           # List all caches in repository
+  gh aw cache list my-workflow               # List caches for a workflow
   gh aw cache download my-workflow           # Download caches for a workflow
   gh aw cache delete my-workflow             # Delete caches for a workflow
   gh aw cache delete my-workflow --all       # Delete all caches for a workflow`,
@@ -33,6 +36,7 @@ Examples:
 	}
 
 	// Add subcommands
+	cmd.AddCommand(NewCacheListCommand())
 	cmd.AddCommand(NewCacheDownloadCommand())
 	cmd.AddCommand(NewCacheDeleteCommand())
 
