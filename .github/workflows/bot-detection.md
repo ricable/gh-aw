@@ -197,6 +197,36 @@ jobs:
               }
             }
 
+            function hasSuspiciousUsername(login) {
+              if (!login) return false;
+              const normalized = String(login).toLowerCase();
+              
+              // Check for leetspeak patterns: mixing digits with letters in suspicious ways
+              // Exclude trailing year-like patterns (e.g., "2024", "2023")
+              const hasDigitsAndLetters = /\d/.test(normalized) && /[a-z]/.test(normalized);
+              if (hasDigitsAndLetters) {
+                // Remove common trailing patterns like years (19xx, 20xx) and simple numbers
+                const withoutTrailingYear = normalized.replace(/(19|20)\d{2}$/, '').replace(/\d+$/, '');
+                
+                // Common leetspeak substitutions: 0 for o, 1 for i/l, 3 for e, 7 for t
+                // Match patterns where digits are embedded in the middle (not the letters they replace)
+                const leetSpeakPattern = /[a-z]+[0137][a-z]+|[a-z]*0[a-z]+0|[a-z]*1[a-z]+1|[a-z]*3[a-z]+3/;
+                if (leetSpeakPattern.test(withoutTrailingYear)) {
+                  return true;
+                }
+              }
+              
+              // Check for security-themed keywords that are commonly used by spam/bot accounts
+              const securityKeywords = ["security", "sec", "audit", "admin", "support", "official", "verified"];
+              for (const keyword of securityKeywords) {
+                if (normalized.includes(keyword)) {
+                  return true;
+                }
+              }
+              
+              return false;
+            }
+
             async function getRunCreatedAt() {
               const runId = context.runId;
               const { data } = await github.rest.actions.getWorkflowRun({
@@ -291,6 +321,7 @@ jobs:
                   externalDomains: new Set(),
                   hasShortener: false,
                   hasNonGitHubBinary: false,
+                  hasSuspiciousUsername: hasSuspiciousUsername(login),
                   touchesWorkflows: false,
                   touchesCI: false,
                   touchesDeps: false,
@@ -569,6 +600,7 @@ jobs:
               score += Math.min(9, extDomains.length * 3);
               if (s.hasShortener) score += 8;
               if (s.hasNonGitHubBinary) score += 10;
+              if (s.hasSuspiciousUsername) score += 12;
               if (s.touchesWorkflows) score += 15;
               if (s.touchesCI) score += 10;
               if (s.touchesDeps) score += 6;
@@ -596,6 +628,7 @@ jobs:
               if (extDomains.length > 0) signals.push(`external_domains=${extDomains.length}`);
               if (s.hasShortener) signals.push("shortener");
               if (s.hasNonGitHubBinary) signals.push("non_github_binary_link");
+              if (s.hasSuspiciousUsername) signals.push("suspicious_username");
               if (s.touchesWorkflows) signals.push("touches_workflows");
               if (s.touchesCI) signals.push("touches_ci_or_scripts");
               if (s.touchesDeps) signals.push("touches_dependencies");
