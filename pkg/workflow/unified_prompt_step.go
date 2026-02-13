@@ -16,6 +16,9 @@ type PromptSection struct {
 	Content string
 	// IsFile indicates if Content is a filename (true) or inline text (false)
 	IsFile bool
+	// NeedsEnvExpansion indicates if environment variables in the file need to be expanded at runtime
+	// When true, the file content will be piped through envsubst to expand variables like $GITHUB_WORKSPACE
+	NeedsEnvExpansion bool
 	// ShellCondition is an optional bash condition (without 'if' keyword) to wrap this section
 	// Example: "${{ github.event_name == 'issue_comment' }}" becomes a shell condition
 	ShellCondition string
@@ -92,7 +95,12 @@ func (c *Compiler) generateUnifiedPromptStep(yaml *strings.Builder, data *Workfl
 			if section.IsFile {
 				// File reference inside conditional
 				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				if section.NeedsEnvExpansion {
+					// Use envsubst to expand environment variables like $GITHUB_WORKSPACE
+					yaml.WriteString("            " + fmt.Sprintf("envsubst < \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				} else {
+					yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				}
 			} else {
 				// Inline content inside conditional - open heredoc, write content, close
 				yaml.WriteString("            cat << '" + delimiter + "' >> \"$GH_AW_PROMPT\"\n")
@@ -116,7 +124,12 @@ func (c *Compiler) generateUnifiedPromptStep(yaml *strings.Builder, data *Workfl
 				}
 				// Cat the file
 				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				if section.NeedsEnvExpansion {
+					// Use envsubst to expand environment variables like $GITHUB_WORKSPACE
+					yaml.WriteString("          " + fmt.Sprintf("envsubst < \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				} else {
+					yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+				}
 			} else {
 				// Inline content - open heredoc if not already open
 				if !inHeredoc {
@@ -223,8 +236,9 @@ func (c *Compiler) collectPromptSections(data *WorkflowData) []PromptSection {
 	// 1. Temporary folder instructions (always included)
 	unifiedPromptLog.Print("Adding temp folder section")
 	sections = append(sections, PromptSection{
-		Content: tempFolderPromptFile,
-		IsFile:  true,
+		Content:           tempFolderPromptFile,
+		IsFile:            true,
+		NeedsEnvExpansion: true, // Expand $GITHUB_WORKSPACE in temp_folder_prompt.md
 	})
 
 	// 2. Markdown generation instructions (always included)
@@ -476,11 +490,21 @@ func (c *Compiler) generateUnifiedPromptCreationStep(yaml *strings.Builder, buil
 			if section.IsFile {
 				// File reference inside conditional
 				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				if isFirstContent {
-					yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
-					isFirstContent = false
+				if section.NeedsEnvExpansion {
+					// Use envsubst to expand environment variables like $GITHUB_WORKSPACE
+					if isFirstContent {
+						yaml.WriteString("            " + fmt.Sprintf("envsubst < \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
+						isFirstContent = false
+					} else {
+						yaml.WriteString("            " + fmt.Sprintf("envsubst < \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					}
 				} else {
-					yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					if isFirstContent {
+						yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
+						isFirstContent = false
+					} else {
+						yaml.WriteString("            " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					}
 				}
 			} else {
 				// Inline content inside conditional - open heredoc, write content, close
@@ -510,11 +534,21 @@ func (c *Compiler) generateUnifiedPromptCreationStep(yaml *strings.Builder, buil
 				}
 				// Cat the file
 				promptPath := fmt.Sprintf("%s/%s", promptsDir, section.Content)
-				if isFirstContent {
-					yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
-					isFirstContent = false
+				if section.NeedsEnvExpansion {
+					// Use envsubst to expand environment variables like $GITHUB_WORKSPACE
+					if isFirstContent {
+						yaml.WriteString("          " + fmt.Sprintf("envsubst < \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
+						isFirstContent = false
+					} else {
+						yaml.WriteString("          " + fmt.Sprintf("envsubst < \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					}
 				} else {
-					yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					if isFirstContent {
+						yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" > \"$GH_AW_PROMPT\"\n", promptPath))
+						isFirstContent = false
+					} else {
+						yaml.WriteString("          " + fmt.Sprintf("cat \"%s\" >> \"$GH_AW_PROMPT\"\n", promptPath))
+					}
 				}
 			} else {
 				// Inline content - open heredoc if not already open

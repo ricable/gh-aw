@@ -55,11 +55,11 @@ This is a test workflow to verify temp folder instructions are included.
 		t.Error("Expected 'Create prompt with built-in context' step in generated workflow")
 	}
 
-	// Test 2: Verify the cat command for temp folder prompt file is included
+	// Test 2: Verify the envsubst command for temp folder prompt file is included (uses envsubst for env var expansion)
 	// Note: First prompt file uses > (create), subsequent ones use >> (append)
-	if !strings.Contains(lockStr, "cat \"/opt/gh-aw/prompts/temp_folder_prompt.md\" > \"$GH_AW_PROMPT\"") &&
-		!strings.Contains(lockStr, "cat \"/opt/gh-aw/prompts/temp_folder_prompt.md\" >> \"$GH_AW_PROMPT\"") {
-		t.Error("Expected cat command for temp folder prompt file in generated workflow")
+	if !strings.Contains(lockStr, "envsubst < \"/opt/gh-aw/prompts/temp_folder_prompt.md\" > \"$GH_AW_PROMPT\"") &&
+		!strings.Contains(lockStr, "envsubst < \"/opt/gh-aw/prompts/temp_folder_prompt.md\" >> \"$GH_AW_PROMPT\"") {
+		t.Error("Expected envsubst command for temp folder prompt file in generated workflow")
 	}
 
 	t.Logf("Successfully verified temporary folder instructions are included in generated workflow")
