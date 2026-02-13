@@ -120,6 +120,7 @@ network:
   allowed:
     - defaults
     - github.com
+strict: false
 on: workflow_dispatch
 ---
 

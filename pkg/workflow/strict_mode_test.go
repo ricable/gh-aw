@@ -29,7 +29,7 @@ permissions:
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
+    - defaults
 ---
 
 # Test Workflow`,
@@ -47,7 +47,7 @@ timeout-minutes: 10
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
+    - defaults
 ---
 
 # Test Workflow`,
@@ -100,7 +100,7 @@ timeout-minutes: 10
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
+    - defaults
 ---
 
 # Test Workflow`,
@@ -164,7 +164,7 @@ timeout-minutes: 10
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
+    - defaults
 tools:
   github: false
   playwright:
@@ -214,7 +214,7 @@ timeout-minutes: 10
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
+    - defaults
 ---
 
 # Test Workflow`,
@@ -301,8 +301,8 @@ timeout-minutes: 10
 engine: copilot
 network:
   allowed:
-    - "api.example.com"
-    - "*.trusted.com"
+    - defaults
+    - python
 ---
 
 # Test Workflow`,
