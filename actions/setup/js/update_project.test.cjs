@@ -749,15 +749,16 @@ describe("updateProject", () => {
     await expect(updateProject(output, temporaryIdMap)).rejects.toThrow(/draft_issue_id.*not found.*no draft with title/);
   });
 
-  it("allows user-friendly temporary_id like 'draft-1' when creating draft", async () => {
+  it("supports strict temporary_id when creating draft", async () => {
     const projectUrl = "https://github.com/orgs/testowner/projects/60";
     const temporaryIdMap = new Map();
+    const tempId = "aw_deadbeefcafe";
     const output = {
       type: "update_project",
       project: projectUrl,
       content_type: "draft_issue",
       draft_title: "User Friendly Draft",
-      temporary_id: "draft-1",
+      temporary_id: tempId,
       fields: { Priority: "High" },
     };
 
@@ -774,22 +775,23 @@ describe("updateProject", () => {
     const result = await updateProject(output, temporaryIdMap);
 
     expect(result).toBeDefined();
-    expect(result.temporaryId).toBe("draft-1");
+    expect(result.temporaryId).toBe(tempId);
     expect(result.draftItemId).toBe("draft-item-friendly");
-    expect(temporaryIdMap.get("draft-1")).toEqual({ draftItemId: "draft-item-friendly" });
-    expect(mockCore.info).toHaveBeenCalledWith("✓ Stored temporary_id mapping: draft-1 -> draft-item-friendly");
+    expect(temporaryIdMap.get(tempId)).toEqual({ draftItemId: "draft-item-friendly" });
+    expect(mockCore.info).toHaveBeenCalledWith(`✓ Stored temporary_id mapping: ${tempId} -> draft-item-friendly`);
   });
 
-  it("allows user-friendly draft_issue_id like 'draft-1' when updating draft", async () => {
+  it("supports strict draft_issue_id when updating draft", async () => {
     const projectUrl = "https://github.com/orgs/testowner/projects/60";
     const temporaryIdMap = new Map();
-    temporaryIdMap.set("draft-1", { draftItemId: "draft-item-friendly" });
+    const tempId = "aw_deadbeefcafe";
+    temporaryIdMap.set(tempId, { draftItemId: "draft-item-friendly" });
 
     const output = {
       type: "update_project",
       project: projectUrl,
       content_type: "draft_issue",
-      draft_issue_id: "draft-1",
+      draft_issue_id: tempId,
       fields: { Status: "In Progress" },
     };
 
@@ -798,9 +800,57 @@ describe("updateProject", () => {
     const result = await updateProject(output, temporaryIdMap);
 
     expect(result).toBeDefined();
-    expect(result.temporaryId).toBe("draft-1");
+    expect(result.temporaryId).toBe(tempId);
     expect(result.draftItemId).toBe("draft-item-friendly");
-    expect(mockCore.info).toHaveBeenCalledWith('✓ Resolved draft_issue_id "draft-1" to item draft-item-friendly');
+    expect(mockCore.info).toHaveBeenCalledWith(`✓ Resolved draft_issue_id "${tempId}" to item draft-item-friendly`);
+  });
+
+  it("chains draft create then update via the same temporary ID map", async () => {
+    const projectUrl = "https://github.com/orgs/testowner/projects/60";
+    const temporaryIdMap = new Map();
+    const tempId = "aw_deadbeefcafe";
+
+    // 1) Create draft issue and store mapping
+    const createOutput = {
+      type: "update_project",
+      project: projectUrl,
+      content_type: "draft_issue",
+      draft_title: "Chained Draft",
+      draft_body: "Initial body",
+      temporary_id: tempId,
+    };
+
+    queueResponses([repoResponse(), viewerResponse(), orgProjectV2Response(projectUrl, 60, "project-draft"), emptyItemsResponse(), addDraftIssueResponse("draft-item-chain")]);
+
+    await updateProject(createOutput, temporaryIdMap);
+
+    expect(temporaryIdMap.get(tempId)).toEqual({ draftItemId: "draft-item-chain" });
+    expect(mockCore.info).toHaveBeenCalledWith(`✓ Stored temporary_id mapping: ${tempId} -> draft-item-chain`);
+
+    // Reset outputs so getOutput() reads from the second call.
+    mockCore.setOutput.mockClear();
+    mockCore.info.mockClear();
+    mockCore.debug.mockClear();
+    mockCore.notice.mockClear();
+    mockCore.warning.mockClear();
+    mockCore.error.mockClear();
+    mockCore.setFailed.mockClear();
+
+    // 2) Update the same draft by referencing the temporary ID (with # prefix + uppercase)
+    const updateOutput = {
+      type: "update_project",
+      project: projectUrl,
+      content_type: "draft_issue",
+      draft_issue_id: "#AW_DEADBEEFCAFE",
+      fields: { Status: "In Progress" },
+    };
+
+    queueResponses([repoResponse(), viewerResponse(), orgProjectV2Response(projectUrl, 60, "project-draft"), fieldsResponse([{ id: "field-status", name: "Status" }]), updateFieldValueResponse()]);
+
+    await updateProject(updateOutput, temporaryIdMap);
+
+    expect(getOutput("item-id")).toBe("draft-item-chain");
+    expect(mockCore.info).toHaveBeenCalledWith('✓ Resolved draft_issue_id "AW_DEADBEEFCAFE" to item draft-item-chain');
   });
 
   it("rejects malformed auto-generated temporary_id with aw_ prefix", async () => {

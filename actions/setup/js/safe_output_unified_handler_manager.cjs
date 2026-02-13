@@ -16,7 +16,7 @@
 
 const { loadAgentOutput } = require("./load_agent_output.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
-const { hasUnresolvedTemporaryIds, replaceTemporaryIdReferences, normalizeTemporaryId, loadTemporaryIdMap } = require("./temporary_id.cjs");
+const { hasUnresolvedTemporaryIds, replaceTemporaryIdReferences, normalizeTemporaryId, loadTemporaryIdMap, isTemporaryId } = require("./temporary_id.cjs");
 const { generateMissingInfoSections } = require("./missing_info_formatter.cjs");
 const { setCollectedMissings } = require("./missing_messages_helper.cjs");
 const { writeSafeOutputSummaries } = require("./safe_output_summary.cjs");
@@ -432,6 +432,8 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
     try {
       core.info(`Processing message ${i + 1}/${messages.length}: ${messageType}`);
 
+      normalizeAndValidateTemporaryId(message, messageType, i);
+
       // Record the temp ID map size before processing to detect new IDs
       const tempIdMapSizeBefore = temporaryIdMap.size;
 
@@ -582,6 +584,8 @@ async function processMessages(messageHandlers, messages, projectOctokit = null)
       try {
         core.info(`Retrying message ${deferred.messageIndex + 1}/${messages.length}: ${deferred.type}`);
 
+        normalizeAndValidateTemporaryId(deferred.message, deferred.type, deferred.messageIndex);
+
         // Convert Map to plain object for handler
         const resolvedTemporaryIds = Object.fromEntries(temporaryIdMap);
 
@@ -692,6 +696,47 @@ function getContentToCheck(messageType, message) {
     default:
       return null;
   }
+}
+
+/**
+ * Validate and normalize `temporary_id` on an agent-provided safe output message.
+ * Agents are not trusted to follow schemas; this enforces the strict format at runtime.
+ *
+ * - Accepts optional leading '#', normalizes to bare 'aw_...' string
+ * - Rejects any non-strict IDs (e.g. 'aw_bundle_npm001')
+ *
+ * @param {any} message - Safe output message
+ * @param {string} messageType - Message type
+ * @param {number} messageIndex - 0-based index for error context
+ */
+function normalizeAndValidateTemporaryId(message, messageType, messageIndex) {
+  if (!message || typeof message !== "object") {
+    return;
+  }
+
+  // Support accidental camelCase from agents; normalize to snake_case.
+  if (message.temporary_id === undefined && message.temporaryId !== undefined) {
+    message.temporary_id = message.temporaryId;
+  }
+
+  if (message.temporary_id === undefined || message.temporary_id === null) {
+    return;
+  }
+
+  if (typeof message.temporary_id !== "string") {
+    throw new Error(`Message ${messageIndex + 1} (${messageType}): temporary_id must be a string (got ${typeof message.temporary_id})`);
+  }
+
+  const raw = message.temporary_id;
+  const trimmed = raw.trim();
+  const withoutHash = trimmed.startsWith("#") ? trimmed.substring(1).trim() : trimmed;
+
+  if (!isTemporaryId(withoutHash)) {
+    throw new Error(`Message ${messageIndex + 1} (${messageType}): invalid temporary_id '${raw}'. Temporary IDs must be 'aw_' followed by exactly 12 hexadecimal characters (0-9, a-f), e.g. 'aw_abc123def456'`);
+  }
+
+  // Normalize to the strict bare ID to keep lookups consistent.
+  message.temporary_id = withoutHash.toLowerCase();
 }
 
 /**

@@ -336,11 +336,11 @@ describe("create_issue", () => {
 
       const result = await handler({
         title: "Test Issue",
-        temporary_id: "aw_test123456",
+        temporary_id: "aw_deadbeefcafe",
       });
 
       expect(result.success).toBe(true);
-      expect(result.temporaryId).toBe("aw_test123456");
+      expect(result.temporaryId).toBe("aw_deadbeefcafe");
       expect(result.number).toBe(123);
     });
   });

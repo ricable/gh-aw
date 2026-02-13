@@ -305,7 +305,31 @@ async function main(config = {}) {
     }
 
     // Get or generate the temporary ID for this issue
-    const temporaryId = message.temporary_id ?? generateTemporaryId();
+    let temporaryId = generateTemporaryId();
+    if (message.temporary_id !== undefined && message.temporary_id !== null) {
+      if (typeof message.temporary_id !== "string") {
+        const error = `temporary_id must be a string (got ${typeof message.temporary_id})`;
+        core.warning(`Skipping issue: ${error}`);
+        return {
+          success: false,
+          error,
+        };
+      }
+
+      const rawTemporaryId = message.temporary_id.trim();
+      const normalized = rawTemporaryId.startsWith("#") ? rawTemporaryId.substring(1).trim() : rawTemporaryId;
+
+      if (!isTemporaryId(normalized)) {
+        const error = `Invalid temporary_id format: '${message.temporary_id}'. Temporary IDs must be in format 'aw_' followed by exactly 12 hexadecimal characters (0-9, a-f). Example: 'aw_abc123def456'`;
+        core.warning(`Skipping issue: ${error}`);
+        return {
+          success: false,
+          error,
+        };
+      }
+
+      temporaryId = normalized.toLowerCase();
+    }
     core.info(`Processing create_issue: title=${message.title}, bodyLength=${message.body?.length ?? 0}, temporaryId=${temporaryId}, repo=${qualifiedItemRepo}`);
 
     // Resolve parent: check if it's a temporary ID reference
