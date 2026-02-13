@@ -23,8 +23,8 @@ To use Copilot CLI with GitHub Agentic Workflows:
 
    You need a GitHub Personal Access Token (PAT) with the `copilot-requests` scope to authenticate Copilot CLI. Create a fine-grained PAT at <https://github.com/settings/personal-access-tokens/new>.
 
-   - **IMPORTANT:** Select your user account, NOT an organization
-   - **IMPORTANT:** Choose "Public repositories" access, even if adding to a private repo. Yes that's right just do it
+   - **IMPORTANT:** Select your user account, NOT an organization.
+   - **IMPORTANT:** Choose "Public repositories" access, even if adding to a private repo.
    - **IMPORTANT:** Enable "Copilot Requests" permissions.
 
    You **must** have "Public repositories" selected; otherwise, you will not have access to the Copilot Requests permission option.

@@ -87,14 +87,14 @@ To confirm ownership, check the owner name and avatar at the top of the page or 
 
 ### `COPILOT_GITHUB_TOKEN`
 
-If using the Copilot CLI, you need a GitHub Personal Access Token (PAT) with the `copilot-requests` scope to authenticate Copilot CLI.
+If using the Copilot CLI, you need a GitHub Actions Secret set to a GitHub Personal Access Token (PAT) with the `copilot-requests` scope to authenticate Copilot CLI.
 
 **Setup**:
 
-Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new) with:
+Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new):
 
-- **IMPORTANT:** Select your user account, NOT an organization
-- **IMPORTANT:** Choose "Public repositories" access, even if adding to a private repo. Yes that's right just do it
+- **IMPORTANT:** Select your user account, NOT an organization.
+- **IMPORTANT:** Choose "Public repositories" access, even if adding to a private repo.
 - **IMPORTANT:** Enable "Copilot Requests" permissions.
 
 You **must** have "Public repositories" selected; otherwise, you will not have access to the Copilot Requests permission option.
