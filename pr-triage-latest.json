@@ -1,6 +1,6 @@
 {
-  "run_date": "2026-02-13T00:41:24Z",
-  "run_id": "21970029815",
+  "run_date": "2026-02-13T06:28:41Z",
+  "run_id": "21977103893",
   "total_prs_triaged": 0,
   "new_prs": 0,
   "re_triaged": 0,
@@ -38,5 +38,10 @@
   "batch_review_candidates": [],
   "defer_candidates": [],
   "close_candidates": [],
-  "batches": {}
+  "batches": {},
+  "total_open_prs": 2,
+  "agent_prs_found": 0,
+  "human_prs_found": 1,
+  "dependabot_prs_found": 1,
+  "backlog_status": "cleared"
 }
