@@ -27,7 +27,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# frontmatter-hash: 7706ca8d2adbcff49f2f7845d093e11087a1080e56faa29aa77269d50216cc1e
+# frontmatter-hash: 20e450b369a92da1e54c415aaa26f96042c30a9b632c0a3f7c0eef60775022ae
 
 name: "Documentation Unbloat"
 "on":
@@ -1438,7 +1438,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"create_pull_request\":{\"auto_merge\":true,\"base_branch\":\"${{ github.ref_name }}\",\"draft\":true,\"expires\":48,\"labels\":[\"documentation\",\"automation\"],\"max\":1,\"max_patch_size\":1024,\"title_prefix\":\"[docs] \"},\"missing_data\":{},\"missing_tool\":{}}"
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"create_pull_request\":{\"auto_merge\":true,\"base_branch\":\"${{ github.ref_name }}\",\"draft\":true,\"expires\":48,\"fallback_as_issue\":false,\"labels\":[\"documentation\",\"automation\"],\"max\":1,\"max_patch_size\":1024,\"title_prefix\":\"[docs] \"},\"missing_data\":{},\"missing_tool\":{}}"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |

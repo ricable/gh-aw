@@ -78,6 +78,7 @@ safe-outputs:
     reviewers: [copilot]
     draft: true
     auto-merge: true
+    fallback-as-issue: false
   add-comment:
     max: 1
   upload-asset:
