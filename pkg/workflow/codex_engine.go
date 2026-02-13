@@ -252,6 +252,10 @@ func (e *CodexEngine) GetExecutionSteps(workflowData *WorkflowData, logFile stri
 		sslBumpArgs := getSSLBumpArgs(firewallConfig)
 		awfArgs = append(awfArgs, sslBumpArgs...)
 
+		// Add API proxy support for HTTP/HTTPS request interception
+		apiProxyArgs := getAPIProxyArgs(firewallConfig)
+		awfArgs = append(awfArgs, apiProxyArgs...)
+
 		// Add custom args if specified in firewall config
 		if firewallConfig != nil && len(firewallConfig.Args) > 0 {
 			awfArgs = append(awfArgs, firewallConfig.Args...)

@@ -330,4 +330,62 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			t.Error("Expected AWF command to NOT contain '--allow-urls' flag when SSLBump is false")
 		}
 	})
+
+	t.Run("AWF command includes enable-api-proxy when enabled", func(t *testing.T) {
+		workflowData := &WorkflowData{
+			Name: "test-workflow",
+			EngineConfig: &EngineConfig{
+				ID: "copilot",
+			},
+			NetworkPermissions: &NetworkPermissions{
+				Firewall: &FirewallConfig{
+					Enabled:        true,
+					EnableAPIProxy: true,
+				},
+			},
+		}
+
+		engine := NewCopilotEngine()
+		steps := engine.GetExecutionSteps(workflowData, "test.log")
+
+		if len(steps) == 0 {
+			t.Fatal("Expected at least one execution step")
+		}
+
+		stepContent := strings.Join(steps[0], "\n")
+
+		// Check that --enable-api-proxy flag is included
+		if !strings.Contains(stepContent, "--enable-api-proxy") {
+			t.Error("Expected AWF command to contain '--enable-api-proxy' flag")
+		}
+	})
+
+	t.Run("AWF command does not include enable-api-proxy when disabled", func(t *testing.T) {
+		workflowData := &WorkflowData{
+			Name: "test-workflow",
+			EngineConfig: &EngineConfig{
+				ID: "copilot",
+			},
+			NetworkPermissions: &NetworkPermissions{
+				Firewall: &FirewallConfig{
+					Enabled:        true,
+					EnableAPIProxy: false,
+				},
+			},
+		}
+
+		engine := NewCopilotEngine()
+		steps := engine.GetExecutionSteps(workflowData, "test.log")
+
+		if len(steps) == 0 {
+			t.Fatal("Expected at least one execution step")
+		}
+
+		stepContent := strings.Join(steps[0], "\n")
+
+		// Check that --enable-api-proxy flag is NOT included
+		if strings.Contains(stepContent, "--enable-api-proxy") {
+			t.Error("Expected AWF command to NOT contain '--enable-api-proxy' flag when EnableAPIProxy is false")
+		}
+	})
 }

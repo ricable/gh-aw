@@ -12,13 +12,14 @@ var firewallLog = logger.New("workflow:firewall")
 // FirewallConfig represents AWF (gh-aw-firewall) configuration for network egress control.
 // These settings are specific to the AWF sandbox and do not apply to Sandbox Runtime (SRT).
 type FirewallConfig struct {
-	Enabled       bool     `yaml:"enabled,omitempty"`        // Enable/disable AWF (default: true for copilot when network restrictions present)
-	Version       string   `yaml:"version,omitempty"`        // AWF version (empty = latest)
-	Args          []string `yaml:"args,omitempty"`           // Additional arguments to pass to AWF
-	LogLevel      string   `yaml:"log_level,omitempty"`      // AWF log level (default: "info")
-	CleanupScript string   `yaml:"cleanup_script,omitempty"` // Cleanup script path (default: "./scripts/ci/cleanup.sh")
-	SSLBump       bool     `yaml:"ssl_bump,omitempty"`       // AWF-only: Enable SSL Bump for HTTPS content inspection (allows URL path filtering)
-	AllowURLs     []string `yaml:"allow_urls,omitempty"`     // AWF-only: URL patterns to allow for HTTPS (requires SSLBump), e.g., "https://github.com/githubnext/*"
+	Enabled        bool     `yaml:"enabled,omitempty"`          // Enable/disable AWF (default: true for copilot when network restrictions present)
+	Version        string   `yaml:"version,omitempty"`          // AWF version (empty = latest)
+	Args           []string `yaml:"args,omitempty"`             // Additional arguments to pass to AWF
+	LogLevel       string   `yaml:"log_level,omitempty"`        // AWF log level (default: "info")
+	CleanupScript  string   `yaml:"cleanup_script,omitempty"`   // Cleanup script path (default: "./scripts/ci/cleanup.sh")
+	SSLBump        bool     `yaml:"ssl_bump,omitempty"`         // AWF-only: Enable SSL Bump for HTTPS content inspection (allows URL path filtering)
+	AllowURLs      []string `yaml:"allow_urls,omitempty"`       // AWF-only: URL patterns to allow for HTTPS (requires SSLBump), e.g., "https://github.com/githubnext/*"
+	EnableAPIProxy bool     `yaml:"enable_api_proxy,omitempty"` // AWF-only: Enable API proxy for HTTP/HTTPS request interception
 }
 
 // isFirewallDisabledBySandboxAgent checks if the firewall is disabled via sandbox.agent: false
@@ -213,6 +214,24 @@ func getSSLBumpArgs(firewallConfig *FirewallConfig) []string {
 		args = append(args, "--allow-urls", allowURLs)
 		firewallLog.Printf("Added --allow-urls: %s", allowURLs)
 	}
+
+	return args
+}
+
+// getAPIProxyArgs returns the AWF arguments for API proxy configuration.
+// Returns the --enable-api-proxy flag if API proxy is enabled.
+// API proxy enables HTTP/HTTPS request interception for advanced filtering.
+//
+// Note: This feature is specific to AWF (Agent Workflow Firewall) and does not
+// apply to Sandbox Runtime (SRT) or other sandbox configurations.
+func getAPIProxyArgs(firewallConfig *FirewallConfig) []string {
+	if firewallConfig == nil || !firewallConfig.EnableAPIProxy {
+		return nil
+	}
+
+	var args []string
+	args = append(args, "--enable-api-proxy")
+	firewallLog.Print("Added --enable-api-proxy for HTTP/HTTPS request interception")
 
 	return args
 }
