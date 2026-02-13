@@ -76,11 +76,11 @@ type CacheDownloadConfig struct {
 
 // CacheEntry represents a GitHub Actions cache
 type CacheEntry struct {
-	ID            int64  `json:"id"`
-	Key           string `json:"key"`
-	Ref           string `json:"ref"`
-	SizeInBytes   int64  `json:"size_in_bytes"`
-	CreatedAt     string `json:"created_at"`
+	ID             int64  `json:"id"`
+	Key            string `json:"key"`
+	Ref            string `json:"ref"`
+	SizeInBytes    int64  `json:"size_in_bytes"`
+	CreatedAt      string `json:"created_at"`
 	LastAccessedAt string `json:"last_accessed_at"`
 }
 

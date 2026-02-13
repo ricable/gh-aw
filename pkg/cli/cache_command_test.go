@@ -67,7 +67,7 @@ func TestNewCacheDownloadCommand(t *testing.T) {
 	keyFlag := flags.Lookup("key")
 	require.NotNil(t, keyFlag, "Should have 'key' flag")
 	assert.Equal(t, "k", keyFlag.Shorthand, "Key flag shorthand should be 'k'")
-	assert.Equal(t, "", keyFlag.DefValue, "Key flag default should be empty")
+	assert.Empty(t, keyFlag.DefValue, "Key flag default should be empty")
 }
 
 func TestNewCacheDeleteCommand(t *testing.T) {
@@ -92,13 +92,13 @@ func TestNewCacheDeleteCommand(t *testing.T) {
 	keyFlag := flags.Lookup("key")
 	require.NotNil(t, keyFlag, "Should have 'key' flag")
 	assert.Equal(t, "k", keyFlag.Shorthand, "Key flag shorthand should be 'k'")
-	assert.Equal(t, "", keyFlag.DefValue, "Key flag default should be empty")
+	assert.Empty(t, keyFlag.DefValue, "Key flag default should be empty")
 
 	// Check ref flag
 	refFlag := flags.Lookup("ref")
 	require.NotNil(t, refFlag, "Should have 'ref' flag")
 	assert.Equal(t, "r", refFlag.Shorthand, "Ref flag shorthand should be 'r'")
-	assert.Equal(t, "", refFlag.DefValue, "Ref flag default should be empty")
+	assert.Empty(t, refFlag.DefValue, "Ref flag default should be empty")
 
 	// Check force flag
 	forceFlag := flags.Lookup("force")
