@@ -1,108 +1,79 @@
 {
-  "run_date": "2026-02-13T12:18:42Z",
-  "run_id": "21986544986",
-  "total_prs_triaged": 3,
-  "new_prs": 3,
+  "run_date": "2026-02-13T18:19:57Z",
+  "run_id": "21997868197",
+  "total_prs_triaged": 1,
+  "new_prs": 1,
   "re_triaged": 0,
   "results": [
     {
-      "number": 15369,
-      "title": "Fix strict mode validation failures for workflows with custom network domains",
-      "category": "bug",
-      "risk": "medium",
-      "priority_score": 67,
-      "action": "fast_track",
-      "batch_id": "batch-strict-mode-001",
-      "impact_score": 42,
-      "urgency_score": 20,
-      "quality_score": 5,
-      "ci_status": "pending",
-      "draft": true,
-      "age_hours": 2.5
-    },
-    {
-      "number": 15368,
-      "title": "Fix security regression test failing under default strict mode",
-      "category": "test",
-      "risk": "low",
-      "priority_score": 48,
-      "action": "batch_review",
-      "batch_id": "batch-strict-mode-001",
-      "impact_score": 25,
-      "urgency_score": 18,
-      "quality_score": 5,
-      "ci_status": "pending",
-      "draft": true,
-      "age_hours": 2.5
-    },
-    {
-      "number": 15370,
-      "title": "Fix: Use placeholder syntax for GITHUB_WORKSPACE in temp_folder_prompt",
-      "category": "bug",
-      "risk": "low",
-      "priority_score": 43,
-      "action": "batch_review",
-      "batch_id": null,
-      "impact_score": 28,
-      "urgency_score": 10,
-      "quality_score": 5,
-      "ci_status": "pending",
-      "draft": true,
-      "age_hours": 2.5
-    }
+  "number": 15480,
+  "title": "[WIP] Update handling for permissions without GitHub toolset",
+  "category": "chore",
+  "risk": "low",
+  "priority_score": 30,
+  "impact_score": 20,
+  "urgency_score": 5,
+  "quality_score": 5,
+  "action": "defer",
+  "batch_id": null,
+  "ci_status": "pending",
+  "draft": true,
+  "age_hours": .2,
+  "changed_files": 0,
+  "rationale": {
+    "category": "Title mentions 'Update handling' which suggests a chore/feature improvement",
+    "risk": "Low risk - PR is still WIP with no code changes yet",
+    "impact": "Medium impact - Changes to permission/toolset handling could affect workflow compilation",
+    "urgency": "Low urgency - PR just created and still in draft",
+    "quality": "Very low quality score - WIP with no code, pending CI",
+    "action": "Defer until PR is completed and ready for review"
+  }
+}
   ],
   "statistics": {
     "by_category": {
-      "bug": 2,
+      "bug": 0,
       "feature": 0,
       "docs": 0,
-      "test": 1,
+      "test": 0,
       "formatting": 0,
       "refactor": 0,
-      "chore": 0
+      "chore": 1
     },
     "by_risk": {
-      "low": 2,
-      "medium": 1,
+      "low": 1,
+      "medium": 0,
       "high": 0
     },
     "by_priority": {
       "high": 0,
-      "medium": 3,
+      "medium": 1,
       "low": 0
     },
     "by_action": {
       "auto_merge": 0,
-      "fast_track": 1,
-      "batch_review": 2,
-      "defer": 0,
+      "fast_track": 0,
+      "batch_review": 0,
+      "defer": 1,
       "close": 0
     }
   },
   "auto_merge_candidates": [],
-  "fast_track_needed": [15369],
-  "batch_review_candidates": [15368, 15370],
-  "defer_candidates": [],
+  "fast_track_needed": [],
+  "batch_review_candidates": [],
+  "defer_candidates": [15480],
   "close_candidates": [],
-  "batches": {
-    "batch-strict-mode-001": {
-      "name": "Strict Mode Fixes",
-      "prs": [15369, 15368],
-      "category": "bug/test",
-      "risk": "medium/low",
-      "rationale": "Both PRs address strict mode validation changes from PR #15363"
-    }
-  },
-  "total_open_prs": 4,
-  "agent_prs_found": 3,
+  "batches": {},
+  "total_open_prs": 1,
+  "agent_prs_found": 1,
   "human_prs_found": 0,
-  "dependabot_prs_found": 1,
-  "backlog_status": "small",
+  "dependabot_prs_found": 0,
+  "backlog_status": "minimal",
   "trends": {
     "previous_run": {
-      "date": "2026-02-13T06:28:41Z",
-      "agent_prs": 0
+      "date": "2026-02-13T12:18:42Z",
+      "agent_prs": 3
     },
-    "change": "Activity spike - 3 new PRs all related to strict mode changes"
+    "change": "Backlog reduced - 3 previous PRs were closed/merged, 1 new WIP PR opened"
   }
 }
