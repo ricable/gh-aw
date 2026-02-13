@@ -39,11 +39,8 @@ func TestGitHubToolsetInferenceEngine_AllToolsets(t *testing.T) {
 			if len(perms.WritePermissions) > 0 {
 				// Should NOT be compatible in write mode with only read permissions
 				compatibleWriteWithReadOnly := engine.InferFromToolsets(permissions, []string{toolset}, false)
-				if len(perms.ReadPermissions) > 0 || len(perms.WritePermissions) > 0 {
-					// Toolsets with permission requirements should not be compatible without write permissions
-					assert.NotContains(t, compatibleWriteWithReadOnly, toolset,
-						"Toolset %s should NOT be compatible in write mode without write permissions", toolset)
-				}
+				assert.NotContains(t, compatibleWriteWithReadOnly, toolset,
+					"Toolset %s should NOT be compatible in write mode without write permissions", toolset)
 
 				// Grant write permissions
 				for _, scope := range perms.WritePermissions {
@@ -190,7 +187,7 @@ func TestGitHubToolsetInferenceEngine_NonDefaultToolsets(t *testing.T) {
 				PermissionContents: PermissionRead,
 			},
 			readOnly:      true,
-			expectedTools: nil, // actions not compatible, expect nil slice
+			expectedTools: []string{}, // actions not compatible
 		},
 		{
 			name:     "multiple security toolsets",

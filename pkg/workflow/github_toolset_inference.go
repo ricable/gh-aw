@@ -76,7 +76,7 @@ func (e *GitHubToolsetInferenceEngine) InferFromToolsets(permissions *Permission
 		return []string{}
 	}
 
-	var compatible []string
+	compatible := make([]string, 0, len(toolsets))
 
 	// Check each toolset for compatibility
 	for _, toolset := range toolsets {
