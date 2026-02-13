@@ -593,6 +593,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 
 	// Create commands that need group assignment
 	mcpCmd := cli.NewMCPCommand()
+	cacheCmd := cli.NewCacheCommand()
 	logsCmd := cli.NewLogsCommand()
 	auditCmd := cli.NewAuditCommand()
 	healthCmd := cli.NewHealthCommand()
@@ -618,6 +619,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 	// Development Commands
 	compileCmd.GroupID = "development"
 	mcpCmd.GroupID = "development"
+	cacheCmd.GroupID = "development"
 	statusCmd.GroupID = "development"
 	listCmd.GroupID = "development"
 	fixCmd.GroupID = "development"
@@ -660,6 +662,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 	rootCmd.AddCommand(auditCmd)
 	rootCmd.AddCommand(healthCmd)
 	rootCmd.AddCommand(mcpCmd)
+	rootCmd.AddCommand(cacheCmd)
 	rootCmd.AddCommand(mcpServerCmd)
 	rootCmd.AddCommand(prCmd)
 	rootCmd.AddCommand(versionCmd)
