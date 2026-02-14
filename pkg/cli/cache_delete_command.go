@@ -28,20 +28,16 @@ func NewCacheDeleteCommand() *cobra.Command {
 		Short: "Delete cache artifacts for a workflow",
 		Long: `Delete GitHub Actions cache artifacts for agentic workflows using cache-memory.
 
-This command deletes cache artifacts that workflows created when using the cache-memory
-feature. By default, it prompts for confirmation before deleting caches. Use --force to
-skip the confirmation prompt.
-
-Without --all, this command deletes a single cache matching the workflow name pattern.
-With --all, it deletes all caches matching the pattern.
+This command deletes all cache artifacts that workflows created when using the cache-memory
+feature. By default, it prompts for confirmation before deleting all matching caches.
+Use --force to skip the confirmation prompt.
 
 ` + WorkflowIDExplanation + `
 
 Examples:
-  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow                      # Delete first matching cache (with confirmation)
-  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow --all                # Delete all matching caches
-  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow --all --force        # Delete all without confirmation
-  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow -k memory-custom     # Delete specific cache key
+  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow                      # Delete all matching caches (with confirmation)
+  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow --force              # Delete all without confirmation
+  ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow -k memory-custom     # Delete caches with custom key prefix
   ` + string(constants.CLIExtensionPrefix) + ` cache delete my-workflow -r refs/heads/main   # Delete caches for specific ref`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +57,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().BoolVarP(&deleteAll, "all", "a", false, "Delete all caches matching the pattern")
+	cmd.Flags().BoolVarP(&deleteAll, "all", "a", false, "Delete all caches matching the pattern (default behavior)")
 	cmd.Flags().StringVarP(&cacheKey, "key", "k", "", "Filter by cache key prefix")
 	cmd.Flags().StringVarP(&ref, "ref", "r", "", "Filter by ref (e.g., refs/heads/main)")
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "Skip confirmation prompt")
@@ -108,11 +104,8 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 	}
 
 	// Determine which caches to delete
+	// Default behavior: delete all caches (unless explicitly limited)
 	cachesToDelete := caches
-	if !config.DeleteAll {
-		// Only delete the first cache
-		cachesToDelete = caches[:1]
-	}
 
 	// Confirmation prompt (unless --force is used)
 	if !config.Force {

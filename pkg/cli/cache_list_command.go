@@ -176,9 +176,9 @@ func listCachesWithRef(keyPrefix string, ref string, limit int, verbose bool) ([
 		output = filtered
 	}
 
-	// Stop spinner with correct count after filtering
+	// Stop spinner without message (avoid duplicate)
 	if !verbose {
-		spinner.StopWithMessage(fmt.Sprintf("✓ Found %d cache(s)", len(output)))
+		spinner.Stop()
 	}
 
 	cacheListLog.Printf("Found %d caches after filtering", len(output))
