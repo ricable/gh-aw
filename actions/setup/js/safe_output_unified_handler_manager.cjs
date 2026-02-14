@@ -982,8 +982,19 @@ async function main() {
     // Create the shared PR review buffer instance (no global state)
     const prReviewBuffer = createReviewBuffer();
 
-    // Apply footer config from submit_pull_request_review (if configured)
+    // Apply footer config with priority: submit_pull_request_review > create_pull_request_review_comment
+    // Default is true (show footer)
+    let includeFooter = true;
+    if (configs.regular?.create_pull_request_review_comment?.footer === false) {
+      includeFooter = false;
+    }
     if (configs.regular?.submit_pull_request_review?.footer === false) {
+      includeFooter = false;
+    }
+    if (configs.regular?.submit_pull_request_review?.footer === true) {
+      includeFooter = true; // Explicit true overrides create_pull_request_review_comment
+    }
+    if (!includeFooter) {
       prReviewBuffer.setIncludeFooter(false);
     }
 

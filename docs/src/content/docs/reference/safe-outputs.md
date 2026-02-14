@@ -685,6 +685,7 @@ safe-outputs:
     side: "RIGHT"             # "LEFT" or "RIGHT" (default: "RIGHT")
     target: "*"               # "triggering" (default), "*", or number
     target-repo: "owner/repo" # cross-repository
+    footer: false             # omit AI-generated footer from review body (default: true)
 ```
 
 ### Submit PR Review (`submit-pull-request-review:`)

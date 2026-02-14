@@ -15,6 +15,7 @@ type CreatePullRequestReviewCommentsConfig struct {
 	Target               string   `yaml:"target,omitempty"`        // Target for comments: "triggering" (default), "*" (any PR), or explicit PR number
 	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`   // Target repository in format "owner/repo" for cross-repository PR review comments
 	AllowedRepos         []string `yaml:"allowed-repos,omitempty"` // List of additional repositories that PR review comments can be added to (additionally to the target-repo)
+	Footer               *bool    `yaml:"footer,omitempty"`        // Controls whether AI-generated footer is added to the review body. When false, footer is omitted.
 }
 
 // buildCreateOutputPullRequestReviewCommentJob creates the create_pr_review_comment job
@@ -118,6 +119,14 @@ func (c *Compiler) parsePullRequestReviewCommentsConfig(outputMap map[string]any
 			return nil // Invalid configuration, return nil to cause validation error
 		}
 		prReviewCommentsConfig.TargetRepoSlug = targetRepoSlug
+
+		// Parse footer flag
+		if footer, exists := configMap["footer"]; exists {
+			if footerBool, ok := footer.(bool); ok {
+				prReviewCommentsConfig.Footer = &footerBool
+				createPRReviewCommentLog.Printf("Footer control: %t", footerBool)
+			}
+		}
 
 		// Parse common base fields with default max of 10
 		c.parseBaseSafeOutputConfig(configMap, &prReviewCommentsConfig.BaseSafeOutputConfig, 10)
