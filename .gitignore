@@ -173,4 +173,3 @@ test-script-mode.lock.yml
 
 # Cache downloads directory
 .github/aw/cache-memory/
-cache-downloads/
