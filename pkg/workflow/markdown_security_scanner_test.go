@@ -756,6 +756,14 @@ func TestStripHTMLComments(t *testing.T) {
 			assert.Equal(t, tt.expected, result, "stripped content should match")
 			// Verify line count is preserved
 			assert.Equal(t, strings.Count(tt.content, "\n"), strings.Count(result, "\n"), "line count should be preserved")
+			
+			// Verify each line's length is preserved (character count per line)
+			originalLines := strings.Split(tt.content, "\n")
+			resultLines := strings.Split(result, "\n")
+			assert.Equal(t, len(originalLines), len(resultLines), "number of lines should be equal")
+			for i := range originalLines {
+				assert.Equal(t, len(originalLines[i]), len(resultLines[i]), "line %d length should be preserved", i+1)
+			}
 		})
 	}
 }

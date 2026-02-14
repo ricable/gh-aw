@@ -154,9 +154,6 @@ func stripFrontmatter(content string) (string, int) {
 // be scanned for security issues. This function replaces comments with spaces
 // to preserve line numbers for accurate reporting.
 func stripHTMLComments(content string) string {
-	// Match HTML comments: <!-- ... -->
-	htmlCommentPattern := regexp.MustCompile(`(?s)<!--(.*?)-->`)
-
 	// Replace comments with spaces (same length) to preserve line structure
 	result := htmlCommentPattern.ReplaceAllStringFunc(content, func(match string) string {
 		// Replace comment content with spaces to preserve line numbers
@@ -276,6 +273,9 @@ func scanUnicodeAbuse(content string) []SecurityFinding {
 
 // Patterns for hidden content in HTML
 var (
+	// HTML comments (<!-- -->), which need to be stripped before scanning
+	htmlCommentPattern = regexp.MustCompile(`(?s)<!--(.*?)-->`)
+
 	// Hidden spans and divs using CSS
 	cssHiddenPattern = regexp.MustCompile(`(?i)<(span|div|p|section|article)[^>]*style\s*=\s*["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0|font-size\s*:\s*0|height\s*:\s*0|width\s*:\s*0|overflow\s*:\s*hidden)`)
 
