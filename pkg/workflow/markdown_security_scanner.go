@@ -7,7 +7,7 @@
 // It provides hard errors with no override for the following categories:
 //
 //   - Unicode abuse: zero-width characters, bidi overrides, control characters
-//   - Hidden content: HTML comments with suspicious payloads, hidden spans, CSS hiding
+//   - Hidden content: hidden spans, CSS hiding, HTML entity obfuscation
 //   - Obfuscated links: data URIs, mismatched link text/URLs, encoded URLs
 //   - HTML abuse: script/iframe/object/embed tags, event handlers
 //   - Embedded files: SVG with scripts, data-URI payloads in images
@@ -78,16 +78,21 @@ func countCategories(findings []SecurityFinding) int {
 }
 
 // ScanMarkdownSecurity scans markdown content for dangerous or malicious patterns.
-// It automatically strips YAML frontmatter (delimited by ---) so that only the
-// markdown body is scanned. Line numbers in returned findings are adjusted to
-// match the original file. Returns a list of findings. If non-empty, the content
-// should be rejected.
+// It automatically strips YAML frontmatter (delimited by ---) and HTML comments
+// (which are removed by markdown renderers) so that only the rendered markdown
+// body is scanned. Line numbers in returned findings are adjusted to match the
+// original file. Returns a list of findings. If non-empty, the content should be
+// rejected.
 func ScanMarkdownSecurity(content string) []SecurityFinding {
 	markdownSecurityLog.Printf("Scanning markdown content (%d bytes) for security issues", len(content))
 
 	// Strip frontmatter and get the line offset for correct line number reporting
 	markdownBody, lineOffset := stripFrontmatter(content)
 	markdownSecurityLog.Printf("Stripped frontmatter: %d line(s) removed, scanning %d bytes of markdown", lineOffset, len(markdownBody))
+
+	// Strip HTML comments since they are removed by markdown renderers
+	markdownBody = stripHTMLComments(markdownBody)
+	markdownSecurityLog.Print("Stripped HTML comments from markdown body")
 
 	var findings []SecurityFinding
 
@@ -142,6 +147,27 @@ func stripFrontmatter(content string) (string, int) {
 
 	// No closing --- found; treat as frontmatter-only with no markdown body to scan
 	return "", 0
+}
+
+// stripHTMLComments removes HTML comments (<!-- -->) from markdown content.
+// Markdown renderers strip HTML comments before rendering, so they should not
+// be scanned for security issues. This function replaces comments with spaces
+// to preserve line numbers for accurate reporting.
+func stripHTMLComments(content string) string {
+	// Match HTML comments: <!-- ... -->
+	htmlCommentPattern := regexp.MustCompile(`(?s)<!--(.*?)-->`)
+	
+	// Replace comments with spaces (same length) to preserve line structure
+	result := htmlCommentPattern.ReplaceAllStringFunc(content, func(match string) string {
+		// Replace comment content with spaces to preserve line numbers
+		lines := strings.Split(match, "\n")
+		for i := range lines {
+			lines[i] = strings.Repeat(" ", len(lines[i]))
+		}
+		return strings.Join(lines, "\n")
+	})
+	
+	return result
 }
 
 // FormatSecurityFindings formats a list of findings into a human-readable error message
@@ -250,9 +276,6 @@ func scanUnicodeAbuse(content string) []SecurityFinding {
 
 // Patterns for hidden content in HTML
 var (
-	// HTML comments that contain suspicious content (not simple TODO/NOTE comments)
-	htmlCommentPattern = regexp.MustCompile(`(?s)<!--(.*?)-->`)
-
 	// Hidden spans and divs using CSS
 	cssHiddenPattern = regexp.MustCompile(`(?i)<(span|div|p|section|article)[^>]*style\s*=\s*["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0|font-size\s*:\s*0|height\s*:\s*0|width\s*:\s*0|overflow\s*:\s*hidden)`)
 
@@ -263,24 +286,6 @@ var (
 func scanHiddenContent(content string) []SecurityFinding {
 	var findings []SecurityFinding
 	lines := strings.Split(content, "\n")
-
-	// Check for HTML comments containing suspicious content
-	matches := htmlCommentPattern.FindAllStringSubmatchIndex(content, -1)
-	for _, match := range matches {
-		commentBody := content[match[2]:match[3]]
-		commentLine := lineNumberAt(content, match[0])
-
-		// Flag comments that contain code-like content, URLs, or suspicious keywords
-		lowerComment := strings.ToLower(commentBody)
-		if containsSuspiciousCommentContent(lowerComment) {
-			findings = append(findings, SecurityFinding{
-				Category:    CategoryHiddenContent,
-				Description: "HTML comment contains suspicious content (code, URLs, or executable instructions)",
-				Line:        commentLine,
-				Snippet:     truncateSnippet(strings.TrimSpace(commentBody), 80),
-			})
-		}
-	}
 
 	// Check for CSS-hidden elements
 	for lineNum, line := range lines {
@@ -309,41 +314,7 @@ func scanHiddenContent(content string) []SecurityFinding {
 	return findings
 }
 
-// suspiciousCommentWordPatterns matches short shell keywords as whole words
-// to avoid false positives (e.g. "sh " matching inside "fresh data")
-var suspiciousCommentWordPatterns = regexp.MustCompile(`(?i)(?:^|\s)(?:sh|bash)\s`)
 
-// containsSuspiciousCommentContent checks if an HTML comment body contains suspicious content
-func containsSuspiciousCommentContent(lowerComment string) bool {
-	// Check short keywords that need word-boundary matching
-	if suspiciousCommentWordPatterns.MatchString(lowerComment) {
-		return true
-	}
-
-	// Exact substring patterns (specific enough to avoid false positives)
-	suspiciousPatterns := []string{
-		"curl ", "wget ", "eval(",
-		"base64", "exec(", "system(",
-		"<script", "<iframe", "<object",
-		"javascript:", "vbscript:",
-		// Data URI patterns with MIME types (avoids matching "metadata:", "PR data:", etc.)
-		"data:text/", "data:application/", "data:image/svg",
-		"require(",
-		"document.", "window.",
-		"fetch(", "xmlhttprequest",
-		"prompt injection", "ignore previous", "ignore above",
-		"override instructions", "new instructions",
-		"you are now", "act as",
-	}
-
-	for _, pattern := range suspiciousPatterns {
-		if strings.Contains(lowerComment, pattern) {
-			return true
-		}
-	}
-
-	return false
-}
 
 // --- Obfuscated Links Detection ---
 
