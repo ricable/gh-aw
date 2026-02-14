@@ -111,7 +111,8 @@ func RunCacheDelete(config CacheDeleteConfig) error {
 	if !config.Force {
 		fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("About to delete %d cache(s):", len(cachesToDelete))))
 		for _, cache := range cachesToDelete {
-			fmt.Fprintf(os.Stderr, "  - %s (ID: %d, Size: %d bytes)\n", cache.Key, cache.ID, cache.SizeInBytes)
+			listItem := fmt.Sprintf("%s (ID: %d, Size: %s)", cache.Key, cache.ID, console.FormatFileSize(cache.SizeInBytes))
+			fmt.Fprintln(os.Stderr, console.FormatListItem(listItem))
 		}
 		fmt.Fprintf(os.Stderr, "\n%s", console.FormatPromptMessage("Proceed with deletion? [y/N]: "))
 

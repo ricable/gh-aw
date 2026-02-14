@@ -121,7 +121,7 @@ func RunCacheList(config CacheListConfig) error {
 	// Print each cache entry
 	for _, cache := range caches {
 		// Format size
-		sizeStr := formatBytes(cache.SizeInBytes)
+		sizeStr := console.FormatFileSize(cache.SizeInBytes)
 
 		// Truncate key if too long
 		key := cache.Key
@@ -183,20 +183,6 @@ func listCachesWithRef(keyPrefix string, ref string, limit int, verbose bool) ([
 
 	cacheListLog.Printf("Found %d caches after filtering", len(output))
 	return output, nil
-}
-
-// formatBytes formats bytes into human-readable format
-func formatBytes(bytes int64) string {
-	const unit = 1024
-	if bytes < unit {
-		return fmt.Sprintf("%d B", bytes)
-	}
-	div, exp := int64(unit), 0
-	for n := bytes / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
 // formatTime formats ISO 8601 timestamp into human-readable format

@@ -187,24 +187,3 @@ func TestCacheListConfig(t *testing.T) {
 		})
 	}
 }
-
-func TestFormatBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		bytes    int64
-		expected string
-	}{
-		{"zero bytes", 0, "0 B"},
-		{"bytes", 512, "512 B"},
-		{"kilobytes", 1536, "1.5 KB"},
-		{"megabytes", 1048576, "1.0 MB"},
-		{"gigabytes", 2147483648, "2.0 GB"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := formatBytes(tt.bytes)
-			assert.Equal(t, tt.expected, result, "Formatted bytes should match")
-		})
-	}
-}
