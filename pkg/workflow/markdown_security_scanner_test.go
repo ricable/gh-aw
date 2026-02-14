@@ -213,8 +213,6 @@ func TestScanMarkdownSecurity_HiddenContent_HTMLEntityObfuscation(t *testing.T) 
 	assert.Equal(t, CategoryHiddenContent, findings[0].Category, "category should be hidden-content")
 }
 
-
-
 // --- Obfuscated Links Tests ---
 
 func TestScanMarkdownSecurity_ObfuscatedLinks_DataURIs(t *testing.T) {

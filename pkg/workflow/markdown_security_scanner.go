@@ -156,7 +156,7 @@ func stripFrontmatter(content string) (string, int) {
 func stripHTMLComments(content string) string {
 	// Match HTML comments: <!-- ... -->
 	htmlCommentPattern := regexp.MustCompile(`(?s)<!--(.*?)-->`)
-	
+
 	// Replace comments with spaces (same length) to preserve line structure
 	result := htmlCommentPattern.ReplaceAllStringFunc(content, func(match string) string {
 		// Replace comment content with spaces to preserve line numbers
@@ -166,7 +166,7 @@ func stripHTMLComments(content string) string {
 		}
 		return strings.Join(lines, "\n")
 	})
-	
+
 	return result
 }
 
@@ -313,8 +313,6 @@ func scanHiddenContent(content string) []SecurityFinding {
 
 	return findings
 }
-
-
 
 // --- Obfuscated Links Detection ---
 
