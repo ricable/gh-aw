@@ -233,8 +233,15 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 			},
 		}
 
+		// Enable mcp-gateway feature flag for Codex
+		frontmatter := map[string]any{
+			"features": map[string]any{
+				"mcp-gateway": true,
+			},
+		}
+
 		// sandbox.agent: false is not allowed in strict mode for any engine
-		err := compiler.validateStrictFirewall("codex", networkPerms, sandboxConfig, nil)
+		err := compiler.validateStrictFirewall("codex", networkPerms, sandboxConfig, frontmatter)
 		if err == nil {
 			t.Error("Expected error for sandbox.agent: false in strict mode, got nil")
 		}
