@@ -170,7 +170,7 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		}
 	})
 
-	t.Run("claude engine without LLM gateway support rejects custom domains", func(t *testing.T) {
+	t.Run("claude engine with LLM gateway support also rejects custom domains in strict mode", func(t *testing.T) {
 		compiler := NewCompiler()
 		compiler.strictMode = true
 
@@ -183,7 +183,7 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 
 		err := compiler.validateStrictFirewall("claude", networkPerms, nil)
 		if err == nil {
-			t.Error("Expected error for claude engine with custom domains, got nil")
+			t.Error("Expected error for claude engine with custom domains in strict mode, got nil")
 		}
 		if err != nil && !strings.Contains(err.Error(), "network domains must be from known ecosystems") {
 			t.Errorf("Expected error about known ecosystems, got: %v", err)
@@ -313,8 +313,8 @@ func TestSupportsLLMGateway(t *testing.T) {
 		},
 		{
 			engineID:           "claude",
-			expectedLLMGateway: false,
-			description:        "Claude engine does not support LLM gateway",
+			expectedLLMGateway: true,
+			description:        "Claude engine supports LLM gateway",
 		},
 		{
 			engineID:           "custom",
