@@ -50,6 +50,8 @@ safe-outputs:
     create-discussion:
       category: announcements
       labels: [codex-was-here]
+      expires: 1d
+      close-older-discussions: true
       max: 1
     add-labels:
       allowed: [smoke-codex]
