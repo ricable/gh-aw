@@ -1020,3 +1020,28 @@
 10. /dev/shm write testing
 
 **Key Finding**: Even kernel-level syscalls (splice) are intercepted by iptables NAT. The firewall operates below application and syscall layers, making it extremely difficult to bypass without kernel vulnerabilities.
+
+## Run 22021233519 - 2026-02-14
+
+- [x] Technique 1: GitHub Codespaces Redirect Chain (result: failure)
+- [x] Technique 2: GitHub OAuth Callback Manipulation (result: failure)
+- [x] Technique 3: Raw ICMP Socket Creation (result: failure - CAP_NET_RAW required)
+- [x] Technique 4: Squid Cache Peer Exploitation (result: failure)
+- [x] Technique 5: Git Protocol Raw Socket (result: failure - port 9418 blocked)
+- [x] Technique 6: DNS TXT Record Exfiltration (result: success-info - side channel only)
+- [x] Technique 7: Squid cachemgr.cgi Access (result: failure - ACL denied)
+- [x] Technique 8: IPv4 Link-Local Address (result: failure - still routed through Squid)
+- [x] Technique 9: Multicast Group Join (result: success-info - no HTTP escape)
+- [x] Technique 10: HTTP Absolute-Form with Host Mismatch (result: failure)
+- [x] Technique 11: Squid Cache Poisoning via Vary Header (result: failure)
+- [x] Technique 12: Unix Domain Socket Discovery (result: success-info - no network escape)
+- [x] Technique 13: RFC 3986 URL Parsing Ambiguity (result: failure)
+- [x] Technique 14: HTTP/1.0 Without Host Header (result: failure)
+- [x] Technique 15: Process Namespace via /proc/*/root (result: failure)
+- [x] Technique 16: Squid SSL Bump Detection (result: success-info - tunnel mode confirmed)
+- [x] Technique 17: Squid Via Header Analysis (result: success-info - reconnaissance)
+- [x] Technique 18: Proxy Environment Unset Race Condition (result: failure - kernel NAT)
+- [x] Technique 19: HTTP UPGRADE Header Exploitation (result: failure)
+- [x] Technique 20: Container cgroup Memory Pressure (result: info-only)
+
+**Summary**: All 20 novel techniques blocked successfully. 0 network firewall escapes. 5 info-gathering techniques succeeded (DNS TXT, multicast, Unix sockets, SSL detection, Via headers) but none provide HTTP escape. Cumulative: 708 techniques (28 runs), 0 escapes (excluding patched sibling container vulnerability). Sandbox secure.
