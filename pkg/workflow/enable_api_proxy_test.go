@@ -15,9 +15,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 				ID: "claude",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -42,9 +40,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -69,9 +65,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 				ID: "codex",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 

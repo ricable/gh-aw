@@ -37,7 +37,7 @@ func TestCollectDockerImages_APIProxyForEnginesWithLLMGateway(t *testing.T) {
 				AI: tt.engine,
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						
+
 						Version: awfImageTag,
 					},
 				},

@@ -18,11 +18,9 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Allowed: []string{"defaults", "github"},
-				Blocked: []string{"tracker.example.com", "analytics.example.com"},
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Allowed:  []string{"defaults", "github"},
+				Blocked:  []string{"tracker.example.com", "analytics.example.com"},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -51,10 +49,8 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Allowed: []string{"defaults", "github"},
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Allowed:  []string{"defaults", "github"},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -79,11 +75,9 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Allowed: []string{"defaults", "github"},
-				Blocked: []string{"python"},
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Allowed:  []string{"defaults", "github"},
+				Blocked:  []string{"python"},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -123,11 +117,9 @@ func TestFirewallBlockedDomainsInClaudeEngine(t *testing.T) {
 				ID: "claude",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Allowed: []string{"defaults"},
-				Blocked: []string{"tracker.example.com"},
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Allowed:  []string{"defaults"},
+				Blocked:  []string{"tracker.example.com"},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -153,11 +145,9 @@ func TestFirewallBlockedDomainsInCodexEngine(t *testing.T) {
 				ID: "codex",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Allowed: []string{"defaults"},
-				Blocked: []string{"tracker.example.com"},
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Allowed:  []string{"defaults"},
+				Blocked:  []string{"tracker.example.com"},
+				Firewall: &FirewallConfig{},
 			},
 		}
 

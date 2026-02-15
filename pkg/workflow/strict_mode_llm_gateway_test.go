@@ -16,10 +16,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"custom-domain.com", "another-custom.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"custom-domain.com", "another-custom.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("codex", networkPerms, nil)
@@ -36,10 +34,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"custom-domain.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"custom-domain.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -56,10 +52,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"defaults"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"defaults"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -73,10 +67,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"python", "node", "github"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"python", "node", "github"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -91,10 +83,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 
 		// These domains are from known ecosystems (python, node) but users should use ecosystem identifiers instead
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"pypi.org", "registry.npmjs.org"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"pypi.org", "registry.npmjs.org"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -115,10 +105,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"python", "node", "github"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"python", "node", "github"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("codex", networkPerms, nil)
@@ -133,10 +121,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 
 		// These domains are from known ecosystems (python, node) but users should use ecosystem identifiers instead
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"pypi.org", "registry.npmjs.org"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"pypi.org", "registry.npmjs.org"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("codex", networkPerms, nil)
@@ -157,10 +143,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"python", "custom-domain.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"python", "custom-domain.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -177,10 +161,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"custom-domain.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"custom-domain.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("claude", networkPerms, nil)
@@ -223,10 +205,8 @@ func TestValidateStrictFirewall_LLMGatewaySupport(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"defaults"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"defaults"},
+			Firewall: &FirewallConfig{},
 		}
 
 		sandboxConfig := &SandboxConfig{
@@ -353,10 +333,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"pypi.org"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"pypi.org"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -381,10 +359,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"npmjs.org", "registry.npmjs.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"npmjs.org", "registry.npmjs.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -409,10 +385,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"pypi.org", "npmjs.org"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"pypi.org", "npmjs.org"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -443,10 +417,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"custom-domain.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"custom-domain.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -465,10 +437,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"pypi.org", "custom-domain.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"pypi.org", "custom-domain.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
@@ -502,10 +472,8 @@ func TestValidateStrictFirewall_EcosystemSuggestions(t *testing.T) {
 		compiler.strictMode = true
 
 		networkPerms := &NetworkPermissions{
-			Allowed: []string{"python", "node"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"python", "node"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)

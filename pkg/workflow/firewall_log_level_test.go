@@ -128,9 +128,7 @@ func TestFirewallLogLevelInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -157,7 +155,7 @@ func TestFirewallLogLevelInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled:  true,
+
 					LogLevel: "debug",
 				},
 			},
@@ -189,7 +187,7 @@ func TestFirewallLogLevelInCopilotEngine(t *testing.T) {
 				},
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+
 						LogLevel: level,
 					},
 				},

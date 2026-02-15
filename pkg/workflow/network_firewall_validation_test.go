@@ -13,7 +13,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("allow-urls without ssl-bump fails validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   true,
+
 				SSLBump:   false,
 				AllowURLs: []string{"https://github.com/githubnext/*"},
 			},
@@ -29,7 +29,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("allow-urls with ssl-bump passes validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   true,
+
 				SSLBump:   true,
 				AllowURLs: []string{"https://github.com/githubnext/*"},
 			},
@@ -43,7 +43,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("multiple allow-urls without ssl-bump fails validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled: true,
+
 				SSLBump: false,
 				AllowURLs: []string{
 					"https://github.com/githubnext/*",
@@ -62,7 +62,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("multiple allow-urls with ssl-bump passes validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled: true,
+
 				SSLBump: true,
 				AllowURLs: []string{
 					"https://github.com/githubnext/*",
@@ -80,7 +80,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("ssl-bump without allow-urls passes validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   true,
+
 				SSLBump:   true,
 				AllowURLs: nil,
 			},
@@ -94,7 +94,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("empty allow-urls with ssl-bump passes validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   true,
+
 				SSLBump:   true,
 				AllowURLs: []string{},
 			},
@@ -108,7 +108,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 	t.Run("empty allow-urls without ssl-bump passes validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   true,
+
 				SSLBump:   false,
 				AllowURLs: []string{},
 			},
@@ -162,7 +162,7 @@ func TestValidateNetworkFirewallConfig_Integration(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled:   true,
+
 					SSLBump:   false,
 					AllowURLs: []string{"https://github.com/githubnext/*"},
 				},
@@ -187,7 +187,7 @@ func TestValidateNetworkFirewallConfig_Integration(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled:   true,
+
 					SSLBump:   true,
 					AllowURLs: []string{"https://github.com/githubnext/*"},
 				},

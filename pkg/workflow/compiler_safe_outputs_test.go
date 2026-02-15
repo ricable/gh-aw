@@ -611,9 +611,7 @@ func TestApplyDefaultTools(t *testing.T) {
 			name:  "firewall enabled adds edit and bash",
 			tools: map[string]any{},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 			expectedGitHub:    true,
 			expectedEdit:      true,
@@ -922,18 +920,14 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 			name:          "firewall enabled auto-enables sandbox",
 			sandboxConfig: nil,
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 			expected: true,
 		},
 		{
 			name: "firewall disabled",
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: false,
-				},
+				Firewall: &FirewallConfig{},
 			},
 			expected: false,
 		},
@@ -945,9 +939,7 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 				},
 			},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 			expected: false,
 		},

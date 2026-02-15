@@ -19,7 +19,8 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 
 		if networkPerms.Firewall == nil {
 			t.Error("Expected firewall to be enabled by default for copilot engine with network restrictions")
-		})
+		}
+	})
 
 	t.Run("copilot engine with network:defaults enables firewall by default", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -31,7 +32,7 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 		if networkPerms.Firewall == nil {
 			t.Error("Expected firewall to be enabled by default for copilot engine with network:defaults")
 		}
-
+	})
 
 	t.Run("copilot engine with empty network object enables firewall by default", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -44,7 +45,7 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 		if networkPerms.Firewall == nil {
 			t.Error("Expected firewall to be enabled by default for copilot engine with empty network object")
 		}
-		})
+	})
 
 	t.Run("copilot engine with wildcard allowed does NOT enable firewall", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -56,7 +57,8 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 
 		if networkPerms.Firewall != nil {
 			t.Error("Expected firewall to NOT be enabled when allowed contains wildcard '*'")
-		})
+		}
+	})
 
 	t.Run("copilot engine with explicit firewall config is not overridden", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -73,9 +75,13 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 		if networkPerms.Firewall == nil {
 			t.Error("Should not remove existing firewall config")
 		}
+		if networkPerms.Firewall == nil {
+			t.Error("Should not remove existing firewall config")
+		}
 		if networkPerms.Firewall.Version != "v0.8.0" {
 			t.Error("Should preserve explicit firewall version")
-		})
+		}
+	})
 
 	t.Run("non-copilot engine does not enable firewall", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -87,7 +93,8 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 
 		if networkPerms.Firewall != nil {
 			t.Error("Expected firewall to remain nil for non-copilot engine")
-		})
+		}
+	})
 
 	t.Run("codex engine with network restrictions enables firewall by default", func(t *testing.T) {
 		networkPerms := &NetworkPermissions{
@@ -100,8 +107,7 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 		if networkPerms.Firewall == nil {
 			t.Error("Expected firewall to be enabled by default for codex engine with network restrictions")
 		}
-
-		})
+	})
 
 	t.Run("nil network permissions does not cause error", func(t *testing.T) {
 		// Should not panic
@@ -147,8 +153,6 @@ func TestCopilotFirewallDefaultIntegration(t *testing.T) {
 			t.Error("Expected firewall to be automatically enabled")
 		}
 
-		}
-
 		// Create workflow data
 		workflowData := &WorkflowData{
 			Name:               "test-workflow",
@@ -168,10 +172,12 @@ func TestCopilotFirewallDefaultIntegration(t *testing.T) {
 				found = true
 				break
 			}
+		}
 
 		if !found {
 			t.Error("Expected AWF installation steps to be included")
-		})
+		}
+	})
 
 	t.Run("copilot workflow with explicit firewall:false does not include AWF", func(t *testing.T) {
 		frontmatter := map[string]any{
@@ -202,17 +208,17 @@ func TestCopilotFirewallDefaultIntegration(t *testing.T) {
 			t.Fatal("Expected network permissions to be extracted")
 		}
 
-		// Verify firewall is explicitly disabled
-		if networkPerms.Firewall == nil {
-			t.Error("Expected firewall config to be present")
-		}
-
+		// Verify firewall is disabled (nil when firewall: false)
+		if networkPerms.Firewall != nil {
+			t.Error("Expected firewall config to be nil (disabled) when firewall: false")
 		}
 
 		// Enable firewall by default (should not override explicit config)
 		enableFirewallByDefaultForCopilot(engineConfig.ID, networkPerms, nil)
 
-		// Verify firewall is still disabled
+		// Verify firewall is still disabled (nil)
+		if networkPerms.Firewall != nil {
+			t.Error("Expected firewall to remain disabled (nil) when explicitly set to false")
 		}
 
 		// Create workflow data
@@ -232,6 +238,7 @@ func TestCopilotFirewallDefaultIntegration(t *testing.T) {
 			if strings.Contains(stepStr, "Install awf binary") {
 				t.Error("Expected AWF installation steps to NOT be included when firewall is explicitly disabled")
 			}
+		}
 	})
 
 	t.Run("claude engine with network restrictions does not enable firewall", func(t *testing.T) {
@@ -268,7 +275,8 @@ func TestCopilotFirewallDefaultIntegration(t *testing.T) {
 		// Verify firewall is NOT enabled for claude
 		if networkPerms.Firewall != nil {
 			t.Error("Expected firewall to remain nil for claude engine")
-		})
+		}
+	})
 }
 
 // TestDailyTeamStatusFirewallEnabled tests that daily-team-status workflow has firewall enabled
@@ -315,10 +323,7 @@ func TestDailyTeamStatusFirewallEnabled(t *testing.T) {
 		if networkPerms.Firewall == nil {
 			t.Error("Expected firewall to be automatically enabled for network:defaults with copilot")
 		}
-
-		if networkPerms.Firewall != nil && !networkPerms.Firewall.Enabled {
-			t.Error("Expected firewall.Enabled to be true")
-		})
+	})
 }
 
 // TestStrictModeFirewallValidation tests strict mode firewall validation
@@ -341,7 +346,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 
 		if !strings.Contains(err.Error(), "firewall must be enabled") {
 			t.Errorf("Expected error about firewall requirement, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("strict mode allows firewall disabled when allowed is wildcard", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -356,7 +362,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err != nil {
 			t.Errorf("Expected no error when allowed is wildcard, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("strict mode passes when firewall is enabled", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -365,15 +372,14 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"python"}, // Use known ecosystem instead of custom domain
 			ExplicitlyDefined: true,
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Firewall:          &FirewallConfig{},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err != nil {
 			t.Errorf("Expected no error when firewall is enabled, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("strict mode skips validation for non-copilot engines", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -388,7 +394,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		err := compiler.validateStrictFirewall("claude", networkPerms, nil)
 		if err != nil {
 			t.Errorf("Expected no error for non-copilot engine, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("strict mode refuses sandbox.agent: false for copilot", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -413,7 +420,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		expectedMsg := "sandbox.agent: false"
 		if !strings.Contains(err.Error(), expectedMsg) {
 			t.Errorf("Expected error message to contain '%s', got: %v", expectedMsg, err)
-		})
+		}
+	})
 
 	t.Run("strict mode refuses sandbox.agent: false for all engines", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -439,7 +447,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		expectedMsg := "sandbox.agent: false"
 		if !strings.Contains(err.Error(), expectedMsg) {
 			t.Errorf("Expected error message to contain '%s', got: %v", expectedMsg, err)
-		})
+		}
+	})
 
 	t.Run("strict mode skips validation when SRT is enabled", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -458,7 +467,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		err := compiler.validateStrictFirewall("copilot", networkPerms, sandboxConfig)
 		if err != nil {
 			t.Errorf("Expected no error when SRT is enabled, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("non-strict mode does not validate firewall", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -473,7 +483,8 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err != nil {
 			t.Errorf("Expected no error in non-strict mode, got: %v", err)
-		})
+		}
+	})
 
 	t.Run("sandbox.agent: false is rejected even in non-strict mode", func(t *testing.T) {
 		compiler := NewCompiler()
@@ -503,5 +514,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 			if !strings.Contains(err.Error(), expectedMsg) {
 				t.Errorf("Expected error message to contain '%s', got: %v", expectedMsg, err)
 			}
+		}
 	})
 }

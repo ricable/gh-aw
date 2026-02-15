@@ -16,9 +16,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -72,9 +70,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -116,8 +112,8 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
-					Args:    []string{"--custom-flag", "value"},
+
+					Args: []string{"--custom-flag", "value"},
 				},
 			},
 		}
@@ -148,9 +144,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 			// Explicitly set AWF sandbox type
 			SandboxConfig: &SandboxConfig{
@@ -185,9 +179,7 @@ func TestChrootModeEnvFlags(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 

@@ -70,9 +70,7 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -118,7 +116,7 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
+
 					Version: customVersion,
 				},
 			},

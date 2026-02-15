@@ -22,7 +22,7 @@ func TestGetAWFImageTag(t *testing.T) {
 
 	t.Run("returns default version without v prefix when version is empty", func(t *testing.T) {
 		config := &FirewallConfig{
-			Enabled: true,
+
 			Version: "",
 		}
 		result := getAWFImageTag(config)
@@ -35,7 +35,7 @@ func TestGetAWFImageTag(t *testing.T) {
 	t.Run("returns custom version without v prefix when specified", func(t *testing.T) {
 		customVersion := "v0.5.0"
 		config := &FirewallConfig{
-			Enabled: true,
+
 			Version: customVersion,
 		}
 		result := getAWFImageTag(config)
@@ -48,7 +48,7 @@ func TestGetAWFImageTag(t *testing.T) {
 	t.Run("returns version unchanged when no v prefix present", func(t *testing.T) {
 		customVersion := "0.6.0"
 		config := &FirewallConfig{
-			Enabled: true,
+
 			Version: customVersion,
 		}
 		result := getAWFImageTag(config)
@@ -67,9 +67,7 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 				ID: "claude",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -98,7 +96,7 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
+
 					Version: customVersion,
 				},
 			},
@@ -130,9 +128,7 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 				ID: "codex",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -161,7 +157,7 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
+
 					Version: customVersion,
 				},
 			},

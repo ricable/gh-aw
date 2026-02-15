@@ -3,7 +3,6 @@
 package workflow
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -248,10 +247,8 @@ func TestCheckFirewallDisable(t *testing.T) {
 		compiler := NewCompiler()
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
-			Allowed: []string{"example.com"},
-			Firewall: &FirewallConfig{
-				Enabled: true,
-			},
+			Allowed:  []string{"example.com"},
+			Firewall: &FirewallConfig{},
 		}
 
 		err := compiler.checkFirewallDisable(engine, perms)
@@ -281,7 +278,7 @@ func TestCheckFirewallDisable(t *testing.T) {
 		compiler := NewCompiler()
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
-			Allowed: []string{"example.com"},
+			Allowed:  []string{"example.com"},
 			Firewall: &FirewallConfig{}, // Enabled firewall is represented by non-nil
 		}
 
@@ -300,7 +297,7 @@ func TestCheckFirewallDisable(t *testing.T) {
 		compiler.strictMode = true
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
-			Allowed: []string{"example.com"},
+			Allowed:  []string{"example.com"},
 			Firewall: nil, // Disabled firewall
 		}
 

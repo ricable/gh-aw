@@ -18,9 +18,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -60,8 +58,8 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
-					Args:    []string{"--custom-arg", "value", "--another-flag"},
+
+					Args: []string{"--custom-arg", "value", "--another-flag"},
 				},
 			},
 		}
@@ -102,8 +100,8 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
-					Args:    []string{"--message", "hello world", "--path", "/some/path with spaces"},
+
+					Args: []string{"--message", "hello world", "--path", "/some/path with spaces"},
 				},
 			},
 		}
@@ -135,9 +133,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -169,9 +165,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -200,7 +194,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
+
 					Version: customVersion,
 				},
 			},
@@ -236,7 +230,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled: true,
+
 					SSLBump: true,
 				},
 			},
@@ -265,7 +259,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled:   true,
+
 					SSLBump:   true,
 					AllowURLs: []string{"https://github.com/githubnext/*", "https://api.github.com/repos/*"},
 				},
@@ -304,7 +298,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Firewall: &FirewallConfig{
-					Enabled:   true,
+
 					SSLBump:   false, // SSL Bump disabled
 					AllowURLs: []string{"https://github.com/githubnext/*"},
 				},

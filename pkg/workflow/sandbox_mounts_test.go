@@ -132,9 +132,7 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 					},
 				},
 				NetworkPermissions: &NetworkPermissions{
-					Firewall: &FirewallConfig{
-						Enabled: true,
-					},
+					Firewall: &FirewallConfig{},
 				},
 				Tools: map[string]any{
 					"github": map[string]any{}, // Add MCP server to satisfy validation
@@ -155,9 +153,7 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 					},
 				},
 				NetworkPermissions: &NetworkPermissions{
-					Firewall: &FirewallConfig{
-						Enabled: true,
-					},
+					Firewall: &FirewallConfig{},
 				},
 				Tools: map[string]any{
 					"github": map[string]any{}, // Add MCP server to satisfy validation
@@ -182,9 +178,7 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 					},
 				},
 				NetworkPermissions: &NetworkPermissions{
-					Firewall: &FirewallConfig{
-						Enabled: true,
-					},
+					Firewall: &FirewallConfig{},
 				},
 			},
 			wantErr: true,
@@ -206,9 +200,7 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 					},
 				},
 				NetworkPermissions: &NetworkPermissions{
-					Firewall: &FirewallConfig{
-						Enabled: true,
-					},
+					Firewall: &FirewallConfig{},
 				},
 			},
 			wantErr: true,
@@ -255,9 +247,7 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 				},
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -292,9 +282,7 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 				ID: "copilot",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
@@ -336,9 +324,7 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 				},
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
-					Enabled: true,
-				},
+				Firewall: &FirewallConfig{},
 			},
 		}
 
