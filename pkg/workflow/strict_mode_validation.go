@@ -408,7 +408,7 @@ func (c *Compiler) validateStrictFirewall(engineID string, networkPermissions *N
 		return nil
 	}
 
-	// SRT has been removed - all sandboxes use AWF now
+	// All sandboxes use AWF now
 	// This check is no longer needed
 
 	// If network permissions don't exist, that's fine (will default to "defaults")

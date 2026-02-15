@@ -10,7 +10,6 @@ import (
 var firewallLog = logger.New("workflow:firewall")
 
 // FirewallConfig represents AWF (gh-aw-firewall) configuration for network egress control.
-// These settings are specific to the AWF sandbox and do not apply to Sandbox Runtime (SRT).
 type FirewallConfig struct {
 	Enabled       bool     `yaml:"enabled,omitempty"`        // Enable/disable AWF (default: true for copilot when network restrictions present)
 	Version       string   `yaml:"version,omitempty"`        // AWF version (empty = latest)
@@ -95,13 +94,11 @@ func getAgentConfig(workflowData *WorkflowData) *AgentSandboxConfig {
 
 // enableFirewallByDefaultForCopilot enables firewall by default for copilot and codex engines
 // when network restrictions are present but no explicit firewall configuration exists
-// and no SRT sandbox is configured (SRT and AWF are mutually exclusive)
 // and sandbox.agent is not explicitly set to false
 //
 // The firewall is enabled by default for copilot and codex UNLESS:
 // - allowed contains "*" (unrestricted network access)
 // - sandbox.agent is explicitly set to false
-// - SRT sandbox is configured
 func enableFirewallByDefaultForCopilot(engineID string, networkPermissions *NetworkPermissions, sandboxConfig *SandboxConfig) {
 	// Only apply to copilot and codex engines
 	if engineID != "copilot" && engineID != "codex" {
@@ -129,13 +126,11 @@ func enableFirewallByDefaultForClaude(engineID string, networkPermissions *Netwo
 
 // enableFirewallByDefaultForEngine enables firewall by default for a given engine
 // when network restrictions are present but no explicit firewall configuration exists
-// and no SRT sandbox is configured (SRT and AWF are mutually exclusive)
 // and sandbox.agent is not explicitly set to false
 //
 // The firewall is enabled by default for the engine UNLESS:
 // - allowed contains "*" (unrestricted network access)
 // - sandbox.agent is explicitly set to false
-// - SRT sandbox is configured (Copilot only)
 func enableFirewallByDefaultForEngine(engineID string, networkPermissions *NetworkPermissions, sandboxConfig *SandboxConfig) {
 	// Check if network permissions exist
 	if networkPermissions == nil {
@@ -149,7 +144,7 @@ func enableFirewallByDefaultForEngine(engineID string, networkPermissions *Netwo
 		return
 	}
 
-	// SRT has been removed, all sandboxes should use AWF now
+	// All sandboxes use AWF now
 	// This section is no longer needed
 
 	// Check if firewall is already configured
@@ -197,8 +192,7 @@ func getAWFImageTag(firewallConfig *FirewallConfig) string {
 // SSL Bump enables HTTPS content inspection (v0.9.0+), allowing URL path filtering
 // instead of domain-only filtering.
 //
-// Note: These features are specific to AWF (Agent Workflow Firewall) and do not
-// apply to Sandbox Runtime (SRT) or other sandbox configurations.
+// Note: These features are specific to AWF (Agent Workflow Firewall).
 func getSSLBumpArgs(firewallConfig *FirewallConfig) []string {
 	if firewallConfig == nil || !firewallConfig.SSLBump {
 		return nil
