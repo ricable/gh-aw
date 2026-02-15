@@ -32,8 +32,6 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com", "*.trusted.com"},
-				Firewall: &FirewallConfig{Enabled: true},
-			},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -86,8 +84,6 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com"},
-				Firewall: &FirewallConfig{Enabled: true},
-			},
 		}
 
 		steps := engine.GetExecutionSteps(workflowData, "test-log")
@@ -127,8 +123,6 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 
 		networkPermissions := &NetworkPermissions{
 			Allowed:  []string{}, // Empty list means deny all
-			Firewall: &FirewallConfig{Enabled: true},
-		}
 
 		steps := engine.GetExecutionSteps(&WorkflowData{Name: "test-workflow", EngineConfig: config, NetworkPermissions: networkPermissions}, "test-log")
 		if len(steps) == 0 {
@@ -154,8 +148,6 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 
 		networkPermissions := &NetworkPermissions{
 			Allowed:  []string{"example.com"},
-			Firewall: &FirewallConfig{Enabled: true},
-		}
 
 		steps := engine.GetExecutionSteps(&WorkflowData{Name: "test-workflow", EngineConfig: config, NetworkPermissions: networkPermissions}, "test-log")
 		if len(steps) == 0 {
@@ -183,8 +175,6 @@ func TestNetworkPermissionsIntegration(t *testing.T) {
 
 		networkPermissions := &NetworkPermissions{
 			Allowed:  []string{"api.github.com", "*.example.com", "trusted.org"},
-			Firewall: &FirewallConfig{Enabled: true},
-		}
 
 		// Get installation steps
 		steps := engine.GetInstallationSteps(&WorkflowData{EngineConfig: config, NetworkPermissions: networkPermissions})
@@ -244,8 +234,6 @@ func TestNetworkPermissionsIntegration(t *testing.T) {
 
 		networkPermissions := &NetworkPermissions{
 			Allowed:  []string{"example.com"},
-			Firewall: &FirewallConfig{Enabled: true},
-		}
 
 		steps1 := engine1.GetInstallationSteps(&WorkflowData{EngineConfig: config, NetworkPermissions: networkPermissions})
 		steps2 := engine2.GetInstallationSteps(&WorkflowData{EngineConfig: config, NetworkPermissions: networkPermissions})

@@ -351,7 +351,6 @@ func TestIsSandboxEnabled(t *testing.T) {
 			name:          "firewall auto-enabled (no explicit agent config)",
 			sandboxConfig: nil,
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -363,7 +362,6 @@ func TestIsSandboxEnabled(t *testing.T) {
 				Agent: nil,
 			},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -373,7 +371,6 @@ func TestIsSandboxEnabled(t *testing.T) {
 			name:          "firewall disabled even with network permissions",
 			sandboxConfig: nil,
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: false,
 				},
 			},
@@ -387,7 +384,6 @@ func TestIsSandboxEnabled(t *testing.T) {
 				},
 			},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},

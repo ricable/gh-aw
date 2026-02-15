@@ -18,8 +18,6 @@ func TestFirewallWorkflowNetworkConfiguration(t *testing.T) {
 			Model: "claude-3-5-sonnet-20241022",
 		},
 		NetworkPermissions: &NetworkPermissions{
-			Firewall: &FirewallConfig{Enabled: true},
-		},
 		Tools: map[string]any{
 			"web-fetch": nil,
 		},

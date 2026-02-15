@@ -76,7 +76,6 @@ func TestEnableFirewallByDefaultForCopilot(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"example.com"},
 			ExplicitlyDefined: true,
-			Firewall: &FirewallConfig{
 				Enabled: false,
 			},
 		}
@@ -357,8 +356,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 			Allowed:           []string{"python"}, // Use known ecosystem instead of custom domain
 			ExplicitlyDefined: true,
 			// Firewall is NOT enabled
-			Firewall: nil,
-		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err == nil {
@@ -377,8 +374,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"*"},
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err != nil {
@@ -393,7 +388,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"python"}, // Use known ecosystem instead of custom domain
 			ExplicitlyDefined: true,
-			Firewall: &FirewallConfig{
 				Enabled: true,
 			},
 		}
@@ -411,8 +405,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"python"}, // Use known ecosystem instead of custom domain
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		err := compiler.validateStrictFirewall("claude", networkPerms, nil)
 		if err != nil {
@@ -427,8 +419,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"example.com"},
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		sandboxConfig := &SandboxConfig{
 			Agent: &AgentSandboxConfig{
@@ -453,8 +443,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"example.com"},
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		sandboxConfig := &SandboxConfig{
 			Agent: &AgentSandboxConfig{
@@ -480,8 +468,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"python"}, // Use known ecosystem instead of custom domain
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		sandboxConfig := &SandboxConfig{
 			Type: SandboxTypeAWF,
@@ -500,8 +486,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"example.com"},
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, nil)
 		if err != nil {
@@ -516,8 +500,6 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		networkPerms := &NetworkPermissions{
 			Allowed:           []string{"example.com"},
 			ExplicitlyDefined: true,
-			Firewall:          nil,
-		}
 
 		sandboxConfig := &SandboxConfig{
 			Agent: &AgentSandboxConfig{

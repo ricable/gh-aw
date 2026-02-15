@@ -20,7 +20,6 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults", "github"},
 				Blocked: []string{"tracker.example.com", "analytics.example.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -52,7 +51,6 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults", "github"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -81,7 +79,6 @@ func TestFirewallBlockedDomainsInCopilotEngine(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults", "github"},
 				Blocked: []string{"python"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -125,7 +122,6 @@ func TestFirewallBlockedDomainsInClaudeEngine(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults"},
 				Blocked: []string{"tracker.example.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -155,7 +151,6 @@ func TestFirewallBlockedDomainsInCodexEngine(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults"},
 				Blocked: []string{"tracker.example.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},

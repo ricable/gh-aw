@@ -611,7 +611,6 @@ func TestApplyDefaultTools(t *testing.T) {
 			name:  "firewall enabled adds edit and bash",
 			tools: map[string]any{},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -922,7 +921,6 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 			name:          "firewall enabled auto-enables sandbox",
 			sandboxConfig: nil,
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -931,7 +929,6 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 		{
 			name: "firewall disabled",
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: false,
 				},
 			},
@@ -945,7 +942,6 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 				},
 			},
 			networkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -1409,8 +1405,6 @@ func TestCompilerIsSandboxEnabledPrecedence(t *testing.T) {
 		Type: SandboxTypeAWF,
 	}
 	networkPerms := &NetworkPermissions{
-		Firewall: &FirewallConfig{Enabled: true},
-	}
 
 	result := isSandboxEnabled(config, networkPerms)
 	assert.False(t, result, "Disabled flag should take precedence over all other settings")

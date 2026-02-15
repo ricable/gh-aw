@@ -67,7 +67,6 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 				ID: "claude",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -97,7 +96,6 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 				ID: "claude",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 					Version: customVersion,
 				},
@@ -130,7 +128,6 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 				ID: "codex",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -160,7 +157,6 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 				ID: "codex",
 			},
 			NetworkPermissions: &NetworkPermissions{
-				Firewall: &FirewallConfig{
 					Enabled: true,
 					Version: customVersion,
 				},

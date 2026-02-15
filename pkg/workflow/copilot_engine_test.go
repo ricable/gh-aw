@@ -1379,7 +1379,6 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			plugins: []string{"github/auto-agentics"},
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -1390,7 +1389,6 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			plugins: []string{"github/auto-agentics", "github/test-plugin"},
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
@@ -1401,7 +1399,6 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			plugins: []string{},
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
-				Firewall: &FirewallConfig{
 					Enabled: true,
 				},
 			},
