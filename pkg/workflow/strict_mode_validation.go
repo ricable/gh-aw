@@ -427,10 +427,10 @@ func (c *Compiler) validateStrictFirewall(engineID string, networkPermissions *N
 	}
 
 	// At this point, we have network domains (or defaults) and copilot/codex engine
-	// In strict mode, firewall MUST be enabled (config object must be present)
-	if networkPermissions.Firewall == nil {
+	// In strict mode, firewall MUST be enabled (sandbox.agent must be configured and not disabled)
+	if sandboxConfig == nil || sandboxConfig.Agent == nil || sandboxConfig.Agent.Disabled {
 		strictModeValidationLog.Printf("Firewall validation failed: firewall not enabled in strict mode")
-		return fmt.Errorf("strict mode: firewall must be enabled for %s engine with network restrictions. The firewall should be enabled by default, but if you've explicitly disabled it with 'network.firewall: false' or 'sandbox.agent: false', this is not allowed in strict mode for security reasons. See: https://github.github.com/gh-aw/reference/network/", engineID)
+		return fmt.Errorf("strict mode: firewall must be enabled for %s engine with network restrictions. The firewall should be enabled by default via sandbox.agent, but if you've explicitly disabled it with 'sandbox.agent: false', this is not allowed in strict mode for security reasons. See: https://github.github.com/gh-aw/reference/network/", engineID)
 	}
 
 	strictModeValidationLog.Printf("Firewall validation passed")

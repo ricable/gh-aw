@@ -54,12 +54,6 @@ func (c *Compiler) extractNetworkPermissions(frontmatter map[string]any) *Networ
 				}
 			}
 
-			// Extract firewall configuration if present
-			if firewall, hasFirewall := networkObj["firewall"]; hasFirewall {
-				frontmatterExtractionSecurityLog.Print("Extracting firewall configuration")
-				permissions.Firewall = c.extractFirewallConfig(firewall)
-			}
-
 			// Empty object {} means no network access (empty allowed list)
 			return permissions
 		}
@@ -314,6 +308,40 @@ func (c *Compiler) extractAgentSandboxConfig(agentVal any) *AgentSandboxConfig {
 			for _, mount := range mountsSlice {
 				if mountStr, ok := mount.(string); ok {
 					agentConfig.Mounts = append(agentConfig.Mounts, mountStr)
+				}
+			}
+		}
+	}
+
+	// Extract AWF-specific fields
+
+	// Extract version (AWF version)
+	if versionVal, hasVersion := agentObj["version"]; hasVersion {
+		if versionStr, ok := versionVal.(string); ok {
+			agentConfig.Version = versionStr
+		}
+	}
+
+	// Extract log_level (AWF log level)
+	if logLevelVal, hasLogLevel := agentObj["log_level"]; hasLogLevel {
+		if logLevelStr, ok := logLevelVal.(string); ok {
+			agentConfig.LogLevel = logLevelStr
+		}
+	}
+
+	// Extract ssl_bump (AWF SSL bump)
+	if sslBumpVal, hasSSLBump := agentObj["ssl_bump"]; hasSSLBump {
+		if sslBumpBool, ok := sslBumpVal.(bool); ok {
+			agentConfig.SSLBump = sslBumpBool
+		}
+	}
+
+	// Extract allow_urls (AWF allow URLs)
+	if allowURLsVal, hasAllowURLs := agentObj["allow_urls"]; hasAllowURLs {
+		if allowURLsSlice, ok := allowURLsVal.([]any); ok {
+			for _, url := range allowURLsSlice {
+				if urlStr, ok := url.(string); ok {
+					agentConfig.AllowURLs = append(agentConfig.AllowURLs, urlStr)
 				}
 			}
 		}

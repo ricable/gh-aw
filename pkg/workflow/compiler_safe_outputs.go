@@ -487,10 +487,6 @@ func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkP
 		}
 	}
 
-	// Check if firewall is enabled (AWF) - config object presence means enabled
-	if networkPermissions != nil && networkPermissions.Firewall != nil {
-		return true
-	}
-
+	// Firewall is now configured via sandbox.agent, already checked above
 	return false
 }

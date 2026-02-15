@@ -42,14 +42,18 @@ type SandboxConfig struct {
 
 // AgentSandboxConfig represents the agent sandbox configuration
 type AgentSandboxConfig struct {
-	ID       string                `yaml:"id,omitempty"`      // Agent ID: "awf" or "srt" (replaces Type in new object format)
-	Type     SandboxType           `yaml:"type,omitempty"`    // Sandbox type: "awf" or "srt" (legacy, use ID instead)
-	Disabled bool                  `yaml:"-"`                 // True when agent is explicitly set to false (disables firewall). This is a runtime flag, not serialized to YAML.
-	Config   *SandboxRuntimeConfig `yaml:"config,omitempty"`  // Custom SRT config (optional)
-	Command  string                `yaml:"command,omitempty"` // Custom command to replace AWF or SRT installation
-	Args     []string              `yaml:"args,omitempty"`    // Additional arguments to append to the command
-	Env      map[string]string     `yaml:"env,omitempty"`     // Environment variables to set on the step
-	Mounts   []string              `yaml:"mounts,omitempty"`  // Container mounts to add for AWF (format: "source:dest:mode")
+	ID        string                `yaml:"id,omitempty"`        // Agent ID: "awf" or "srt" (replaces Type in new object format)
+	Type      SandboxType           `yaml:"type,omitempty"`      // Sandbox type: "awf" or "srt" (legacy, use ID instead)
+	Disabled  bool                  `yaml:"-"`                   // True when agent is explicitly set to false (disables firewall). This is a runtime flag, not serialized to YAML.
+	Config    *SandboxRuntimeConfig `yaml:"config,omitempty"`    // Custom SRT config (optional)
+	Command   string                `yaml:"command,omitempty"`   // Custom command to replace AWF or SRT installation
+	Args      []string              `yaml:"args,omitempty"`      // Additional arguments to append to the command
+	Env       map[string]string     `yaml:"env,omitempty"`       // Environment variables to set on the step
+	Mounts    []string              `yaml:"mounts,omitempty"`    // Container mounts to add for AWF (format: "source:dest:mode")
+	Version   string                `yaml:"version,omitempty"`   // AWF version (empty = latest) - AWF specific
+	LogLevel  string                `yaml:"log_level,omitempty"` // AWF log level (default: "info") - AWF specific
+	SSLBump   bool                  `yaml:"ssl_bump,omitempty"`  // AWF-only: Enable SSL Bump for HTTPS content inspection
+	AllowURLs []string              `yaml:"allow_urls,omitempty"` // AWF-only: URL patterns to allow for HTTPS (requires SSLBump)
 }
 
 // SandboxRuntimeConfig represents the Anthropic Sandbox Runtime configuration

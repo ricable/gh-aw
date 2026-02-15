@@ -492,14 +492,15 @@ func (c *Compiler) generateCreateAwInfo(yaml *strings.Builder, data *WorkflowDat
 
 	if data.NetworkPermissions != nil {
 		allowedDomains = data.NetworkPermissions.Allowed
-		if data.NetworkPermissions.Firewall != nil {
-			// Firewall is enabled if the config object is present
-			firewallEnabled = true
-			firewallVersion = data.NetworkPermissions.Firewall.Version
-			// Use default firewall version when enabled but not explicitly set
-			if firewallVersion == "" {
-				firewallVersion = string(constants.DefaultFirewallVersion)
-			}
+	}
+
+	// Check firewall configuration from sandbox.agent
+	if data.SandboxConfig != nil && data.SandboxConfig.Agent != nil && !data.SandboxConfig.Agent.Disabled {
+		firewallEnabled = true
+		firewallVersion = data.SandboxConfig.Agent.Version
+		// Use default firewall version when enabled but not explicitly set
+		if firewallVersion == "" {
+			firewallVersion = string(constants.DefaultFirewallVersion)
 		}
 	}
 

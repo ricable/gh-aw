@@ -18,12 +18,7 @@ var networkFirewallValidationLog = logger.New("workflow:network_firewall_validat
 
 // validateNetworkFirewallConfig validates network firewall configuration dependencies
 // Returns an error if the configuration is invalid
-func validateNetworkFirewallConfig(networkPermissions *NetworkPermissions) error {
-	if networkPermissions == nil {
-		return nil
-	}
-
-	firewallConfig := networkPermissions.Firewall
+func validateNetworkFirewallConfig(firewallConfig *FirewallConfig) error {
 	if firewallConfig == nil {
 		return nil
 	}

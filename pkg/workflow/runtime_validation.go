@@ -322,11 +322,11 @@ func validateSecretReferences(secrets []string) error {
 
 // validateFirewallConfig validates firewall configuration including log-level
 func (c *Compiler) validateFirewallConfig(workflowData *WorkflowData) error {
-	if workflowData.NetworkPermissions == nil || workflowData.NetworkPermissions.Firewall == nil {
+	config := getFirewallConfig(workflowData)
+	if config == nil {
 		return nil
 	}
 
-	config := workflowData.NetworkPermissions.Firewall
 	runtimeValidationLog.Printf("Validating firewall config: logLevel=%s", config.LogLevel)
 	if config.LogLevel != "" {
 		if err := ValidateLogLevel(config.LogLevel); err != nil {

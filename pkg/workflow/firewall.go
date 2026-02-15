@@ -31,18 +31,18 @@ func isFirewallDisabledBySandboxAgent(workflowData *WorkflowData) bool {
 }
 
 // isFirewallEnabled checks if AWF firewall is enabled for the workflow
-// Firewall is enabled if network.firewall config object is present (not nil)
+// Firewall is enabled if sandbox.agent is configured (not false/disabled)
 // Firewall is disabled if sandbox.agent is explicitly set to false
 func isFirewallEnabled(workflowData *WorkflowData) bool {
-	// Check if sandbox.agent: false (new way to disable firewall)
+	// Check if sandbox.agent: false (explicitly disabled)
 	if isFirewallDisabledBySandboxAgent(workflowData) {
 		firewallLog.Print("Firewall disabled via sandbox.agent: false")
 		return false
 	}
 
-	// Check if network.firewall configuration object is present
-	if workflowData != nil && workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
-		firewallLog.Print("Firewall enabled (config object present)")
+	// Check if sandbox.agent is configured (firewall enabled by default when sandbox is configured)
+	if workflowData != nil && workflowData.SandboxConfig != nil && workflowData.SandboxConfig.Agent != nil {
+		firewallLog.Print("Firewall enabled (sandbox.agent configured)")
 		return true
 	}
 
@@ -50,23 +50,28 @@ func isFirewallEnabled(workflowData *WorkflowData) bool {
 	return false
 }
 
-// getFirewallConfig returns the firewall configuration from network permissions
+// getFirewallConfig returns the firewall configuration from sandbox agent config
 func getFirewallConfig(workflowData *WorkflowData) *FirewallConfig {
-	if workflowData == nil {
+	if workflowData == nil || workflowData.SandboxConfig == nil || workflowData.SandboxConfig.Agent == nil {
 		return nil
 	}
 
-	// Check network.firewall configuration
-	if workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
-		config := workflowData.NetworkPermissions.Firewall
-		if firewallLog.Enabled() {
-			firewallLog.Printf("Retrieved firewall config: version=%s, logLevel=%s",
-				config.Version, config.LogLevel)
-		}
-		return config
+	agent := workflowData.SandboxConfig.Agent
+	
+	// Convert AgentSandboxConfig to FirewallConfig
+	config := &FirewallConfig{
+		Version:   agent.Version,
+		Args:      agent.Args,
+		LogLevel:  agent.LogLevel,
+		SSLBump:   agent.SSLBump,
+		AllowURLs: agent.AllowURLs,
 	}
-
-	return nil
+	
+	if firewallLog.Enabled() {
+		firewallLog.Printf("Retrieved firewall config from sandbox.agent: version=%s, logLevel=%s",
+			config.Version, config.LogLevel)
+	}
+	return config
 }
 
 // getAgentConfig returns the agent sandbox configuration from sandbox config
@@ -113,14 +118,12 @@ func enableFirewallByDefaultForClaude(engineID string, networkPermissions *Netwo
 }
 
 // enableFirewallByDefaultForEngine enables firewall by default for a given engine
-// when network restrictions are present but no explicit firewall configuration exists
-// and no SRT sandbox is configured (SRT and AWF are mutually exclusive)
+// when network restrictions are present but no explicit sandbox.agent configuration exists
 // and sandbox.agent is not explicitly set to false
 //
 // The firewall is enabled by default for the engine UNLESS:
 // - allowed contains "*" (unrestricted network access)
 // - sandbox.agent is explicitly set to false
-// - SRT sandbox is configured (Copilot only)
 func enableFirewallByDefaultForEngine(engineID string, networkPermissions *NetworkPermissions, sandboxConfig *SandboxConfig) {
 	// Check if network permissions exist
 	if networkPermissions == nil {
@@ -128,18 +131,14 @@ func enableFirewallByDefaultForEngine(engineID string, networkPermissions *Netwo
 	}
 
 	// Check if sandbox.agent: false is set (disables firewall)
-	// Use a minimal check here since we don't have WorkflowData
 	if sandboxConfig != nil && sandboxConfig.Agent != nil && sandboxConfig.Agent.Disabled {
 		firewallLog.Print("sandbox.agent: false is set, skipping AWF auto-enablement")
 		return
 	}
 
-	// SRT has been removed, all sandboxes should use AWF now
-	// This section is no longer needed
-
-	// Check if firewall is already configured
-	if networkPermissions.Firewall != nil {
-		firewallLog.Print("Firewall already configured, skipping default enablement")
+	// Check if sandbox.agent is already configured
+	if sandboxConfig != nil && sandboxConfig.Agent != nil {
+		firewallLog.Print("sandbox.agent already configured, skipping default enablement")
 		return
 	}
 
@@ -154,9 +153,17 @@ func enableFirewallByDefaultForEngine(engineID string, networkPermissions *Netwo
 
 	// Enable firewall by default for the engine (copilot, claude, codex)
 	// This applies to all cases EXCEPT when allowed = "*"
-	// Creating a FirewallConfig object implicitly enables the firewall
-	networkPermissions.Firewall = &FirewallConfig{}
-	firewallLog.Printf("Enabled firewall by default for %s engine", engineID)
+	// Initialize sandboxConfig if needed
+	if sandboxConfig == nil {
+		firewallLog.Printf("Cannot enable firewall by default for %s engine: sandboxConfig is nil", engineID)
+		return
+	}
+
+	// Create default AWF agent config
+	sandboxConfig.Agent = &AgentSandboxConfig{
+		Type: "awf",
+	}
+	firewallLog.Printf("Enabled firewall by default for %s engine via sandbox.agent", engineID)
 }
 
 // getAWFImageTag returns the AWF Docker image tag to use for the --image-tag flag.
