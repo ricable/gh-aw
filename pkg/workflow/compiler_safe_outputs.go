@@ -315,9 +315,7 @@ func (c *Compiler) applyDefaultTools(tools map[string]any, safeOutputs *SafeOutp
 	}
 
 	// Enable edit and bash tools by default when sandbox is enabled
-	// The sandbox is enabled when:
-	// 1. Explicitly configured via sandbox.agent
-	// 2. Auto-enabled by firewall default enablement (when network restrictions are present)
+	// The sandbox is enabled when explicitly configured via sandbox.agent
 	if isSandboxEnabled(sandboxConfig, networkPermissions) {
 		compilerSafeOutputsLog.Print("Sandbox enabled, applying default edit and bash tools")
 
@@ -458,7 +456,6 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 // isSandboxEnabled checks if the sandbox is enabled (either explicitly or auto-enabled)
 // Returns true when:
 // - sandbox.agent is explicitly set to a sandbox type
-// - sandbox.type is explicitly set (legacy format)
 // - Firewall is auto-enabled (networkPermissions.Firewall is set and enabled)
 // Returns false when:
 // - sandbox.agent is false (explicitly disabled)
@@ -475,11 +472,6 @@ func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkP
 		if isSupportedSandboxType(agentType) {
 			return true
 		}
-	}
-
-	// Check legacy Type field (for backward compatibility)
-	if sandboxConfig != nil && isSupportedSandboxType(sandboxConfig.Type) {
-		return true
 	}
 
 	// Check if firewall is auto-enabled (AWF)

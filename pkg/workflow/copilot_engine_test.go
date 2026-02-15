@@ -1462,17 +1462,19 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 	}
 }
 
-func TestCopilotEnginePluginDiscoveryWithSRT(t *testing.T) {
+func TestCopilotEnginePluginDiscoveryWithSandbox(t *testing.T) {
 	engine := NewCopilotEngine()
 
-	// Test with SRT enabled (via sandbox config)
+	// Test with sandbox enabled
 	workflowData := &WorkflowData{
 		Name: "test-workflow",
 		PluginInfo: &PluginInfo{
 			Plugins: []string{"github/auto-agentics"},
 		},
 		SandboxConfig: &SandboxConfig{
-			Type: "awf",
+			Agent: &AgentSandboxConfig{
+				Type: "awf",
+			},
 		},
 	}
 	steps := engine.GetExecutionSteps(workflowData, "/tmp/gh-aw/test.log")
@@ -1484,8 +1486,8 @@ func TestCopilotEnginePluginDiscoveryWithSRT(t *testing.T) {
 
 	stepContent := strings.Join([]string(steps[0]), "\n")
 
-	// Should include --add-dir /home/runner/.copilot/ when SRT is enabled with plugins
+	// Should include --add-dir /home/runner/.copilot/ when sandbox is enabled with plugins
 	if !strings.Contains(stepContent, "--add-dir /home/runner/.copilot/") {
-		t.Errorf("Expected step to contain '--add-dir /home/runner/.copilot/' when plugins are declared with SRT enabled, but it was missing:\n%s", stepContent)
+		t.Errorf("Expected step to contain '--add-dir /home/runner/.copilot/' when plugins are declared with sandbox enabled, but it was missing:\n%s", stepContent)
 	}
 }

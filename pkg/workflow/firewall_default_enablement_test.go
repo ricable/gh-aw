@@ -473,7 +473,7 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		}
 	})
 
-	t.Run("strict mode skips validation when SRT is enabled", func(t *testing.T) {
+	t.Run("strict mode skips validation when sandbox is enabled", func(t *testing.T) {
 		compiler := NewCompiler()
 		compiler.SetStrictMode(true)
 
@@ -484,12 +484,14 @@ func TestStrictModeFirewallValidation(t *testing.T) {
 		}
 
 		sandboxConfig := &SandboxConfig{
-			Type: SandboxTypeAWF,
+			Agent: &AgentSandboxConfig{
+				Type: SandboxTypeAWF,
+			},
 		}
 
 		err := compiler.validateStrictFirewall("copilot", networkPerms, sandboxConfig)
 		if err != nil {
-			t.Errorf("Expected no error when SRT is enabled, got: %v", err)
+			t.Errorf("Expected no error when sandbox is enabled, got: %v", err)
 		}
 	})
 

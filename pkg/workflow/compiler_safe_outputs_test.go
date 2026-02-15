@@ -905,16 +905,20 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "legacy type field SRT",
+			name: "legacy type field converted to agent",
 			sandboxConfig: &SandboxConfig{
-				Type: SandboxTypeAWF,
+				Agent: &AgentSandboxConfig{
+					Type: SandboxTypeAWF,
+				},
 			},
 			expected: true,
 		},
 		{
-			name: "legacy type field runtime",
+			name: "legacy type field runtime converted to agent",
 			sandboxConfig: &SandboxConfig{
-				Type: SandboxTypeAWF,
+				Agent: &AgentSandboxConfig{
+					Type: SandboxTypeAWF,
+				},
 			},
 			expected: true,
 		},
