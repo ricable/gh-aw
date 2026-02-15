@@ -1,7 +1,7 @@
 // This file provides sandbox configuration for agentic workflows.
 //
 // This file handles:
-//   - Sandbox type definitions (AWF, SRT)
+//   - Sandbox type definitions (AWF)
 //   - Sandbox configuration structures and parsing
 //   - Sandbox runtime config generation
 //
@@ -28,25 +28,25 @@ const (
 )
 
 // SandboxConfig represents the top-level sandbox configuration from front matter
-// New format: { agent: "awf"|"srt"|{type, config}, mcp: {port, command, ...} }
-// Legacy format: "default"|"sandbox-runtime" or { type, config }
+// New format: { agent: "awf"|{id, config}, mcp: {port, command, ...} }
+// Legacy format: "default"|"awf" or { type, config }
 type SandboxConfig struct {
 	// New fields
 	Agent *AgentSandboxConfig      `yaml:"agent,omitempty"` // Agent sandbox configuration
 	MCP   *MCPGatewayRuntimeConfig `yaml:"mcp,omitempty"`   // MCP gateway configuration
 
 	// Legacy fields (for backward compatibility)
-	Type   SandboxType           `yaml:"type,omitempty"`   // Sandbox type: "default" or "sandbox-runtime"
+	Type   SandboxType           `yaml:"type,omitempty"`   // Sandbox type: "default" or "awf"
 	Config *SandboxRuntimeConfig `yaml:"config,omitempty"` // Custom SRT config (optional)
 }
 
 // AgentSandboxConfig represents the agent sandbox configuration
 type AgentSandboxConfig struct {
-	ID       string                `yaml:"id,omitempty"`      // Agent ID: "awf" or "srt" (replaces Type in new object format)
-	Type     SandboxType           `yaml:"type,omitempty"`    // Sandbox type: "awf" or "srt" (legacy, use ID instead)
+	ID       string                `yaml:"id,omitempty"`      // Agent ID: "awf" (AWF is the only supported sandbox)
+	Type     SandboxType           `yaml:"type,omitempty"`    // Sandbox type: "awf" (legacy field, use ID instead)
 	Disabled bool                  `yaml:"-"`                 // True when agent is explicitly set to false (disables firewall). This is a runtime flag, not serialized to YAML.
-	Config   *SandboxRuntimeConfig `yaml:"config,omitempty"`  // Custom SRT config (optional)
-	Command  string                `yaml:"command,omitempty"` // Custom command to replace AWF or SRT installation
+	Config   *SandboxRuntimeConfig `yaml:"config,omitempty"`  // Deprecated: Custom sandbox config (no longer used)
+	Command  string                `yaml:"command,omitempty"` // Custom command to replace AWF installation
 	Args     []string              `yaml:"args,omitempty"`    // Additional arguments to append to the command
 	Env      map[string]string     `yaml:"env,omitempty"`     // Environment variables to set on the step
 	Mounts   []string              `yaml:"mounts,omitempty"`  // Container mounts to add for AWF (format: "source:dest:mode")
@@ -83,6 +83,7 @@ type SRTFilesystemConfig struct {
 
 // getAgentType returns the effective agent type from AgentSandboxConfig
 // Prefers ID field (new format) over Type field (legacy)
+// Returns "awf" for AWF sandbox, "default" for default, or "" if not set
 func getAgentType(agent *AgentSandboxConfig) SandboxType {
 	if agent == nil {
 		return ""
@@ -96,31 +97,32 @@ func getAgentType(agent *AgentSandboxConfig) SandboxType {
 }
 
 // isSupportedSandboxType checks if a sandbox type is valid/supported
+// Only "awf" and "default" (alias for awf) are supported
 func isSupportedSandboxType(sandboxType SandboxType) bool {
 	return sandboxType == SandboxTypeAWF ||
 		sandboxType == SandboxTypeDefault
 }
 
-// migrateSRTToAWF converts any SRT sandbox configuration to AWF
-// This is a codemod that automatically migrates workflows from the deprecated SRT to AWF
+// migrateSRTToAWF converts any deprecated sandbox configuration to AWF
+// This is a codemod that automatically migrates workflows to use AWF
 func migrateSRTToAWF(sandboxConfig *SandboxConfig) *SandboxConfig {
 	if sandboxConfig == nil {
 		return nil
 	}
 
-	// Migrate legacy Type field from SRT/sandbox-runtime to AWF/default
+	// Migrate legacy Type field from deprecated values to AWF
 	if sandboxConfig.Type == "srt" || sandboxConfig.Type == "sandbox-runtime" {
 		sandboxLog.Printf("Migrating legacy sandbox type from %s to awf", sandboxConfig.Type)
 		sandboxConfig.Type = SandboxTypeAWF
 	}
 
-	// Migrate Agent.Type field from SRT to AWF
+	// Migrate Agent.Type field from deprecated values to AWF
 	if sandboxConfig.Agent != nil {
 		if sandboxConfig.Agent.Type == "srt" || sandboxConfig.Agent.Type == "sandbox-runtime" {
 			sandboxLog.Printf("Migrating agent type from %s to awf", sandboxConfig.Agent.Type)
 			sandboxConfig.Agent.Type = SandboxTypeAWF
 		}
-		// Migrate Agent.ID field from SRT to AWF
+		// Migrate Agent.ID field from deprecated values to AWF
 		if sandboxConfig.Agent.ID == "srt" || sandboxConfig.Agent.ID == "sandbox-runtime" {
 			sandboxLog.Printf("Migrating agent ID from %s to awf", sandboxConfig.Agent.ID)
 			sandboxConfig.Agent.ID = "awf"
@@ -131,10 +133,10 @@ func migrateSRTToAWF(sandboxConfig *SandboxConfig) *SandboxConfig {
 }
 
 // applySandboxDefaults applies default values to sandbox configuration
-// If no sandbox config exists, creates one with awf as default agent
-// If sandbox config exists but has no agent, sets agent to awf (unless agent is explicitly disabled)
+// If no sandbox config exists, creates one with AWF as default agent
+// If sandbox config exists but has no agent, sets agent to AWF (unless agent is explicitly disabled)
 func applySandboxDefaults(sandboxConfig *SandboxConfig, engineConfig *EngineConfig) *SandboxConfig {
-	// First, migrate any SRT references to AWF (codemod)
+	// First, migrate any deprecated references to AWF (codemod)
 	sandboxConfig = migrateSRTToAWF(sandboxConfig)
 
 	// If agent sandbox is explicitly disabled (sandbox.agent: false), preserve that setting
@@ -143,7 +145,7 @@ func applySandboxDefaults(sandboxConfig *SandboxConfig, engineConfig *EngineConf
 		return sandboxConfig
 	}
 
-	// If no sandbox config exists, create one with awf as default
+	// If no sandbox config exists, create one with AWF as default
 	if sandboxConfig == nil {
 		sandboxLog.Print("No sandbox config found, creating default with agent: awf")
 		return &SandboxConfig{
@@ -153,14 +155,14 @@ func applySandboxDefaults(sandboxConfig *SandboxConfig, engineConfig *EngineConf
 		}
 	}
 
-	// If sandbox config exists with legacy Type field set, don't override with awf default
+	// If sandbox config exists with legacy Type field set, don't override with AWF default
 	// The legacy Type field indicates explicit sandbox configuration
 	if sandboxConfig.Type != "" {
 		sandboxLog.Printf("Sandbox config uses legacy Type field: %s, preserving it", sandboxConfig.Type)
 		return sandboxConfig
 	}
 
-	// If sandbox config exists but has no agent, set agent to awf
+	// If sandbox config exists but has no agent, set agent to AWF
 	if sandboxConfig.Agent == nil {
 		sandboxLog.Print("Sandbox config exists without agent, setting default agent: awf")
 		sandboxConfig.Agent = &AgentSandboxConfig{

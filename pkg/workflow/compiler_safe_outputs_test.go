@@ -956,13 +956,13 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "unsupported sandbox type",
+			name: "agent configured without specific type",
 			sandboxConfig: &SandboxConfig{
 				Agent: &AgentSandboxConfig{
-					ID: "unknown",
+					Command: "custom-awf",
 				},
 			},
-			expected: false,
+			expected: true,
 		},
 	}
 

@@ -455,7 +455,7 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 
 // isSandboxEnabled checks if the sandbox is enabled (either explicitly or auto-enabled)
 // Returns true when:
-// - sandbox.agent is explicitly set to a sandbox type
+// - sandbox.agent is explicitly set
 // - Firewall is auto-enabled (networkPermissions.Firewall is set and enabled)
 // Returns false when:
 // - sandbox.agent is false (explicitly disabled)
@@ -466,12 +466,9 @@ func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkP
 		return false
 	}
 
-	// Check if sandbox.agent is explicitly configured with a type
+	// Check if sandbox.agent is explicitly configured (AWF is the only sandbox type)
 	if sandboxConfig != nil && sandboxConfig.Agent != nil {
-		agentType := getAgentType(sandboxConfig.Agent)
-		if isSupportedSandboxType(agentType) {
-			return true
-		}
+		return true
 	}
 
 	// Check if firewall is auto-enabled (AWF)
