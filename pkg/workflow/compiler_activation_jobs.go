@@ -102,6 +102,11 @@ func (c *Compiler) buildPreActivationJob(data *WorkflowData, needsPermissionChec
 		steps = c.generateRateLimitCheck(data, steps)
 	}
 
+	// Add skip-roles check if configured
+	if len(data.SkipRoles) > 0 {
+		steps = c.generateSkipRolesCheck(data, steps)
+	}
+
 	// Add stop-time check if configured
 	if data.StopTime != "" {
 		// Extract workflow name for the stop-time check
@@ -228,6 +233,16 @@ func (c *Compiler) buildPreActivationJob(data *WorkflowData, needsPermissionChec
 			BuildStringLiteral("true"),
 		)
 		conditions = append(conditions, rateLimitCheck)
+	}
+
+	if len(data.SkipRoles) > 0 {
+		// Add skip-roles check condition
+		skipRolesCheck := BuildComparison(
+			BuildPropertyAccess(fmt.Sprintf("steps.%s.outputs.%s", constants.CheckSkipRolesStepID, constants.SkipRolesOkOutput)),
+			"==",
+			BuildStringLiteral("true"),
+		)
+		conditions = append(conditions, skipRolesCheck)
 	}
 
 	if len(data.Command) > 0 {

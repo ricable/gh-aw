@@ -38,6 +38,25 @@ func (c *Compiler) generateMembershipCheck(data *WorkflowData, steps []string) [
 	return steps
 }
 
+// generateSkipRolesCheck generates steps for the skip-roles check
+func (c *Compiler) generateSkipRolesCheck(data *WorkflowData, steps []string) []string {
+	steps = append(steps, "      - name: Check if user role should be skipped\n")
+	steps = append(steps, fmt.Sprintf("        id: %s\n", constants.CheckSkipRolesStepID))
+	steps = append(steps, fmt.Sprintf("        uses: %s\n", GetActionPin("actions/github-script")))
+
+	// Add environment variables for skip-roles check
+	steps = append(steps, "        env:\n")
+	steps = append(steps, fmt.Sprintf("          GH_AW_SKIP_ROLES: %s\n", strings.Join(data.SkipRoles, ",")))
+
+	steps = append(steps, "        with:\n")
+	// Explicitly use the GitHub Actions token (GITHUB_TOKEN) for role checks
+	steps = append(steps, "          github-token: ${{ secrets.GITHUB_TOKEN }}\n")
+	steps = append(steps, "          script: |\n")
+	steps = append(steps, generateGitHubScriptWithRequire("check_skip_roles.cjs"))
+
+	return steps
+}
+
 // generateRateLimitCheck generates steps for rate limiting check
 func (c *Compiler) generateRateLimitCheck(data *WorkflowData, steps []string) []string {
 	steps = append(steps, "      - name: Check user rate limit\n")
@@ -120,6 +139,40 @@ func (c *Compiler) extractRoles(frontmatter map[string]any) []string {
 	defaultRoles := []string{"admin", "maintainer", "write"}
 	roleLog.Printf("No roles specified, using defaults: %v", defaultRoles)
 	return defaultRoles
+}
+
+// extractSkipRoles extracts the 'skip-roles' field from frontmatter to determine which roles should be skipped
+func (c *Compiler) extractSkipRoles(frontmatter map[string]any) []string {
+	// Check for skip-roles in the "on" section
+	if onValue, exists := frontmatter["on"]; exists {
+		if onMap, ok := onValue.(map[string]any); ok {
+			if skipRolesValue, exists := onMap["skip-roles"]; exists {
+				switch v := skipRolesValue.(type) {
+				case []any:
+					// Array of role identifiers
+					var skipRoles []string
+					for _, item := range v {
+						if str, ok := item.(string); ok {
+							skipRoles = append(skipRoles, str)
+						}
+					}
+					roleLog.Printf("Extracted %d skip-roles from array: %v", len(skipRoles), skipRoles)
+					return skipRoles
+				case []string:
+					// Already a string slice
+					roleLog.Printf("Extracted %d skip-roles: %v", len(v), v)
+					return v
+				case string:
+					// Single role identifier as string
+					roleLog.Printf("Extracted single skip-role: %s", v)
+					return []string{v}
+				}
+			}
+		}
+	}
+	// No skip-roles specified, return empty array
+	roleLog.Print("No skip-roles specified")
+	return []string{}
 }
 
 // extractBots extracts the 'bots' field from frontmatter to determine allowed bot identifiers
