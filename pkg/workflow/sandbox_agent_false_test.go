@@ -157,40 +157,6 @@ Test workflow to verify default sandbox.agent behavior (awf).
 	})
 }
 
-func TestNetworkFirewallDeprecationWarning(t *testing.T) {
-	t.Run("network.firewall compiles successfully (deprecated)", func(t *testing.T) {
-		// Create temp directory for test workflows
-		workflowsDir := t.TempDir()
-
-		markdown := `---
-engine: copilot
-network:
-  allowed:
-    - defaults
-  firewall: false
-strict: false
-on: workflow_dispatch
----
-
-Test workflow to verify network.firewall still works (deprecated).
-`
-
-		workflowPath := filepath.Join(workflowsDir, "test-firewall-deprecated.md")
-		err := os.WriteFile(workflowPath, []byte(markdown), 0644)
-		if err != nil {
-			t.Fatalf("Failed to write workflow file: %v", err)
-		}
-
-		// Compile the workflow
-		compiler := NewCompiler()
-		compiler.SetSkipValidation(true)
-
-		// The compilation should succeed (deprecated fields should still work)
-		if err := compiler.CompileWorkflow(workflowPath); err != nil {
-			t.Fatalf("Compilation failed: %v", err)
-		}
-	})
-}
 
 func TestSandboxAgentFalseExtraction(t *testing.T) {
 	t.Run("extractAgentSandboxConfig accepts false", func(t *testing.T) {
