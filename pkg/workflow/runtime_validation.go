@@ -327,7 +327,7 @@ func (c *Compiler) validateFirewallConfig(workflowData *WorkflowData) error {
 	}
 
 	config := workflowData.NetworkPermissions.Firewall
-	runtimeValidationLog.Printf("Validating firewall config: enabled=%v, logLevel=%s", config.Enabled, config.LogLevel)
+	runtimeValidationLog.Printf("Validating firewall config: logLevel=%s", config.LogLevel)
 	if config.LogLevel != "" {
 		if err := ValidateLogLevel(config.LogLevel); err != nil {
 			runtimeValidationLog.Printf("Invalid firewall log level: %s", config.LogLevel)

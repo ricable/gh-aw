@@ -1409,7 +1409,7 @@ func TestCompilerIsSandboxEnabledPrecedence(t *testing.T) {
 		Type: SandboxTypeAWF,
 	}
 	networkPerms := &NetworkPermissions{
-		Firewall: &FirewallConfig{Enabled: true},
+		Firewall: &FirewallConfig{},
 	}
 
 	result := isSandboxEnabled(config, networkPerms)

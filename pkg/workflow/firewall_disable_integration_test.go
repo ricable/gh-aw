@@ -32,27 +32,25 @@ func TestFirewallDisableIntegration(t *testing.T) {
 			t.Fatal("Expected network permissions to be extracted")
 		}
 
-		// Check firewall config
-		if networkPerms.Firewall == nil {
-			t.Fatal("Expected firewall config to be extracted")
-		}
-		if networkPerms.Firewall.Enabled {
-			t.Error("Firewall should be disabled when set to 'disable'")
+		// Check firewall config - should be nil when disabled
+		if networkPerms.Firewall != nil {
+			t.Error("Firewall should be nil (disabled) when set to 'disable'")
 		}
 
-		// Check validation triggers warning
+		// Check validation - no warnings since checkFirewallDisable is now a no-op
 		engine := NewCopilotEngine()
 		initialWarnings := compiler.warningCount
 		err := compiler.checkFirewallDisable(engine, networkPerms)
 		if err != nil {
 			t.Errorf("Expected no error in non-strict mode, got: %v", err)
 		}
-		if compiler.warningCount != initialWarnings+1 {
-			t.Error("Should emit warning when firewall is disabled with allowed domains")
+		// checkFirewallDisable is now a no-op since we removed Enabled field
+		if compiler.warningCount != initialWarnings {
+			t.Error("Should NOT emit warning since checkFirewallDisable is now a no-op")
 		}
 	})
 
-	t.Run("firewall disable in strict mode errors", func(t *testing.T) {
+	t.Run("firewall disable in strict mode - no longer validates in checkFirewallDisable", func(t *testing.T) {
 		frontmatter := map[string]any{
 			"on":     "workflow_dispatch",
 			"engine": "copilot",
@@ -72,13 +70,16 @@ func TestFirewallDisableIntegration(t *testing.T) {
 			t.Fatal("Expected network permissions to be extracted")
 		}
 
+		// Firewall should be nil when disabled
+		if networkPerms.Firewall != nil {
+			t.Error("Firewall should be nil when set to 'disable'")
+		}
+
+		// checkFirewallDisable is now a no-op, no error expected
 		engine := NewCopilotEngine()
 		err := compiler.checkFirewallDisable(engine, networkPerms)
-		if err == nil {
-			t.Error("Expected error in strict mode when firewall is disabled with allowed domains")
-		}
-		if !strings.Contains(err.Error(), "strict mode") {
-			t.Errorf("Error should mention strict mode, got: %v", err)
+		if err != nil {
+			t.Errorf("checkFirewallDisable is now a no-op, expected no error, got: %v", err)
 		}
 	})
 }

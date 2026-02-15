@@ -260,80 +260,67 @@ func TestCheckFirewallDisable(t *testing.T) {
 		}
 	})
 
-	t.Run("firewall disabled with no restrictions - no warning", func(t *testing.T) {
+	t.Run("checkFirewallDisable is now a no-op - firewall disabled (nil)", func(t *testing.T) {
 		compiler := NewCompiler()
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
-			Firewall: &FirewallConfig{
-				Enabled: false,
-			},
+			Firewall: nil, // Disabled firewall is represented by nil
 		}
 
 		initialWarnings := compiler.warningCount
 		err := compiler.checkFirewallDisable(engine, perms)
 		if err != nil {
-			t.Errorf("Expected no error when firewall is disabled with no restrictions, got: %v", err)
+			t.Errorf("checkFirewallDisable is now a no-op, expected no error, got: %v", err)
 		}
 		if compiler.warningCount != initialWarnings {
-			t.Error("Should not emit warning when firewall is disabled with no restrictions")
+			t.Error("checkFirewallDisable should not emit warnings")
 		}
 	})
 
-	t.Run("firewall disabled with restrictions - warning emitted", func(t *testing.T) {
+	t.Run("checkFirewallDisable is now a no-op - firewall enabled (non-nil)", func(t *testing.T) {
 		compiler := NewCompiler()
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
 			Allowed: []string{"example.com"},
-			Firewall: &FirewallConfig{
-				Enabled: false,
-			},
+			Firewall: &FirewallConfig{}, // Enabled firewall is represented by non-nil
 		}
 
 		initialWarnings := compiler.warningCount
 		err := compiler.checkFirewallDisable(engine, perms)
 		if err != nil {
-			t.Errorf("Expected no error in non-strict mode, got: %v", err)
+			t.Errorf("checkFirewallDisable is now a no-op, expected no error, got: %v", err)
 		}
-		if compiler.warningCount != initialWarnings+1 {
-			t.Error("Should emit warning when firewall is disabled with restrictions")
+		if compiler.warningCount != initialWarnings {
+			t.Error("checkFirewallDisable should not emit warnings")
 		}
 	})
 
-	t.Run("strict mode: firewall disabled with restrictions - error", func(t *testing.T) {
+	t.Run("strict mode: checkFirewallDisable no longer validates", func(t *testing.T) {
 		compiler := NewCompiler()
 		compiler.strictMode = true
 		engine := NewCopilotEngine()
 		perms := &NetworkPermissions{
 			Allowed: []string{"example.com"},
-			Firewall: &FirewallConfig{
-				Enabled: false,
-			},
+			Firewall: nil, // Disabled firewall
 		}
 
 		err := compiler.checkFirewallDisable(engine, perms)
-		if err == nil {
-			t.Error("Expected error in strict mode when firewall is disabled with restrictions")
-		}
-		if !strings.Contains(err.Error(), "strict mode") {
-			t.Errorf("Error should mention strict mode, got: %v", err)
+		if err != nil {
+			t.Errorf("checkFirewallDisable is now a no-op, expected no error, got: %v", err)
 		}
 	})
 
-	t.Run("strict mode: firewall disabled with unsupported engine - error", func(t *testing.T) {
+	t.Run("strict mode: checkFirewallDisable no longer validates unsupported engines", func(t *testing.T) {
 		compiler := NewCompiler()
 		compiler.strictMode = true
 		engine := NewCustomEngine() // Custom engine doesn't support firewall
 		perms := &NetworkPermissions{
-			Firewall: &FirewallConfig{
-				Enabled: false,
-			},
+			Firewall: nil, // Disabled firewall
 		}
 
 		err := compiler.checkFirewallDisable(engine, perms)
-		if err == nil {
-			t.Error("Expected error in strict mode when firewall is disabled with unsupported engine")
-		} else if !strings.Contains(err.Error(), "does not support firewall") {
-			t.Errorf("Error should mention firewall support, got: %v", err)
+		if err != nil {
+			t.Errorf("checkFirewallDisable is now a no-op, expected no error, got: %v", err)
 		}
 	})
 

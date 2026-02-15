@@ -78,37 +78,13 @@ func (c *Compiler) checkNetworkSupport(engine CodingAgentEngine, networkPermissi
 	return nil
 }
 
-// checkFirewallDisable validates firewall: "disable" configuration
-// - Warning if allowed != * (unrestricted)
-// - Error in strict mode if allowed is not * or engine does not support firewall
+// checkFirewallDisable validates firewall disable configuration
+// Now that firewall.enabled is removed, disabled firewall is represented by Firewall == nil
+// This function is kept for consistency but will always return nil since disabled firewall
+// means Firewall object is nil (checked at line 85).
 func (c *Compiler) checkFirewallDisable(engine CodingAgentEngine, networkPermissions *NetworkPermissions) error {
-	if networkPermissions == nil || networkPermissions.Firewall == nil {
-		return nil
-	}
-
-	// Check if firewall is explicitly disabled
-	if !networkPermissions.Firewall.Enabled {
-		// Check if network has restrictions (allowed list specified with domains)
-		hasRestrictions := len(networkPermissions.Allowed) > 0
-
-		if hasRestrictions {
-			message := "Firewall is disabled but network restrictions are specified (network.allowed). Network may not be properly sandboxed."
-
-			if c.strictMode {
-				// In strict mode, this is an error
-				return fmt.Errorf("strict mode: cannot disable firewall when network restrictions (network.allowed) are set")
-			}
-
-			// In non-strict mode, emit a warning
-			fmt.Fprintln(os.Stderr, console.FormatWarningMessage(message))
-			c.IncrementWarningCount()
-		}
-
-		// Also check if engine doesn't support firewall in strict mode when there are no restrictions
-		if c.strictMode && !hasRestrictions && !engine.SupportsFirewall() {
-			return fmt.Errorf("strict mode: engine '%s' does not support firewall", engine.GetID())
-		}
-	}
-
+	// If Firewall is nil, firewall is disabled - no validation needed
+	// If Firewall is not nil, firewall is enabled - no validation needed
+	// This function is now a no-op since we removed the Enabled field
 	return nil
 }

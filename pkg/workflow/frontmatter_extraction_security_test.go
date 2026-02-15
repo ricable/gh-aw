@@ -20,7 +20,6 @@ func TestExtractFirewallConfig(t *testing.T) {
 
 		config := compiler.extractFirewallConfig(firewallObj)
 		require.NotNil(t, config, "Should extract firewall config")
-		assert.True(t, config.Enabled, "Should be enabled")
 		assert.True(t, config.SSLBump, "Should have ssl-bump enabled")
 	})
 
@@ -52,7 +51,6 @@ func TestExtractFirewallConfig(t *testing.T) {
 
 		config := compiler.extractFirewallConfig(firewallObj)
 		require.NotNil(t, config, "Should extract firewall config")
-		assert.True(t, config.Enabled, "Should be enabled")
 		assert.Len(t, config.Args, 2, "Should have 2 args")
 		assert.Equal(t, "v1.0.0", config.Version, "Should extract version")
 		assert.Equal(t, "debug", config.LogLevel, "Should extract log-level")

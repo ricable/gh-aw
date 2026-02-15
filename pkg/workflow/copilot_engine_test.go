@@ -1380,7 +1380,7 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
 				Firewall: &FirewallConfig{
-					Enabled: true,
+					
 				},
 			},
 			shouldIncludeCopilotDir: true,
@@ -1391,7 +1391,7 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
 				Firewall: &FirewallConfig{
-					Enabled: true,
+					
 				},
 			},
 			shouldIncludeCopilotDir: true,
@@ -1402,7 +1402,7 @@ func TestCopilotEnginePluginDiscoveryInSandboxMode(t *testing.T) {
 			networkPermissions: &NetworkPermissions{
 				Allowed: []string{"api.github.com"},
 				Firewall: &FirewallConfig{
-					Enabled: true,
+					
 				},
 			},
 			shouldIncludeCopilotDir: false,

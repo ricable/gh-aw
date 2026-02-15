@@ -214,13 +214,6 @@ func (c *Compiler) ExtractEngineConfig(frontmatter map[string]any) (string, *Eng
 				if firewallObj, ok := firewall.(map[string]any); ok {
 					firewallConfig := &FirewallConfig{}
 
-					// Extract enabled field (defaults to true for copilot)
-					if enabled, hasEnabled := firewallObj["enabled"]; hasEnabled {
-						if enabledBool, ok := enabled.(bool); ok {
-							firewallConfig.Enabled = enabledBool
-						}
-					}
-
 					// Extract version field (empty = latest)
 					if version, hasVersion := firewallObj["version"]; hasVersion {
 						if versionStr, ok := version.(string); ok {

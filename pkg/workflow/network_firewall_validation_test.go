@@ -135,10 +135,9 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 		assert.NoError(t, err, "Should not return error when network permissions is nil")
 	})
 
-	t.Run("firewall enabled false with allow-urls and no ssl-bump fails validation", func(t *testing.T) {
+	t.Run("firewall with allow-urls and no ssl-bump fails validation", func(t *testing.T) {
 		networkPermissions := &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:   false,
 				SSLBump:   false,
 				AllowURLs: []string{"https://github.com/*"},
 			},
@@ -146,7 +145,7 @@ func TestValidateNetworkFirewallConfig_AllowURLsRequiresSSLBump(t *testing.T) {
 
 		err := validateNetworkFirewallConfig(networkPermissions)
 
-		require.Error(t, err, "Expected validation error even when firewall is disabled")
+		require.Error(t, err, "Expected validation error")
 		assert.Contains(t, err.Error(), "allow-urls requires ssl-bump: true", "Error should mention the ssl-bump requirement")
 	})
 }

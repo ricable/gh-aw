@@ -11,8 +11,9 @@ var firewallLog = logger.New("workflow:firewall")
 
 // FirewallConfig represents AWF (gh-aw-firewall) configuration for network egress control.
 // These settings are specific to the AWF sandbox and do not apply to Sandbox Runtime (SRT).
+// The firewall is considered enabled if this config object is present (not nil).
+// To disable the firewall, set network.firewall: false, network.firewall: "disable", or sandbox.agent: false.
 type FirewallConfig struct {
-	Enabled       bool     `yaml:"enabled,omitempty"`        // Enable/disable AWF (default: true for copilot when network restrictions present)
 	Version       string   `yaml:"version,omitempty"`        // AWF version (empty = latest)
 	Args          []string `yaml:"args,omitempty"`           // Additional arguments to pass to AWF
 	LogLevel      string   `yaml:"log_level,omitempty"`      // AWF log level (default: "info")
@@ -30,7 +31,7 @@ func isFirewallDisabledBySandboxAgent(workflowData *WorkflowData) bool {
 }
 
 // isFirewallEnabled checks if AWF firewall is enabled for the workflow
-// Firewall is enabled if network.firewall is explicitly set to true or an object
+// Firewall is enabled if network.firewall config object is present (not nil)
 // Firewall is disabled if sandbox.agent is explicitly set to false
 func isFirewallEnabled(workflowData *WorkflowData) bool {
 	// Check if sandbox.agent: false (new way to disable firewall)
@@ -39,11 +40,10 @@ func isFirewallEnabled(workflowData *WorkflowData) bool {
 		return false
 	}
 
-	// Check network.firewall configuration (deprecated)
+	// Check if network.firewall configuration object is present
 	if workflowData != nil && workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
-		enabled := workflowData.NetworkPermissions.Firewall.Enabled
-		firewallLog.Printf("Firewall enabled check: %v", enabled)
-		return enabled
+		firewallLog.Print("Firewall enabled (config object present)")
+		return true
 	}
 
 	firewallLog.Print("Firewall not configured, returning false")
@@ -60,8 +60,8 @@ func getFirewallConfig(workflowData *WorkflowData) *FirewallConfig {
 	if workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
 		config := workflowData.NetworkPermissions.Firewall
 		if firewallLog.Enabled() {
-			firewallLog.Printf("Retrieved firewall config: enabled=%v, version=%s, logLevel=%s",
-				config.Enabled, config.Version, config.LogLevel)
+			firewallLog.Printf("Retrieved firewall config: version=%s, logLevel=%s",
+				config.Version, config.LogLevel)
 		}
 		return config
 	}
@@ -154,9 +154,8 @@ func enableFirewallByDefaultForEngine(engineID string, networkPermissions *Netwo
 
 	// Enable firewall by default for the engine (copilot, claude, codex)
 	// This applies to all cases EXCEPT when allowed = "*"
-	networkPermissions.Firewall = &FirewallConfig{
-		Enabled: true,
-	}
+	// Creating a FirewallConfig object implicitly enables the firewall
+	networkPermissions.Firewall = &FirewallConfig{}
 	firewallLog.Printf("Enabled firewall by default for %s engine", engineID)
 }
 

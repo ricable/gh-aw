@@ -122,7 +122,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "debug",
 					},
 				},
@@ -134,7 +134,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "info",
 					},
 				},
@@ -146,7 +146,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "warn",
 					},
 				},
@@ -158,7 +158,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "error",
 					},
 				},
@@ -170,7 +170,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "",
 					},
 				},
@@ -194,7 +194,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "verbose",
 					},
 				},
@@ -207,7 +207,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "trace",
 					},
 				},
@@ -220,7 +220,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{
 					Firewall: &FirewallConfig{
-						Enabled:  true,
+						
 						LogLevel: "DEBUG",
 					},
 				},
@@ -291,7 +291,7 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 		Name: "test-workflow",
 		NetworkPermissions: &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:  true,
+				
 				LogLevel: "debug",
 			},
 		},
@@ -307,7 +307,7 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 		Name: "test-workflow",
 		NetworkPermissions: &NetworkPermissions{
 			Firewall: &FirewallConfig{
-				Enabled:  true,
+				
 				LogLevel: "verbose",
 			},
 		},
@@ -335,18 +335,18 @@ func TestGetSSLBumpArgs(t *testing.T) {
 		},
 		{
 			name:     "SSLBump disabled returns empty slice",
-			config:   &FirewallConfig{Enabled: true, SSLBump: false},
+			config:   &FirewallConfig{ SSLBump: false},
 			expected: nil,
 		},
 		{
 			name:     "SSLBump enabled without AllowURLs returns only ssl-bump flag",
-			config:   &FirewallConfig{Enabled: true, SSLBump: true},
+			config:   &FirewallConfig{ SSLBump: true},
 			expected: []string{"--ssl-bump"},
 		},
 		{
 			name: "SSLBump enabled with single AllowURL returns both flags",
 			config: &FirewallConfig{
-				Enabled:   true,
+				
 				SSLBump:   true,
 				AllowURLs: []string{"https://github.com/githubnext/*"},
 			},
@@ -355,7 +355,7 @@ func TestGetSSLBumpArgs(t *testing.T) {
 		{
 			name: "SSLBump enabled with multiple AllowURLs returns comma-separated",
 			config: &FirewallConfig{
-				Enabled:   true,
+				
 				SSLBump:   true,
 				AllowURLs: []string{"https://github.com/githubnext/*", "https://api.github.com/repos/*"},
 			},
@@ -364,7 +364,7 @@ func TestGetSSLBumpArgs(t *testing.T) {
 		{
 			name: "Empty AllowURLs slice does not add allow-urls flag",
 			config: &FirewallConfig{
-				Enabled:   true,
+				
 				SSLBump:   true,
 				AllowURLs: []string{},
 			},

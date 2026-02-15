@@ -69,37 +69,38 @@ func (c *Compiler) extractNetworkPermissions(frontmatter map[string]any) *Networ
 }
 
 // extractFirewallConfig extracts firewall configuration from various formats
+// Returns nil for disabled firewall (false, "disable"), otherwise returns a config object
 func (c *Compiler) extractFirewallConfig(firewall any) *FirewallConfig {
 	// Handle null/empty object format: firewall: or firewall: {}
+	// This means enable firewall with default settings
 	if firewall == nil {
-		return &FirewallConfig{
-			Enabled: true,
-		}
+		return &FirewallConfig{}
 	}
 
 	// Handle boolean format: firewall: true or firewall: false
 	if firewallBool, ok := firewall.(bool); ok {
-		return &FirewallConfig{
-			Enabled: firewallBool,
+		if firewallBool {
+			// firewall: true → enable with defaults
+			return &FirewallConfig{}
 		}
+		// firewall: false → disable firewall
+		return nil
 	}
 
 	// Handle string format: firewall: "disable"
 	if firewallStr, ok := firewall.(string); ok {
 		if firewallStr == "disable" {
-			return &FirewallConfig{
-				Enabled: false,
-			}
+			// firewall: "disable" → disable firewall
+			return nil
 		}
 		// Unknown string format, return nil
 		return nil
 	}
 
 	// Handle object format: firewall: { args: [...], version: "..." }
+	// Object presence means firewall is enabled
 	if firewallObj, ok := firewall.(map[string]any); ok {
-		config := &FirewallConfig{
-			Enabled: true, // Default to enabled when object is specified
-		}
+		config := &FirewallConfig{}
 
 		// Extract args if present
 		if args, hasArgs := firewallObj["args"]; hasArgs {
