@@ -23,7 +23,7 @@
 #
 # Reviews changes to the Safe Outputs specification and ensures the conformance checker script is up to date
 #
-# frontmatter-hash: 8c2101979950b517597aa3c9a241c7dbe762d2db9cc38c38b4fd4a70faa990a4
+# frontmatter-hash: b986e571e1a9a8dcff9c30443b05ae7d6c2ca83be1c7c22137a65cdf6e787a32
 
 name: "Weekly Safe Outputs Specification Review"
 "on":
@@ -189,17 +189,6 @@ jobs:
         run: /opt/gh-aw/actions/install_copilot_cli.sh 0.0.410
       - name: Install awf binary
         run: bash /opt/gh-aw/actions/install_awf_binary.sh v0.18.0
-      - name: Validate lockdown mode requirements
-        id: validate-lockdown-requirements
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          GITHUB_MCP_LOCKDOWN_EXPLICIT: "true"
-          GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
-          GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
-        with:
-          script: |
-            const validateLockdownRequirements = require('/opt/gh-aw/actions/validate_lockdown_requirements.cjs');
-            validateLockdownRequirements(core);
       - name: Download container images
         run: bash /opt/gh-aw/actions/download_docker_images.sh ghcr.io/github/gh-aw-firewall/agent:0.18.0 ghcr.io/github/gh-aw-firewall/squid:0.18.0 ghcr.io/github/gh-aw-mcpg:v0.1.4 ghcr.io/github/github-mcp-server:v0.30.3 node:lts-alpine
       - name: Write Safe Outputs Config
@@ -451,7 +440,6 @@ jobs:
                 "type": "stdio",
                 "container": "ghcr.io/github/github-mcp-server:v0.30.3",
                 "env": {
-                  "GITHUB_LOCKDOWN_MODE": "1",
                   "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_MCP_SERVER_TOKEN}",
                   "GITHUB_READ_ONLY": "1",
                   "GITHUB_TOOLSETS": "repos,pull_requests"

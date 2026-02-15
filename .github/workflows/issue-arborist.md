@@ -18,7 +18,7 @@ imports:
   - shared/jqschema.md
 tools:
   github:
-    lockdown: true
+    lockdown: false
     toolsets:
       - issues
   bash:

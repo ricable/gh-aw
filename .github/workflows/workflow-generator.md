@@ -15,7 +15,7 @@ permissions:
 engine: copilot
 tools:
   github:
-    lockdown: true
+    lockdown: false
     toolsets: [default]
 if: startsWith(github.event.issue.title, '[Workflow]')
 safe-outputs:

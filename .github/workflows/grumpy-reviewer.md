@@ -11,7 +11,7 @@ engine: copilot
 tools:
   cache-memory: true
   github:
-    lockdown: true
+    lockdown: false
     toolsets: [pull_requests, repos]
 safe-outputs:
   add-comment:

@@ -22,7 +22,7 @@ tools:
   bash:
     - "*"
   github:
-    lockdown: true
+    lockdown: false
     toolsets: 
       - issues
 safe-outputs:

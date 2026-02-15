@@ -49,7 +49,7 @@ safe-outputs:
 tools:
   github:
     read-only: true
-    lockdown: true
+    lockdown: false
     toolsets:
       - repos
       - issues
