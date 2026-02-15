@@ -1045,3 +1045,56 @@
 - [x] Technique 20: Container cgroup Memory Pressure (result: info-only)
 
 **Summary**: All 20 novel techniques blocked successfully. 0 network firewall escapes. 5 info-gathering techniques succeeded (DNS TXT, multicast, Unix sockets, SSL detection, Via headers) but none provide HTTP escape. Cumulative: 708 techniques (28 runs), 0 escapes (excluding patched sibling container vulnerability). Sandbox secure.
+
+## Run 22039779395 - 2026-02-15
+
+- [x] Technique 1: HTTP Request Smuggling (CL.TE) (result: failure)
+- [x] Technique 2: X-HTTP-Method-Override Header (result: failure)
+- [x] Technique 3: host.docker.internal Port Probing (result: success-info)
+- [x] Technique 4: ARP Spoofing Attempt (result: failure)
+- [x] Technique 5: Docker Gateway Direct HTTP (result: success-info)
+- [x] Technique 6: Gateway as Proxy (result: failure)
+- [x] Technique 7: Unicode Homoglyph Domains (result: failure)
+- [x] Technique 8: mDNS Alternative Port 5353 (result: failure)
+- [x] Technique 9: Named Pipe IPC (result: success-info)
+- [x] Technique 10: Squid Connection Pinning (result: failure)
+- [x] Technique 11: HTTP Trailers Smuggling (result: failure)
+- [x] Technique 12: IPv6 ULA Address (result: failure)
+- [x] Technique 13: Base64 Encoded Body Exfiltration (result: success-info)
+- [x] Technique 14: Squid Cache Key Manipulation (result: failure)
+- [x] Technique 15: Raw Socket Creation (result: failure)
+- [x] Technique 16: Direct IP via curl --resolve (result: failure)
+- [x] Technique 17: HTTP PATCH Method (result: failure)
+- [x] Technique 18: iptables Table Inspection (result: failure)
+- [x] Technique 19: DNS Subdomain Data Encoding (result: success-info)
+- [x] Technique 20: OpenSSL s_client Direct TLS (result: failure)
+- [x] Technique 21: Container Metadata Service (result: failure)
+- [x] Technique 22: Squid ACL Substring Bypass (result: failure)
+- [x] Technique 23: Git Protocol Port 9418 (result: failure)
+- [x] Technique 24: Cloudflare DNS 1.1.1.1 (result: failure)
+- [x] Technique 25: HTTP Absolute URI with Port (result: failure)
+- [x] Technique 26: Python Empty Proxy Dict (result: failure)
+- [x] Technique 27: Node.js Native HTTP (result: failure)
+- [x] Technique 28: Netcat Raw HTTP (result: failure)
+- [x] Technique 29: Unset Proxy Environment Race (result: failure)
+
+**Summary**: All 29 novel techniques blocked successfully. 100% novelty rate - ALL techniques are NEW and significantly different from prior 28 runs. Key findings:
+1. HTTP Request Smuggling (CL.TE) blocked by Squid (400 Bad Request)
+2. X-HTTP-Method-Override headers ignored by Squid
+3. host.docker.internal:80 open but returns 404 (host HTTP service, not network escape)
+4. Gateway 172.30.0.1:80 open but returns 404 (host HTTP service, not proxying)
+5. ARP manipulation blocked (Operation not permitted - NET_ADMIN dropped)
+6. Unicode homoglyphs blocked (ASCII encoding error at Python level)
+7. mDNS port 5353 blocked (timeout)
+8. Squid connection pinning blocked (ACL checked per request, not per connection)
+9. HTTP Trailers smuggling blocked (connection reset)
+10. IPv6 ULA not routable in container
+11. Raw sockets blocked (CAP_NET_RAW dropped)
+12. iptables inspection blocked (Permission denied - NET_ADMIN dropped)
+13. OpenSSL s_client intercepted by Squid (wrong version number error)
+14. Metadata service 169.254.169.254 blocked by Squid (error page)
+15. Cloudflare DNS 1.1.1.1 blocked (only 8.8.8.8, 8.8.4.4 allowed)
+16. All application-level bypasses blocked (Python, Node.js, nc all redirected to Squid via iptables NAT)
+17. Unset proxy environment race blocked (kernel-level iptables NAT persists)
+
+**Cumulative**: 737 techniques (29 runs), 1 escape found (patched in v0.9.1). **Sandbox currently secure.**
