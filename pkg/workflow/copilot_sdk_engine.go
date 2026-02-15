@@ -53,8 +53,9 @@ func NewCopilotSDKEngine() *CopilotSDKEngine {
 }
 
 // SupportsLLMGateway returns the LLM gateway port for Copilot SDK engine
+// SupportsLLMGateway returns 0 because Copilot does not support LLM gateway
 func (e *CopilotSDKEngine) SupportsLLMGateway() int {
-	return constants.CopilotSDKLLMGatewayPort
+	return 0
 }
 
 // GetDefaultDetectionModel returns the default model for threat detection
