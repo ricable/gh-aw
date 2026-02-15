@@ -40,11 +40,6 @@ func hasNetworkRestrictions(networkPermissions *NetworkPermissions) bool {
 func (c *Compiler) checkNetworkSupport(engine CodingAgentEngine, networkPermissions *NetworkPermissions) error {
 	engineFirewallSupportLog.Printf("Checking network support: engine=%s, strict_mode=%t", engine.GetID(), c.strictMode)
 
-	// First, check for explicit firewall disable
-	if err := c.checkFirewallDisable(engine, networkPermissions); err != nil {
-		return err
-	}
-
 	// Check if network restrictions exist
 	if !hasNetworkRestrictions(networkPermissions) {
 		engineFirewallSupportLog.Print("No network restrictions defined, skipping validation")
@@ -75,12 +70,5 @@ func (c *Compiler) checkNetworkSupport(engine CodingAgentEngine, networkPermissi
 	fmt.Fprintln(os.Stderr, console.FormatWarningMessage(message))
 	c.IncrementWarningCount()
 
-	return nil
-}
-
-// checkFirewallDisable validates firewall: "disable" configuration
-// Since network.firewall is removed, this function is now a no-op
-func (c *Compiler) checkFirewallDisable(engine CodingAgentEngine, networkPermissions *NetworkPermissions) error {
-	// network.firewall has been removed - this function no longer does anything
 	return nil
 }

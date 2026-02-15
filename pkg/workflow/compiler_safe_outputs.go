@@ -465,25 +465,16 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 	return safeOutputs.CreatePullRequests != nil || safeOutputs.PushToPullRequestBranch != nil
 }
 
-// isSandboxEnabled checks if the sandbox is enabled (either explicitly or auto-enabled)
-// Returns true when:
-// - sandbox.agent is explicitly set to a sandbox type (awf, srt, etc.)
-// Returns false when:
-// - sandbox.agent is false (explicitly disabled)
-// - No sandbox configuration
+// isSandboxEnabled checks if the sandbox is enabled
+// Returns true by default (sandbox.agent: awf is the default)
+// Returns false only when:
+// - sandbox.agent is explicitly set to false
 func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkPermissions) bool {
 	// Check if sandbox.agent is explicitly disabled
 	if sandboxConfig != nil && sandboxConfig.Agent != nil && sandboxConfig.Agent.Disabled {
 		return false
 	}
 
-	// Check if sandbox.agent is explicitly configured with a type
-	if sandboxConfig != nil && sandboxConfig.Agent != nil {
-		agentType := getAgentType(sandboxConfig.Agent)
-		if isSupportedSandboxType(agentType) {
-			return true
-		}
-	}
-
-	return false
+	// Sandbox is enabled by default (sandbox.agent: awf)
+	return true
 }
