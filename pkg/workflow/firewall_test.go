@@ -125,6 +125,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "debug",
 					},
 				},
+	},
 			},
 			expectErr: false,
 		},
@@ -136,6 +137,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "info",
 					},
 				},
+	},
 			},
 			expectErr: false,
 		},
@@ -147,6 +149,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "warn",
 					},
 				},
+	},
 			},
 			expectErr: false,
 		},
@@ -158,6 +161,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "error",
 					},
 				},
+	},
 			},
 			expectErr: false,
 		},
@@ -169,6 +173,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "",
 					},
 				},
+	},
 			},
 			expectErr: false,
 		},
@@ -177,6 +182,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{},
 			},
+	},
 			expectErr: false,
 		},
 		{
@@ -192,6 +198,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "verbose",
 					},
 				},
+	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'verbose'",
@@ -204,6 +211,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "trace",
 					},
 				},
+	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'trace'",
@@ -216,6 +224,7 @@ func TestValidateFirewallConfig(t *testing.T) {
 						LogLevel: "DEBUG",
 					},
 				},
+	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'DEBUG'",
@@ -286,6 +295,7 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 				LogLevel: "debug",
 			},
 		},
+	},
 	}
 
 	err := compiler.validateFirewallConfig(validWorkflow)
@@ -301,6 +311,7 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 				LogLevel: "verbose",
 			},
 		},
+	},
 	}
 
 	err = compiler.validateFirewallConfig(invalidWorkflow)

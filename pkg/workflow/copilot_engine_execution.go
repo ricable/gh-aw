@@ -34,14 +34,14 @@ var copilotExecLog = logger.New("workflow:copilot_engine_execution")
 
 // GetExecutionSteps returns the GitHub Actions steps for executing GitHub Copilot CLI
 func (e *CopilotEngine) GetExecutionSteps(workflowData *WorkflowData, logFile string) []GitHubActionStep {
-	copilotExecLog.Printf("Generating execution steps for Copilot: workflow=%s, firewall=%v", workflowData.Name, isFirewallEnabled(workflowData))
+	copilotExecLog.Printf("Generating execution steps for Copilot: workflow=%s, firewall=%v", workflowData.Name, isSandboxEnabled(workflowData))
 
 	// Handle custom steps if they exist in engine config
 	steps := InjectCustomEngineSteps(workflowData, e.convertStepToYAML)
 
 	// Build copilot CLI arguments based on configuration
 	var copilotArgs []string
-	sandboxEnabled := isFirewallEnabled(workflowData)
+	sandboxEnabled := isSandboxEnabled(workflowData)
 	if sandboxEnabled {
 		// Simplified args for sandbox mode (AWF)
 		copilotArgs = []string{"--add-dir", "/tmp/gh-aw/", "--log-level", "all", "--log-dir", logsFolder}
@@ -195,7 +195,7 @@ func (e *CopilotEngine) GetExecutionSteps(workflowData *WorkflowData, logFile st
 
 	// Conditionally wrap with sandbox (AWF only)
 	var command string
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		// Build AWF-wrapped command using helper function - no mkdir needed, AWF handles it
 		// Get allowed domains (copilot defaults + network permissions + HTTP MCP server URLs + runtime ecosystem domains)
 		allowedDomains := GetCopilotAllowedDomainsWithToolsAndRuntimes(workflowData.NetworkPermissions, workflowData.Tools, workflowData.Runtimes)

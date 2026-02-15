@@ -32,6 +32,8 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com", "*.trusted.com"},
+			},
+	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -84,7 +86,8 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com"},
-		}
+		},
+	}
 
 		steps := engine.GetExecutionSteps(workflowData, "test-log")
 		if len(steps) == 0 {

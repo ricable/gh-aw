@@ -347,7 +347,7 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	// Add firewall log parsing steps (but not upload - collected for unified upload)
 	// For Copilot, Codex, and Claude engines
 	if _, ok := engine.(*CopilotEngine); ok {
-		if isFirewallEnabled(data) {
+		if isSandboxEnabled(data) {
 			firewallLogParsing := generateFirewallLogParsingStep(data.Name)
 			for _, line := range firewallLogParsing {
 				yaml.WriteString(line + "\n")
@@ -357,7 +357,7 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 		}
 	}
 	if _, ok := engine.(*CodexEngine); ok {
-		if isFirewallEnabled(data) {
+		if isSandboxEnabled(data) {
 			firewallLogParsing := generateFirewallLogParsingStep(data.Name)
 			for _, line := range firewallLogParsing {
 				yaml.WriteString(line + "\n")
@@ -367,7 +367,7 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 		}
 	}
 	if _, ok := engine.(*ClaudeEngine); ok {
-		if isFirewallEnabled(data) {
+		if isSandboxEnabled(data) {
 			firewallLogParsing := generateFirewallLogParsingStep(data.Name)
 			for _, line := range firewallLogParsing {
 				yaml.WriteString(line + "\n")

@@ -21,6 +21,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -61,6 +62,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Enabled: true,
 					Args:    []string{"--custom-arg", "value", "--another-flag"},
 				},
+	},
 			},
 		}
 
@@ -102,6 +104,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Enabled: true,
 					Args:    []string{"--message", "hello world", "--path", "/some/path with spaces"},
 				},
+	},
 			},
 		}
 
@@ -135,6 +138,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -168,6 +172,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -198,6 +203,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					Version: customVersion,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -233,6 +239,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					SSLBump: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -261,6 +268,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					SSLBump:   true,
 					AllowURLs: []string{"https://github.com/githubnext/*", "https://api.github.com/repos/*"},
 				},
+	},
 			},
 		}
 
@@ -299,6 +307,7 @@ func TestFirewallArgsInCopilotEngine(t *testing.T) {
 					SSLBump:   false, // SSL Bump disabled
 					AllowURLs: []string{"https://github.com/githubnext/*"},
 				},
+	},
 			},
 		}
 

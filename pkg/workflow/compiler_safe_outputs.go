@@ -328,7 +328,11 @@ func (c *Compiler) applyDefaultTools(tools map[string]any, safeOutputs *SafeOutp
 	// The sandbox is enabled when:
 	// 1. Explicitly configured via sandbox.agent (awf/srt)
 	// 2. Auto-enabled by firewall default enablement (when network restrictions are present)
-	if isSandboxEnabled(sandboxConfig, networkPermissions) {
+	workflowData := &WorkflowData{
+		SandboxConfig:      sandboxConfig,
+		NetworkPermissions: networkPermissions,
+	}
+	if isSandboxEnabled(workflowData) {
 		compilerSafeOutputsLog.Print("Sandbox enabled, applying default edit and bash tools")
 
 		// Add edit tool if not present
@@ -469,9 +473,12 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 // Returns true by default (sandbox.agent: awf is the default)
 // Returns false only when:
 // - sandbox.agent is explicitly set to false
-func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkPermissions) bool {
+func isSandboxEnabled(workflowData *WorkflowData) bool {
 	// Check if sandbox.agent is explicitly disabled
-	if sandboxConfig != nil && sandboxConfig.Agent != nil && sandboxConfig.Agent.Disabled {
+	if workflowData != nil &&
+		workflowData.SandboxConfig != nil &&
+		workflowData.SandboxConfig.Agent != nil &&
+		workflowData.SandboxConfig.Agent.Disabled {
 		return false
 	}
 

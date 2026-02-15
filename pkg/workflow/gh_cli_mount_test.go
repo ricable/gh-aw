@@ -19,6 +19,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -74,6 +75,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -116,6 +118,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 					Enabled: true,
 					Args:    []string{"--custom-flag", "value"},
 				},
+	},
 			},
 		}
 
@@ -148,6 +151,7 @@ func TestChrootModeInAWFContainer(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 			// Explicitly set AWF sandbox type
 			SandboxConfig: &SandboxConfig{
 				Agent: &AgentSandboxConfig{
@@ -184,6 +188,7 @@ func TestChrootModeEnvFlags(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()

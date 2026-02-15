@@ -92,7 +92,7 @@ func (e *CodexEngine) GetInstallationSteps(workflowData *WorkflowData) []GitHubA
 	}, workflowData)
 
 	// Add AWF installation step if firewall is enabled
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		firewallConfig := getFirewallConfig(workflowData)
 		agentConfig := getAgentConfig(workflowData)
 		var awfVersion string
@@ -127,7 +127,7 @@ func (e *CodexEngine) GetExecutionSteps(workflowData *WorkflowData, logFile stri
 	if modelConfigured {
 		model = workflowData.EngineConfig.Model
 	}
-	firewallEnabled := isFirewallEnabled(workflowData)
+	firewallEnabled := isSandboxEnabled(workflowData)
 	codexEngineLog.Printf("Building Codex execution steps: workflow=%s, model=%s, has_agent_file=%v, firewall=%v",
 		workflowData.Name, model, workflowData.AgentFile != "", firewallEnabled)
 
@@ -348,7 +348,7 @@ func (e *CodexEngine) GetSquidLogsSteps(workflowData *WorkflowData) []GitHubActi
 	var steps []GitHubActionStep
 
 	// Only add upload and parsing steps if firewall is enabled
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		codexEngineLog.Printf("Adding Squid logs upload and parsing steps for workflow: %s", workflowData.Name)
 
 		squidLogsUpload := generateSquidLogsUploadStep(workflowData.Name)

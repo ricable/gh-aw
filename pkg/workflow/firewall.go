@@ -21,29 +21,6 @@ type FirewallConfig struct {
 	AllowURLs     []string `yaml:"allow_urls,omitempty"`     // AWF-only: URL patterns to allow for HTTPS (requires SSLBump), e.g., "https://github.com/githubnext/*"
 }
 
-// isFirewallDisabledBySandboxAgent checks if the firewall is disabled via sandbox.agent: false
-func isFirewallDisabledBySandboxAgent(workflowData *WorkflowData) bool {
-	return workflowData != nil &&
-		workflowData.SandboxConfig != nil &&
-		workflowData.SandboxConfig.Agent != nil &&
-		workflowData.SandboxConfig.Agent.Disabled
-}
-
-// isFirewallEnabled checks if AWF firewall is enabled for the workflow
-// Since network.firewall is removed, this checks if sandbox is enabled
-// Firewall is part of the sandbox (sandbox.agent: awf by default)
-func isFirewallEnabled(workflowData *WorkflowData) bool {
-	// Firewall is disabled only when sandbox.agent: false
-	if isFirewallDisabledBySandboxAgent(workflowData) {
-		firewallLog.Print("Firewall disabled via sandbox.agent: false")
-		return false
-	}
-
-	// Firewall is enabled by default (via sandbox.agent: awf)
-	firewallLog.Print("Firewall enabled (sandbox.agent: awf is default)")
-	return true
-}
-
 // getFirewallConfig returns the firewall configuration
 // With network.firewall removed, this always returns nil
 func getFirewallConfig(workflowData *WorkflowData) *FirewallConfig {

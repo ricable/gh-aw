@@ -70,6 +70,7 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewClaudeEngine()
@@ -100,6 +101,7 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 					Version: customVersion,
 				},
 			},
+	},
 		}
 
 		engine := NewClaudeEngine()
@@ -131,6 +133,7 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCodexEngine()
@@ -161,6 +164,7 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 					Version: customVersion,
 				},
 			},
+	},
 		}
 
 		engine := NewCodexEngine()

@@ -84,7 +84,7 @@ func collectDockerImages(tools map[string]any, workflowData *WorkflowData, actio
 
 	// Collect AWF (firewall) container images when firewall is enabled
 	// AWF uses three containers: squid (proxy), agent, and api-proxy (for engines with LLM gateway support)
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		// Get the firewall version for image tags
 		firewallConfig := getFirewallConfig(workflowData)
 		awfImageTag := getAWFImageTag(firewallConfig)

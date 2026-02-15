@@ -73,6 +73,7 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -120,6 +121,7 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 					Version: customVersion,
 				},
 			},
+	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -167,6 +169,7 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 					Enabled: false,
 				},
 			},
+	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)

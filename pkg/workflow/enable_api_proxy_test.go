@@ -18,6 +18,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewClaudeEngine()
@@ -44,6 +45,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCopilotEngine()
@@ -70,6 +72,7 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 					Enabled: true,
 				},
 			},
+	},
 		}
 
 		engine := NewCodexEngine()

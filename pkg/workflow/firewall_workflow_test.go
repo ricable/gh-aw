@@ -21,6 +21,7 @@ func TestFirewallWorkflowNetworkConfiguration(t *testing.T) {
 		Tools: map[string]any{
 			"web-fetch": nil,
 		},
+	},
 	}
 
 	t.Run("example.com is not in default allowed domains", func(t *testing.T) {
