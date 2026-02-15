@@ -39,6 +39,21 @@ func isFirewallEnabled(workflowData *WorkflowData) bool {
 		return false
 	}
 
+	// Check if sandbox is enabled (via sandbox config)
+	// When sandbox is enabled, firewall is also enabled
+	var networkPermissions *NetworkPermissions
+	if workflowData != nil {
+		networkPermissions = workflowData.NetworkPermissions
+	}
+	var sandboxConfig *SandboxConfig
+	if workflowData != nil {
+		sandboxConfig = workflowData.SandboxConfig
+	}
+	if isSandboxEnabled(sandboxConfig, networkPermissions) {
+		firewallLog.Print("Sandbox enabled, firewall is enabled")
+		return true
+	}
+
 	// Check network.firewall configuration (deprecated)
 	if workflowData != nil && workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
 		enabled := workflowData.NetworkPermissions.Firewall.Enabled

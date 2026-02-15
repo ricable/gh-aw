@@ -458,6 +458,7 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 // isSandboxEnabled checks if the sandbox is enabled (either explicitly or auto-enabled)
 // Returns true when:
 // - sandbox.agent is explicitly set to a sandbox type (awf, srt, etc.)
+// - sandbox.type is explicitly set (legacy format)
 // - Firewall is auto-enabled (networkPermissions.Firewall is set and enabled)
 // - SRT sandbox is enabled
 // Returns false when:
@@ -475,6 +476,11 @@ func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkP
 		if isSupportedSandboxType(agentType) {
 			return true
 		}
+	}
+
+	// Check legacy Type field (for backward compatibility)
+	if sandboxConfig != nil && isSupportedSandboxType(sandboxConfig.Type) {
+		return true
 	}
 
 	// Check if firewall is auto-enabled (AWF)
