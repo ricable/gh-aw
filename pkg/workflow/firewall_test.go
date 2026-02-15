@@ -124,8 +124,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "debug",
 					},
-				},
-	},
 			},
 			expectErr: false,
 		},
@@ -136,8 +134,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "info",
 					},
-				},
-	},
 			},
 			expectErr: false,
 		},
@@ -148,8 +144,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "warn",
 					},
-				},
-	},
 			},
 			expectErr: false,
 		},
@@ -160,8 +154,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "error",
 					},
-				},
-	},
 			},
 			expectErr: false,
 		},
@@ -172,8 +164,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "",
 					},
-				},
-	},
 			},
 			expectErr: false,
 		},
@@ -181,8 +171,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 			name: "no firewall config (allowed)",
 			workflowData: &WorkflowData{
 				NetworkPermissions: &NetworkPermissions{},
-			},
-	},
 			expectErr: false,
 		},
 		{
@@ -197,8 +185,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "verbose",
 					},
-				},
-	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'verbose'",
@@ -210,8 +196,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "trace",
 					},
-				},
-	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'trace'",
@@ -223,8 +207,6 @@ func TestValidateFirewallConfig(t *testing.T) {
 						Enabled:  true,
 						LogLevel: "DEBUG",
 					},
-				},
-	},
 			},
 			expectErr: true,
 			errMsg:    "invalid log-level 'DEBUG'",
@@ -295,7 +277,6 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 				LogLevel: "debug",
 			},
 		},
-	},
 	}
 
 	err := compiler.validateFirewallConfig(validWorkflow)
@@ -311,7 +292,6 @@ func TestValidateFirewallConfigIntegration(t *testing.T) {
 				LogLevel: "verbose",
 			},
 		},
-	},
 	}
 
 	err = compiler.validateFirewallConfig(invalidWorkflow)

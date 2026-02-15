@@ -39,8 +39,6 @@ func TestCollectDockerImages_APIProxyForEnginesWithLLMGateway(t *testing.T) {
 						Enabled: true,
 						Version: awfImageTag,
 					},
-				},
-	},
 			}
 
 			images := collectDockerImages(nil, workflowData, ActionModeRelease)

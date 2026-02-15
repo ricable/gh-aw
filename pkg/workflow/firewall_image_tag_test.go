@@ -69,8 +69,6 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewClaudeEngine()
@@ -100,8 +98,6 @@ func TestClaudeEngineAWFImageTag(t *testing.T) {
 					Enabled: true,
 					Version: customVersion,
 				},
-			},
-	},
 		}
 
 		engine := NewClaudeEngine()
@@ -132,8 +128,6 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCodexEngine()
@@ -163,8 +157,6 @@ func TestCodexEngineAWFImageTag(t *testing.T) {
 					Enabled: true,
 					Version: customVersion,
 				},
-			},
-	},
 		}
 
 		engine := NewCodexEngine()

@@ -321,7 +321,6 @@ func TestClaudeEngineNetworkHookCleanup(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com", "*.trusted.com"},
 			},
-	},
 		}
 
 		steps := engine.GetExecutionSteps(data, "/tmp/gh-aw/th-aw/test.log")

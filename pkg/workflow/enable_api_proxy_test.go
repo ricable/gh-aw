@@ -17,8 +17,6 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewClaudeEngine()
@@ -44,8 +42,6 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCopilotEngine()
@@ -71,8 +67,6 @@ func TestEngineAWFEnableApiProxy(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCodexEngine()

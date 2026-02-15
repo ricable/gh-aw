@@ -33,7 +33,6 @@ func TestClaudeEngineNetworkPermissions(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 				Allowed:  []string{"example.com", "*.trusted.com"},
 			},
-	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)

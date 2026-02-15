@@ -72,8 +72,6 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -120,8 +118,6 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 					Enabled: true,
 					Version: customVersion,
 				},
-			},
-	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)
@@ -168,8 +164,6 @@ func TestCopilotEngineFirewallInstallation(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: false,
 				},
-			},
-	},
 		}
 
 		steps := engine.GetInstallationSteps(workflowData)

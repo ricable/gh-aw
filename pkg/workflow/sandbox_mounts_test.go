@@ -134,8 +134,6 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 				NetworkPermissions: &NetworkPermissions{
 						Enabled: true,
 					},
-				},
-	},
 				Tools: map[string]any{
 					"github": map[string]any{}, // Add MCP server to satisfy validation
 				},
@@ -157,8 +155,6 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 				NetworkPermissions: &NetworkPermissions{
 						Enabled: true,
 					},
-				},
-	},
 				Tools: map[string]any{
 					"github": map[string]any{}, // Add MCP server to satisfy validation
 				},
@@ -184,8 +180,6 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 				NetworkPermissions: &NetworkPermissions{
 						Enabled: true,
 					},
-				},
-	},
 			},
 			wantErr: true,
 			errMsg:  "mount syntax must follow 'source:destination:mode' format",
@@ -208,8 +202,6 @@ func TestSandboxConfigWithMounts(t *testing.T) {
 				NetworkPermissions: &NetworkPermissions{
 						Enabled: true,
 					},
-				},
-	},
 			},
 			wantErr: true,
 			errMsg:  "mode must be 'ro' (read-only) or 'rw' (read-write)",
@@ -257,8 +249,6 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCopilotEngine()
@@ -294,8 +284,6 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCopilotEngine()
@@ -338,8 +326,6 @@ func TestCopilotEngineWithCustomMounts(t *testing.T) {
 			NetworkPermissions: &NetworkPermissions{
 					Enabled: true,
 				},
-			},
-	},
 		}
 
 		engine := NewCopilotEngine()
