@@ -316,7 +316,7 @@ func (c *Compiler) applyDefaultTools(tools map[string]any, safeOutputs *SafeOutp
 
 	// Enable edit and bash tools by default when sandbox is enabled
 	// The sandbox is enabled when explicitly configured via sandbox.agent
-	if isSandboxEnabled(sandboxConfig, networkPermissions) {
+	if isSandboxEnabledFromConfigs(sandboxConfig, networkPermissions) {
 		compilerSafeOutputsLog.Print("Sandbox enabled, applying default edit and bash tools")
 
 		// Add edit tool if not present
@@ -453,14 +453,45 @@ func needsGitCommands(safeOutputs *SafeOutputsConfig) bool {
 	return safeOutputs.CreatePullRequests != nil || safeOutputs.PushToPullRequestBranch != nil
 }
 
-// isSandboxEnabled checks if the sandbox is enabled (either explicitly or auto-enabled)
+// isSandboxEnabled checks if the sandbox/firewall is enabled for the workflow
 // Returns true when:
 // - sandbox.agent is explicitly set
-// - Firewall is auto-enabled (networkPermissions.Firewall is set and enabled)
+// - Firewall is auto-enabled (network.firewall is set and enabled)
 // Returns false when:
 // - sandbox.agent is false (explicitly disabled)
 // - No sandbox configuration and no auto-enabled firewall
-func isSandboxEnabled(sandboxConfig *SandboxConfig, networkPermissions *NetworkPermissions) bool {
+func isSandboxEnabled(workflowData *WorkflowData) bool {
+	// Check if sandbox.agent: false (explicitly disabled)
+	if workflowData != nil &&
+		workflowData.SandboxConfig != nil &&
+		workflowData.SandboxConfig.Agent != nil &&
+		workflowData.SandboxConfig.Agent.Disabled {
+		return false
+	}
+
+	// Extract sandbox and network configs
+	var sandboxConfig *SandboxConfig
+	var networkPermissions *NetworkPermissions
+	if workflowData != nil {
+		sandboxConfig = workflowData.SandboxConfig
+		networkPermissions = workflowData.NetworkPermissions
+	}
+
+	// Check if sandbox.agent is explicitly configured (AWF is the only sandbox type)
+	if sandboxConfig != nil && sandboxConfig.Agent != nil {
+		return true
+	}
+
+	// Check if firewall is auto-enabled (AWF) via legacy network.firewall config
+	if networkPermissions != nil && networkPermissions.Firewall != nil && networkPermissions.Firewall.Enabled {
+		return true
+	}
+
+	return false
+}
+
+// isSandboxEnabledFromConfigs is a helper for code that has separate config parameters
+func isSandboxEnabledFromConfigs(sandboxConfig *SandboxConfig, networkPermissions *NetworkPermissions) bool {
 	// Check if sandbox.agent is explicitly disabled
 	if sandboxConfig != nil && sandboxConfig.Agent != nil && sandboxConfig.Agent.Disabled {
 		return false
