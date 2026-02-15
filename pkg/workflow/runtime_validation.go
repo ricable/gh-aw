@@ -321,20 +321,8 @@ func validateSecretReferences(secrets []string) error {
 }
 
 // validateFirewallConfig validates firewall configuration including log-level
+// Since network.firewall has been removed, this function is now a no-op
 func (c *Compiler) validateFirewallConfig(workflowData *WorkflowData) error {
-	if workflowData.NetworkPermissions == nil || workflowData.NetworkPermissions.Firewall == nil {
-		return nil
-	}
-
-	config := workflowData.NetworkPermissions.Firewall
-	runtimeValidationLog.Printf("Validating firewall config: enabled=%v, logLevel=%s", config.Enabled, config.LogLevel)
-	if config.LogLevel != "" {
-		if err := ValidateLogLevel(config.LogLevel); err != nil {
-			runtimeValidationLog.Printf("Invalid firewall log level: %s", config.LogLevel)
-			return err
-		}
-	}
-
-	runtimeValidationLog.Print("Firewall config validation passed")
+	// network.firewall has been removed - this function no longer does anything
 	return nil
 }

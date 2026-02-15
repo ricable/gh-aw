@@ -186,12 +186,6 @@ func (c *Compiler) validateWorkflowData(workflowData *WorkflowData, markdownPath
 		return formatCompilerError(markdownPath, "error", err.Error(), err)
 	}
 
-	// Validate network firewall configuration
-	log.Printf("Validating network firewall configuration")
-	if err := validateNetworkFirewallConfig(workflowData.NetworkPermissions); err != nil {
-		return formatCompilerError(markdownPath, "error", err.Error(), err)
-	}
-
 	// Validate labels configuration
 	log.Printf("Validating labels")
 	if err := validateLabels(workflowData); err != nil {

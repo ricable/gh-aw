@@ -492,14 +492,6 @@ func (c *Compiler) generateCreateAwInfo(yaml *strings.Builder, data *WorkflowDat
 
 	if data.NetworkPermissions != nil {
 		allowedDomains = data.NetworkPermissions.Allowed
-		if data.NetworkPermissions.Firewall != nil {
-			firewallEnabled = data.NetworkPermissions.Firewall.Enabled
-			firewallVersion = data.NetworkPermissions.Firewall.Version
-			// Use default firewall version when enabled but not explicitly set
-			if firewallEnabled && firewallVersion == "" {
-				firewallVersion = string(constants.DefaultFirewallVersion)
-			}
-		}
 	}
 
 	// Add allowed domains as JSON array

@@ -19,7 +19,6 @@ type CodemodResult struct {
 func GetAllCodemods() []Codemod {
 	return []Codemod{
 		getTimeoutMinutesCodemod(),
-		getNetworkFirewallCodemod(),
 		getCommandToSlashCommandCodemod(),
 		getSafeInputsModeCodemod(),
 		getUploadAssetsCodemod(),
