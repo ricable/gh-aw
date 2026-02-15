@@ -3,7 +3,6 @@
 package workflow
 
 import (
-	"strings"
 	"testing"
 )
 
