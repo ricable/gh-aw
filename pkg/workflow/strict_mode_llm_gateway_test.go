@@ -315,8 +315,8 @@ func TestSupportsLLMGateway(t *testing.T) {
 		},
 		{
 			engineID:     "copilot-sdk",
-			expectedPort: constants.CopilotSDKLLMGatewayPort,
-			description:  "Copilot SDK engine uses dedicated port for LLM gateway",
+			expectedPort: 0,
+			description:  "Copilot SDK engine does not support LLM gateway",
 		},
 		{
 			engineID:     "copilot",

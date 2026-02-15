@@ -968,7 +968,7 @@ func TestCompilerIsSandboxEnabled(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := isSandboxEnabled(tt.sandboxConfig, tt.networkPermissions)
+			result := isSandboxEnabledFromConfigs(tt.sandboxConfig, tt.networkPermissions)
 			assert.Equal(t, tt.expected, result, "Sandbox detection mismatch")
 		})
 	}
@@ -1416,7 +1416,7 @@ func TestCompilerIsSandboxEnabledPrecedence(t *testing.T) {
 		Firewall: &FirewallConfig{Enabled: true},
 	}
 
-	result := isSandboxEnabled(config, networkPerms)
+	result := isSandboxEnabledFromConfigs(config, networkPerms)
 	assert.False(t, result, "Disabled flag should take precedence over all other settings")
 
 	// Test that ID field takes precedence over Type field
@@ -1427,7 +1427,7 @@ func TestCompilerIsSandboxEnabledPrecedence(t *testing.T) {
 		},
 	}
 
-	result = isSandboxEnabled(config2, nil)
+	result = isSandboxEnabledFromConfigs(config2, nil)
 	assert.True(t, result, "ID field should take precedence over Type field")
 }
 

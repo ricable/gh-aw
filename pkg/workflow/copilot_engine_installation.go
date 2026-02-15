@@ -89,7 +89,7 @@ func (e *CopilotEngine) GetInstallationSteps(workflowData *WorkflowData) []GitHu
 	}
 
 	// Add sandbox installation steps (AWF only)
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		// Install AWF after Node.js setup but before Copilot CLI installation
 		firewallConfig := getFirewallConfig(workflowData)
 		agentConfig := getAgentConfig(workflowData)

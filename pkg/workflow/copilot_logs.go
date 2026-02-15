@@ -451,7 +451,7 @@ func (e *CopilotEngine) GetSquidLogsSteps(workflowData *WorkflowData) []GitHubAc
 	var steps []GitHubActionStep
 
 	// Only add upload and parsing steps if firewall is enabled
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		copilotLogsLog.Printf("Adding Squid logs upload and parsing steps for workflow: %s", workflowData.Name)
 
 		squidLogsUpload := generateSquidLogsUploadStep(workflowData.Name)

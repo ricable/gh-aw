@@ -110,7 +110,7 @@ func (e *ClaudeEngine) GetInstallationSteps(workflowData *WorkflowData) []GitHub
 	}
 
 	// Add AWF installation if firewall is enabled
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		// Install AWF after Node.js setup but before Claude CLI installation
 		firewallConfig := getFirewallConfig(workflowData)
 		agentConfig := getAgentConfig(workflowData)
@@ -141,7 +141,7 @@ func (e *ClaudeEngine) GetDeclaredOutputFiles() []string {
 
 // GetExecutionSteps returns the GitHub Actions steps for executing Claude
 func (e *ClaudeEngine) GetExecutionSteps(workflowData *WorkflowData, logFile string) []GitHubActionStep {
-	claudeLog.Printf("Generating execution steps for Claude engine: workflow=%s, firewall=%v", workflowData.Name, isFirewallEnabled(workflowData))
+	claudeLog.Printf("Generating execution steps for Claude engine: workflow=%s, firewall=%v", workflowData.Name, isSandboxEnabled(workflowData))
 
 	// Handle custom steps if they exist in engine config
 	steps := InjectCustomEngineSteps(workflowData, e.convertStepToYAML)
@@ -263,7 +263,7 @@ func (e *ClaudeEngine) GetExecutionSteps(workflowData *WorkflowData, logFile str
 
 	// Build the full command based on whether firewall is enabled
 	var command string
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		// Build the AWF-wrapped command using helper function
 		// Get allowed domains (Claude defaults + network permissions + HTTP MCP server URLs + runtime ecosystem domains)
 		allowedDomains := GetClaudeAllowedDomainsWithToolsAndRuntimes(workflowData.NetworkPermissions, workflowData.Tools, workflowData.Runtimes)
@@ -457,7 +457,7 @@ func (e *ClaudeEngine) GetSquidLogsSteps(workflowData *WorkflowData) []GitHubAct
 	var steps []GitHubActionStep
 
 	// Only add upload and parsing steps if firewall is enabled
-	if isFirewallEnabled(workflowData) {
+	if isSandboxEnabled(workflowData) {
 		claudeLog.Printf("Adding Squid logs upload and parsing steps for workflow: %s", workflowData.Name)
 
 		squidLogsUpload := generateSquidLogsUploadStep(workflowData.Name)

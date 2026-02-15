@@ -525,7 +525,7 @@ func (c *Compiler) generateCreateAwInfo(yaml *strings.Builder, data *WorkflowDat
 
 	// Determine firewall type
 	firewallType := ""
-	if isFirewallEnabled(data) {
+	if isSandboxEnabled(data) {
 		firewallType = "squid"
 	}
 	fmt.Fprintf(yaml, "                firewall: \"%s\"\n", firewallType)

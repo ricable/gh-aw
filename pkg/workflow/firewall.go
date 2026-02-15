@@ -20,50 +20,6 @@ type FirewallConfig struct {
 	AllowURLs     []string `yaml:"allow_urls,omitempty"`     // AWF-only: URL patterns to allow for HTTPS (requires SSLBump), e.g., "https://github.com/githubnext/*"
 }
 
-// isFirewallDisabledBySandboxAgent checks if the firewall is disabled via sandbox.agent: false
-func isFirewallDisabledBySandboxAgent(workflowData *WorkflowData) bool {
-	return workflowData != nil &&
-		workflowData.SandboxConfig != nil &&
-		workflowData.SandboxConfig.Agent != nil &&
-		workflowData.SandboxConfig.Agent.Disabled
-}
-
-// isFirewallEnabled checks if AWF firewall is enabled for the workflow
-// Firewall is enabled if network.firewall is explicitly set to true or an object
-// Firewall is disabled if sandbox.agent is explicitly set to false
-func isFirewallEnabled(workflowData *WorkflowData) bool {
-	// Check if sandbox.agent: false (new way to disable firewall)
-	if isFirewallDisabledBySandboxAgent(workflowData) {
-		firewallLog.Print("Firewall disabled via sandbox.agent: false")
-		return false
-	}
-
-	// Check if sandbox is enabled (via sandbox config)
-	// When sandbox is enabled, firewall is also enabled
-	var networkPermissions *NetworkPermissions
-	if workflowData != nil {
-		networkPermissions = workflowData.NetworkPermissions
-	}
-	var sandboxConfig *SandboxConfig
-	if workflowData != nil {
-		sandboxConfig = workflowData.SandboxConfig
-	}
-	if isSandboxEnabled(sandboxConfig, networkPermissions) {
-		firewallLog.Print("Sandbox enabled, firewall is enabled")
-		return true
-	}
-
-	// Check network.firewall configuration (deprecated)
-	if workflowData != nil && workflowData.NetworkPermissions != nil && workflowData.NetworkPermissions.Firewall != nil {
-		enabled := workflowData.NetworkPermissions.Firewall.Enabled
-		firewallLog.Printf("Firewall enabled check: %v", enabled)
-		return enabled
-	}
-
-	firewallLog.Print("Firewall not configured, returning false")
-	return false
-}
-
 // getFirewallConfig returns the firewall configuration from network permissions
 func getFirewallConfig(workflowData *WorkflowData) *FirewallConfig {
 	if workflowData == nil {

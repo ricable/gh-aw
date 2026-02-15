@@ -427,8 +427,7 @@ func (c *Compiler) validateStrictFirewall(engineID string, networkPermissions *N
 	}
 
 	// Check if sandbox is enabled - if so, firewall will be auto-enabled
-	// This includes legacy sandbox configurations via Type field
-	if isSandboxEnabled(sandboxConfig, networkPermissions) {
+	if isSandboxEnabledFromConfigs(sandboxConfig, networkPermissions) {
 		strictModeValidationLog.Printf("Sandbox enabled, firewall validation passed")
 		return nil
 	}
