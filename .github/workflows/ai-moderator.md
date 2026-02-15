@@ -9,6 +9,7 @@ on:
   issue_comment:
     types: [created]
     lock-for-agent: true
+  skip-roles: [admin, maintain, write, triage]
 rate-limit:
   max: 5
   window: 60
@@ -54,35 +55,6 @@ jobs:
               core.info(`⏭️  Skipping workflow - issue opened by bot: ${actor}`);
               core.setOutput('should_skip', 'true');
               return;
-            }
-            
-            try {
-              core.info(`Checking permissions for user: ${actor}`);
-              
-              // Get the user's permission level
-              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
-                owner,
-                repo,
-                username: actor
-              });
-              
-              const userPermission = permission.permission;
-              core.info(`User ${actor} has permission: ${userPermission}`);
-              
-              // Skip workflow for team members (admin, maintain, write)
-              const teamPermissions = ['admin', 'maintain', 'write'];
-              if (teamPermissions.includes(userPermission)) {
-                core.info(`⏭️  Skipping workflow - ${actor} is a team member with ${userPermission} access`);
-                core.setOutput('should_skip', 'true');
-              } else {
-                core.info(`✅ Running workflow - ${actor} is external user with ${userPermission} access`);
-                core.setOutput('should_skip', 'false');
-              }
-            } catch (error) {
-              // If we can't determine permission (e.g., user not a collaborator), assume external and run
-              core.info(`⚠️  Could not determine permissions for ${actor}: ${error.message}`);
-              core.info(`✅ Running workflow - assuming external user`);
-              core.setOutput('should_skip', 'false');
             }
 imports:
   - shared/mood.md
