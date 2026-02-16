@@ -21,6 +21,39 @@ const { getErrorMessage } = require("./error_helpers.cjs");
  * @returns {Object} An object containing all handler functions
  */
 function createHandlers(server, appendSafeOutput, config = {}) {
+  // Track invocation counts per tool type for max-count enforcement
+  // This is thread-safe because Node.js event loop processes handlers sequentially
+  const invocationCounts = new Map();
+
+  /**
+   * Check if tool has reached its max count
+   * @param {string} type - The tool type
+   * @returns {boolean} True if max count reached
+   */
+  const hasReachedMaxCount = type => {
+    const toolConfig = config[type];
+    if (!toolConfig || typeof toolConfig !== "object") {
+      return false; // No config or not an object
+    }
+
+    const maxCount = toolConfig.max;
+    if (typeof maxCount !== "number" || maxCount <= 0) {
+      return false; // No max count configured
+    }
+
+    const currentCount = invocationCounts.get(type) || 0;
+    return currentCount >= maxCount;
+  };
+
+  /**
+   * Increment invocation count for a tool type
+   * @param {string} type - The tool type
+   */
+  const incrementInvocationCount = type => {
+    const currentCount = invocationCounts.get(type) || 0;
+    invocationCounts.set(type, currentCount + 1);
+  };
+
   /**
    * Default handler for safe output tools
    * @param {string} type - The tool type
@@ -380,6 +413,16 @@ function createHandlers(server, appendSafeOutput, config = {}) {
    * to provide immediate feedback to the LLM before recording to NDJSON
    */
   const addCommentHandler = args => {
+    // Check max count limit before processing
+    if (hasReachedMaxCount("add_comment")) {
+      const toolConfig = config.add_comment;
+      const maxCount = toolConfig?.max || 20;
+      throw {
+        code: -32602,
+        message: `Max count of ${maxCount} add_comment invocations reached`,
+      };
+    }
+
     // Validate comment constraints before appending to safe outputs
     // This provides early feedback per Requirement MCE1 (Early Validation)
     try {
@@ -394,6 +437,9 @@ function createHandlers(server, appendSafeOutput, config = {}) {
         message: getErrorMessage(error),
       };
     }
+
+    // Increment invocation count (only after validation passes)
+    incrementInvocationCount("add_comment");
 
     // If validation passes, record the operation using default handler
     return defaultHandler("add_comment")(args);

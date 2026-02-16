@@ -301,11 +301,6 @@ async function main(config = {}) {
     core.info("Append-only-comments is enabled - will not hide older comments");
   }
 
-  // Track state
-  let processedCount = 0;
-  const temporaryIdMap = new Map();
-  const createdComments = [];
-
   // Get workflow ID for hiding older comments
   const workflowId = process.env.GH_AW_WORKFLOW_ID || "";
 
@@ -313,21 +308,16 @@ async function main(config = {}) {
    * Message handler function
    * @param {Object} message - The add_comment message
    * @param {Object} resolvedTemporaryIds - Resolved temporary IDs
+   * @param {Map} [sharedTemporaryIdMap] - Optional shared temporary ID map (for safe-outputs sequential path)
    * @returns {Promise<Object>} Result
    */
-  return async function handleAddComment(message, resolvedTemporaryIds) {
-    // Check max limit
-    if (processedCount >= maxCount) {
-      core.warning(`Skipping add_comment: max count of ${maxCount} reached`);
-      return {
-        success: false,
-        error: `Max count of ${maxCount} reached`,
-      };
-    }
-
-    processedCount++;
-
+  return async function handleAddComment(message, resolvedTemporaryIds, sharedTemporaryIdMap) {
     const item = message;
+
+    // Use provided shared map or create isolated map for this invocation
+    // Safe-outputs path passes shared map for sequential processing
+    // MCP server path passes isolated map for concurrent processing
+    const temporaryIdMap = sharedTemporaryIdMap || new Map();
 
     // Merge resolved temp IDs
     if (resolvedTemporaryIds) {
@@ -550,8 +540,6 @@ async function main(config = {}) {
         },
       };
 
-      createdComments.push(commentResult);
-
       return {
         success: true,
         commentId: comment.id,
@@ -610,8 +598,6 @@ async function main(config = {}) {
               isDiscussion: true,
             },
           };
-
-          createdComments.push(commentResult);
 
           return {
             success: true,
