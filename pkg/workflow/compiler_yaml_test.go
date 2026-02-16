@@ -1237,3 +1237,161 @@ This is a test workflow.`
 		})
 	}
 }
+
+// TestManifestHeaderOrderingDeterministic tests that imported and included files
+// are always rendered in sorted order, regardless of input ordering.
+// This ensures deterministic lock file output and prevents noisy diffs.
+func TestManifestHeaderOrderingDeterministic(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "manifest-ordering-test")
+
+	// Create a simple workflow
+	workflowContent := `---
+name: Test Workflow
+on: push
+permissions:
+  contents: read
+engine: copilot
+strict: false
+---
+
+# Test Workflow
+
+Test content.`
+
+	testFile := filepath.Join(tmpDir, "test.md")
+	if err := os.WriteFile(testFile, []byte(workflowContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test multiple orderings of imported and included files
+	tests := []struct {
+		name          string
+		importedFiles []string
+		includedFiles []string
+	}{
+		{
+			name:          "reverse_alphabetical_imports",
+			importedFiles: []string{"z-file.md", "m-file.md", "a-file.md"},
+			includedFiles: []string{},
+		},
+		{
+			name:          "reverse_alphabetical_includes",
+			importedFiles: []string{},
+			includedFiles: []string{"z-include.md", "m-include.md", "a-include.md"},
+		},
+		{
+			name:          "mixed_order_both",
+			importedFiles: []string{"b-import.md", "a-import.md", "c-import.md"},
+			includedFiles: []string{"y-include.md", "x-include.md", "z-include.md"},
+		},
+		{
+			name:          "nested_paths",
+			importedFiles: []string{"shared/z.md", "common/a.md", "lib/m.md"},
+			includedFiles: []string{"tools/y.md", "utils/b.md", "helpers/k.md"},
+		},
+	}
+
+	// Expected sorted order for each test case
+	expectedImports := map[string][]string{
+		"reverse_alphabetical_imports": {"a-file.md", "m-file.md", "z-file.md"},
+		"reverse_alphabetical_includes": {},
+		"mixed_order_both":              {"a-import.md", "b-import.md", "c-import.md"},
+		"nested_paths":                  {"common/a.md", "lib/m.md", "shared/z.md"},
+	}
+	expectedIncludes := map[string][]string{
+		"reverse_alphabetical_imports": {},
+		"reverse_alphabetical_includes": {"a-include.md", "m-include.md", "z-include.md"},
+		"mixed_order_both":              {"x-include.md", "y-include.md", "z-include.md"},
+		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compiler := NewCompiler()
+
+			// Parse the workflow
+			workflowData, err := compiler.ParseWorkflowFile(testFile)
+			if err != nil {
+				t.Fatalf("ParseWorkflowFile() error: %v", err)
+			}
+
+			// Set imported and included files in the specified (potentially unsorted) order
+			workflowData.ImportedFiles = tt.importedFiles
+			workflowData.IncludedFiles = tt.includedFiles
+
+			// Compile with the modified data
+			if err := compiler.CompileWorkflowData(workflowData, testFile); err != nil {
+				t.Fatalf("CompileWorkflowData() error: %v", err)
+			}
+
+			// Read the generated lock file
+			lockFile := filepath.Join(tmpDir, "test.lock.yml")
+			content, err := os.ReadFile(lockFile)
+			if err != nil {
+				t.Fatalf("Failed to read lock file: %v", err)
+			}
+
+			lockContent := string(content)
+
+			// Verify imports are in sorted order
+			if len(tt.importedFiles) > 0 {
+				expectedImportsList := expectedImports[tt.name]
+				for i, expected := range expectedImportsList {
+					expectedLine := fmt.Sprintf("#     - %s", expected)
+					if !strings.Contains(lockContent, expectedLine) {
+						t.Errorf("Expected to find import '%s' in lock file", expected)
+					}
+
+					// Verify ordering by checking that each import appears before the next one
+					if i < len(expectedImportsList)-1 {
+						nextExpected := expectedImportsList[i+1]
+						nextLine := fmt.Sprintf("#     - %s", nextExpected)
+
+						currentIdx := strings.Index(lockContent, expectedLine)
+						nextIdx := strings.Index(lockContent, nextLine)
+
+						if currentIdx == -1 {
+							t.Errorf("Import '%s' not found in lock file", expected)
+						}
+						if nextIdx == -1 {
+							t.Errorf("Import '%s' not found in lock file", nextExpected)
+						}
+						if currentIdx != -1 && nextIdx != -1 && currentIdx >= nextIdx {
+							t.Errorf("Import '%s' should appear before '%s', but found in wrong order", expected, nextExpected)
+						}
+					}
+				}
+			}
+
+			// Verify includes are in sorted order
+			if len(tt.includedFiles) > 0 {
+				expectedIncludesList := expectedIncludes[tt.name]
+				for i, expected := range expectedIncludesList {
+					expectedLine := fmt.Sprintf("#     - %s", expected)
+					if !strings.Contains(lockContent, expectedLine) {
+						t.Errorf("Expected to find include '%s' in lock file", expected)
+					}
+
+					// Verify ordering by checking that each include appears before the next one
+					if i < len(expectedIncludesList)-1 {
+						nextExpected := expectedIncludesList[i+1]
+						nextLine := fmt.Sprintf("#     - %s", nextExpected)
+
+						currentIdx := strings.Index(lockContent, expectedLine)
+						nextIdx := strings.Index(lockContent, nextLine)
+
+						if currentIdx == -1 {
+							t.Errorf("Include '%s' not found in lock file", expected)
+						}
+						if nextIdx == -1 {
+							t.Errorf("Include '%s' not found in lock file", nextExpected)
+						}
+						if currentIdx != -1 && nextIdx != -1 && currentIdx >= nextIdx {
+							t.Errorf("Include '%s' should appear before '%s', but found in wrong order", expected, nextExpected)
+						}
+					}
+				}
+			}
+		})
+	}
+}

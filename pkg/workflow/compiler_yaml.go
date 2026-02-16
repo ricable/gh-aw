@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/github/gh-aw/pkg/constants"
@@ -82,7 +83,11 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 
 		if len(data.ImportedFiles) > 0 {
 			yaml.WriteString("#   Imports:\n")
-			for _, file := range data.ImportedFiles {
+			// Sort imports for deterministic output
+			sortedImports := make([]string, len(data.ImportedFiles))
+			copy(sortedImports, data.ImportedFiles)
+			sort.Strings(sortedImports)
+			for _, file := range sortedImports {
 				cleanFile := stringutil.StripANSIEscapeCodes(file)
 				// Normalize to Unix paths (forward slashes) for cross-platform compatibility
 				cleanFile = filepath.ToSlash(cleanFile)
@@ -92,7 +97,11 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 
 		if len(data.IncludedFiles) > 0 {
 			yaml.WriteString("#   Includes:\n")
-			for _, file := range data.IncludedFiles {
+			// Sort includes for deterministic output
+			sortedIncludes := make([]string, len(data.IncludedFiles))
+			copy(sortedIncludes, data.IncludedFiles)
+			sort.Strings(sortedIncludes)
+			for _, file := range sortedIncludes {
 				cleanFile := stringutil.StripANSIEscapeCodes(file)
 				// Normalize to Unix paths (forward slashes) for cross-platform compatibility
 				cleanFile = filepath.ToSlash(cleanFile)
