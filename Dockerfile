@@ -14,6 +14,9 @@ RUN apk add --no-cache \
     github-cli
 
 # Docker Buildx automatically provides these ARGs for multi-platform builds
+# Expected values: TARGETOS=linux, TARGETARCH=amd64|arm64
+# For local builds without buildx, these must be provided explicitly:
+#   docker build --build-arg TARGETOS=linux --build-arg TARGETARCH=amd64 ...
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -25,8 +28,10 @@ WORKDIR /usr/local/bin
 # TARGETOS=linux, TARGETARCH=arm64 -> dist/linux-arm64
 COPY dist/${TARGETOS}-${TARGETARCH} /usr/local/bin/gh-aw
 
-# Ensure the binary is executable
-RUN chmod +x /usr/local/bin/gh-aw
+# Ensure the binary is executable and verify it exists
+RUN chmod +x /usr/local/bin/gh-aw && \
+    /usr/local/bin/gh-aw --version || \
+    (echo "Error: gh-aw binary not found or not executable" && exit 1)
 
 # Configure git to trust all directories to avoid "dubious ownership" errors
 # This is necessary when the container runs with mounted volumes owned by different users
