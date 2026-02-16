@@ -25,8 +25,8 @@
 #
 # Resolved workflow manifest:
 #   Imports:
-#     - shared/jqschema.md
 #     - shared/copilot-session-data-fetch.md
+#     - shared/jqschema.md
 #     - shared/mood.md
 #     - shared/python-dataviz.md
 #     - shared/reporting.md
