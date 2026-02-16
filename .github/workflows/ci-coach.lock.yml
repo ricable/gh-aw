@@ -25,9 +25,9 @@
 #
 # Resolved workflow manifest:
 #   Imports:
-#     - shared/ci-data-analysis.md
 #     - shared/ci-optimization-strategies.md
 #     - shared/jqschema.md
+#     - shared/ci-data-analysis.md
 #     - shared/mood.md
 #     - shared/reporting.md
 #

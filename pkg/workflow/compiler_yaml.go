@@ -83,11 +83,9 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 
 		if len(data.ImportedFiles) > 0 {
 			yaml.WriteString("#   Imports:\n")
-			// Sort imports for deterministic output
-			sortedImports := make([]string, len(data.ImportedFiles))
-			copy(sortedImports, data.ImportedFiles)
-			sort.Strings(sortedImports)
-			for _, file := range sortedImports {
+			// ImportedFiles is already sorted in topological order by the parser
+			// (dependencies before dependents). Preserve this ordering.
+			for _, file := range data.ImportedFiles {
 				cleanFile := stringutil.StripANSIEscapeCodes(file)
 				// Normalize to Unix paths (forward slashes) for cross-platform compatibility
 				cleanFile = filepath.ToSlash(cleanFile)

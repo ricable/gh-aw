@@ -1238,9 +1238,11 @@ This is a test workflow.`
 	}
 }
 
-// TestManifestHeaderOrderingDeterministic tests that imported and included files
-// are always rendered in sorted order, regardless of input ordering.
-// This ensures deterministic lock file output and prevents noisy diffs.
+// TestManifestHeaderOrderingDeterministic tests that included files are sorted
+// alphabetically while imported files preserve their topological ordering.
+// ImportedFiles must maintain topological order (dependencies before dependents)
+// as determined by the parser. IncludedFiles can be sorted alphabetically for
+// deterministic output since they don't have dependency relationships.
 func TestManifestHeaderOrderingDeterministic(t *testing.T) {
 	tmpDir := testutil.TempDir(t, "manifest-ordering-test")
 
@@ -1291,18 +1293,20 @@ Test content.`
 		},
 	}
 
-	// Expected sorted order for each test case
+	// Expected order for each test case:
+	// - ImportedFiles: Preserve input order (already topologically sorted by parser)
+	// - IncludedFiles: Alphabetically sorted for determinism
 	expectedImports := map[string][]string{
-		"reverse_alphabetical_imports":  {"a-file.md", "m-file.md", "z-file.md"},
+		"reverse_alphabetical_imports":  {"z-file.md", "m-file.md", "a-file.md"}, // Preserve topological order
 		"reverse_alphabetical_includes": {},
-		"mixed_order_both":              {"a-import.md", "b-import.md", "c-import.md"},
-		"nested_paths":                  {"common/a.md", "lib/m.md", "shared/z.md"},
+		"mixed_order_both":              {"b-import.md", "a-import.md", "c-import.md"}, // Preserve topological order
+		"nested_paths":                  {"shared/z.md", "common/a.md", "lib/m.md"}, // Preserve topological order
 	}
 	expectedIncludes := map[string][]string{
 		"reverse_alphabetical_imports":  {},
-		"reverse_alphabetical_includes": {"a-include.md", "m-include.md", "z-include.md"},
-		"mixed_order_both":              {"x-include.md", "y-include.md", "z-include.md"},
-		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},
+		"reverse_alphabetical_includes": {"a-include.md", "m-include.md", "z-include.md"}, // Alphabetically sorted
+		"mixed_order_both":              {"x-include.md", "y-include.md", "z-include.md"}, // Alphabetically sorted
+		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},    // Alphabetically sorted
 	}
 
 	for _, tt := range tests {
