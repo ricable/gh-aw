@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/github/gh-aw/pkg/constants"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsFeatureEnabled(t *testing.T) {
@@ -71,19 +73,16 @@ func TestIsFeatureEnabled(t *testing.T) {
 			t.Setenv("GH_AW_FEATURES", tt.envValue)
 
 			result := isFeatureEnabled(tt.flag, nil)
-			if result != tt.expected {
-				t.Errorf("isFeatureEnabled(%q, nil) with env=%q = %v, want %v",
-					tt.flag, tt.envValue, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result,
+				"isFeatureEnabled(%q, nil) with env=%q should return expected value",
+				tt.flag, tt.envValue)
 		})
 	}
 }
 
 func TestIsFeatureEnabledNoEnv(t *testing.T) {
 	result := isFeatureEnabled(constants.FeatureFlag("firewall"), nil)
-	if result != false {
-		t.Errorf("isFeatureEnabled(\"firewall\", nil) with no env = %v, want false", result)
-	}
+	assert.False(t, result, "feature should be disabled when no env is set")
 }
 
 func TestIsFeatureEnabledWithData(t *testing.T) {
@@ -166,13 +165,13 @@ func TestIsFeatureEnabledWithData(t *testing.T) {
 				workflowData = &WorkflowData{
 					Features: tt.frontmatter,
 				}
+				require.NotNil(t, workflowData, "WorkflowData should be constructed")
+				require.NotNil(t, workflowData.Features, "Features map should be set")
 			}
 
 			result := isFeatureEnabled(tt.flag, workflowData)
-			if result != tt.expected {
-				t.Errorf("%s: isFeatureEnabled(%q, %+v) with env=%q = %v, want %v",
-					tt.description, tt.flag, tt.frontmatter, tt.envValue, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result,
+				"%s: feature check should return expected value", tt.description)
 		})
 	}
 }
@@ -183,9 +182,7 @@ func TestIsFeatureEnabledWithDataNilWorkflow(t *testing.T) {
 
 	// When workflowData is nil, should fall back to env
 	result := isFeatureEnabled(constants.FeatureFlag("firewall"), nil)
-	if result != true {
-		t.Errorf("isFeatureEnabled(\"firewall\", nil) with env=firewall = %v, want true", result)
-	}
+	assert.True(t, result, "feature should be enabled from env when workflowData is nil")
 }
 
 // TestMergedFeaturesAreUsedByIsFeatureEnabled verifies that features merged from imports
@@ -237,9 +234,8 @@ func TestMergedFeaturesAreUsedByIsFeatureEnabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := isFeatureEnabled(tt.flag, workflowData)
-			if result != tt.expected {
-				t.Errorf("isFeatureEnabled(%q) = %v, want %v", tt.flag, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result,
+				"isFeatureEnabled(%q) should return expected value", tt.flag)
 		})
 	}
 }
@@ -260,13 +256,12 @@ func TestMergedFeaturesTopLevelPrecedence(t *testing.T) {
 
 	// Verify that the overridden value is what isFeatureEnabled sees
 	overrideResult := isFeatureEnabled(constants.FeatureFlag("override-feature"), workflowData)
-	if overrideResult != false {
-		t.Errorf("isFeatureEnabled(\"override-feature\") = %v, want false (top-level override)", overrideResult)
-	}
+	assert.False(t, overrideResult,
+		"top-level feature should override imported value")
 
 	// Verify that import-only feature is still accessible
 	importOnlyResult := isFeatureEnabled(constants.FeatureFlag("import-only"), workflowData)
-	if importOnlyResult != true {
-		t.Errorf("isFeatureEnabled(\"import-only\") = %v, want true (from import)", importOnlyResult)
-	}
+	assert.True(t, importOnlyResult,
+		"imported feature should be accessible")
+
 }
