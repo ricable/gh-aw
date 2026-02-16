@@ -711,7 +711,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   if (startLine !== undefined || endLine !== undefined) {
     core.info(`[processRuntimeImport] Line range: ${startLine || 1}-${endLine || "end"}`);
   }
-  
+
   // Check if this is a URL
   if (/^https?:\/\//i.test(filepathOrUrl)) {
     core.info(`[processRuntimeImport] Detected URL import: ${filepathOrUrl}`);
@@ -745,7 +745,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     core.info(`[processRuntimeImport] No special prefix detected, adding workflows/ prefix`);
     filepath = path.join("workflows", filepath);
   }
-  
+
   core.info(`[processRuntimeImport] Processed filepath: ${filepath}`);
 
   // Remove leading ./ or ../ if present (only for non-agents paths)
@@ -770,7 +770,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     absolutePath = path.resolve(workspaceDir, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(baseFolder);
-    
+
     core.info(`[processRuntimeImport] Base folder: ${normalizedBaseFolder}`);
     core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
     core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
@@ -778,7 +778,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     // Security check: ensure the resolved path is within the workspace
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
     core.info(`[processRuntimeImport] Relative path from base: ${relativePath}`);
-    
+
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
       core.warning(`[processRuntimeImport] Security violation: Path escapes workspace`);
       core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
@@ -801,7 +801,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     absolutePath = path.resolve(githubFolder, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(githubFolder);
-    
+
     core.info(`[processRuntimeImport] Base folder (.github): ${normalizedBaseFolder}`);
     core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
     core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
@@ -809,7 +809,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     // Security check: ensure the resolved path is within the .github folder
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
     core.info(`[processRuntimeImport] Relative path from .github: ${relativePath}`);
-    
+
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
       core.warning(`[processRuntimeImport] Security violation: Path escapes .github folder`);
       core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
@@ -830,7 +830,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     core.warning(`[processRuntimeImport] Runtime import file not found: ${filepath}`);
     throw new Error(`Runtime import file not found: ${filepath}`);
   }
-  
+
   core.info(`[processRuntimeImport] ✓ File exists, reading content...`);
 
   // Read the file

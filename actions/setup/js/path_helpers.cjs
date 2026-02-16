@@ -91,9 +91,7 @@ function validatePathWithinBase(filePath, baseDir, description = "file path") {
     core.warning(`[validatePathWithinBase]   Base: ${normalizedBase}`);
     core.warning(`[validatePathWithinBase]   Path: ${normalizedPath}`);
     core.warning(`[validatePathWithinBase]   Relative: ${relativePath}`);
-    throw new Error(
-      `Security: ${description} must be within ${baseDir} (attempted to access: ${relativePath})`
-    );
+    throw new Error(`Security: ${description} must be within ${baseDir} (attempted to access: ${relativePath})`);
   }
 
   core.info(`[validatePathWithinBase] ✓ Path validated successfully: ${normalizedPath}`);
@@ -142,10 +140,10 @@ function validateDirectory(dirPath, description = "directory", createIfMissing =
 function safeJoin(...segments) {
   const joined = path.join(...segments);
   const normalized = path.normalize(joined);
-  
+
   core.info(`[safeJoin] Input segments: ${segments.join(", ")}`);
   core.info(`[safeJoin] Normalized result: ${normalized}`);
-  
+
   return normalized;
 }
 

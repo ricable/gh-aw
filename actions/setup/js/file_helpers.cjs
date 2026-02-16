@@ -59,7 +59,7 @@ function listFilesRecursively(dirPath, relativeTo) {
 function checkFileExists(filePath, artifactDir, fileDescription, required) {
   core.info(`[checkFileExists] Checking ${fileDescription}: ${filePath}`);
   core.info(`[checkFileExists] Required: ${required}`);
-  
+
   if (fs.existsSync(filePath)) {
     try {
       const stats = fs.statSync(filePath);

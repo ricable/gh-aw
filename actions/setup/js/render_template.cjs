@@ -58,7 +58,7 @@ function renderMarkdownTemplate(markdown) {
 function main() {
   try {
     core.info("[render_template] Starting template rendering");
-    
+
     const promptPath = process.env.GH_AW_PROMPT;
     if (!promptPath) {
       core.setFailed("GH_AW_PROMPT environment variable is not set");
@@ -66,7 +66,7 @@ function main() {
     }
 
     core.info(`[render_template] GH_AW_PROMPT: ${promptPath}`);
-    
+
     // Validate and normalize the prompt file path for security
     const validatedPath = validateAndNormalizePath(promptPath, "prompt file path");
     core.info(`[render_template] Validated path: ${validatedPath}`);

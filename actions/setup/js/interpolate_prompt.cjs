@@ -146,7 +146,7 @@ async function main() {
       return;
     }
     core.info(`[main] GH_AW_PROMPT (raw): ${promptPath}`);
-    
+
     // Validate and normalize the prompt file path for security
     const validatedPromptPath = validateAndNormalizePath(promptPath, "prompt file path");
     core.info(`[main] Validated prompt path: ${validatedPromptPath}`);
@@ -158,7 +158,7 @@ async function main() {
       return;
     }
     core.info(`[main] GITHUB_WORKSPACE (raw): ${workspaceDir}`);
-    
+
     // Validate and normalize the workspace directory for security
     const validatedWorkspaceDir = validateDirectory(workspaceDir, "workspace directory");
     core.info(`[main] Validated workspace directory: ${validatedWorkspaceDir}`);

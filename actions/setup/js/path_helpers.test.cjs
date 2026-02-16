@@ -47,33 +47,23 @@ describe("path_helpers", () => {
     });
 
     it("should throw on null bytes", () => {
-      expect(() => validateAndNormalizePath("/home/user/file\0.txt", "test file")).toThrow(
-        "Security: test file contains null bytes"
-      );
+      expect(() => validateAndNormalizePath("/home/user/file\0.txt", "test file")).toThrow("Security: test file contains null bytes");
     });
 
     it("should throw on empty string", () => {
-      expect(() => validateAndNormalizePath("", "test file")).toThrow(
-        "Invalid test file: path must be a non-empty string"
-      );
+      expect(() => validateAndNormalizePath("", "test file")).toThrow("Invalid test file: path must be a non-empty string");
     });
 
     it("should throw on whitespace-only string", () => {
-      expect(() => validateAndNormalizePath("   ", "test file")).toThrow(
-        "Invalid test file: path cannot be empty or whitespace-only"
-      );
+      expect(() => validateAndNormalizePath("   ", "test file")).toThrow("Invalid test file: path cannot be empty or whitespace-only");
     });
 
     it("should throw on null input", () => {
-      expect(() => validateAndNormalizePath(null, "test file")).toThrow(
-        "Invalid test file: path must be a non-empty string"
-      );
+      expect(() => validateAndNormalizePath(null, "test file")).toThrow("Invalid test file: path must be a non-empty string");
     });
 
     it("should throw on undefined input", () => {
-      expect(() => validateAndNormalizePath(undefined, "test file")).toThrow(
-        "Invalid test file: path must be a non-empty string"
-      );
+      expect(() => validateAndNormalizePath(undefined, "test file")).toThrow("Invalid test file: path must be a non-empty string");
     });
 
     it("should normalize paths with ..", () => {
@@ -102,11 +92,11 @@ describe("path_helpers", () => {
       // Create a subdirectory to test relative paths
       const subdir = path.join(tempDir, "subdir");
       fs.mkdirSync(subdir);
-      
+
       // Change to base directory for relative path testing
       const originalCwd = process.cwd();
       process.chdir(baseDir);
-      
+
       try {
         const result = validatePathWithinBase("subdir/file.txt", baseDir, "test file");
         expect(result).toBe(path.normalize(path.join(baseDir, "subdir/file.txt")));
@@ -119,30 +109,24 @@ describe("path_helpers", () => {
       const baseDir = path.join(tempDir, "base");
       fs.mkdirSync(baseDir);
       const escapePath = path.join(baseDir, "../outside.txt");
-      
-      expect(() => validatePathWithinBase(escapePath, baseDir, "test file")).toThrow(
-        /Security: test file must be within/
-      );
+
+      expect(() => validatePathWithinBase(escapePath, baseDir, "test file")).toThrow(/Security: test file must be within/);
     });
 
     it("should reject paths that escape base directory with ../../", () => {
       const baseDir = path.join(tempDir, "base");
       fs.mkdirSync(baseDir);
       const escapePath = path.join(baseDir, "../../etc/passwd");
-      
-      expect(() => validatePathWithinBase(escapePath, baseDir, "test file")).toThrow(
-        /Security: test file must be within/
-      );
+
+      expect(() => validatePathWithinBase(escapePath, baseDir, "test file")).toThrow(/Security: test file must be within/);
     });
 
     it("should reject absolute paths outside base directory", () => {
       const baseDir = path.join(tempDir, "base");
       fs.mkdirSync(baseDir);
       const outsidePath = "/etc/passwd";
-      
-      expect(() => validatePathWithinBase(outsidePath, baseDir, "test file")).toThrow(
-        /Security: test file must be within/
-      );
+
+      expect(() => validatePathWithinBase(outsidePath, baseDir, "test file")).toThrow(/Security: test file must be within/);
     });
 
     it("should allow nested paths within base directory", () => {
@@ -168,9 +152,7 @@ describe("path_helpers", () => {
 
     it("should throw on non-existent directory when createIfMissing is false", () => {
       const nonExistent = path.join(tempDir, "nonexistent");
-      expect(() => validateDirectory(nonExistent, "test directory", false)).toThrow(
-        "test directory does not exist"
-      );
+      expect(() => validateDirectory(nonExistent, "test directory", false)).toThrow("test directory does not exist");
     });
 
     it("should create directory when createIfMissing is true", () => {
@@ -184,10 +166,8 @@ describe("path_helpers", () => {
     it("should throw when path is a file not a directory", () => {
       const filePath = path.join(tempDir, "file.txt");
       fs.writeFileSync(filePath, "content");
-      
-      expect(() => validateDirectory(filePath, "test directory")).toThrow(
-        "test directory is not a directory"
-      );
+
+      expect(() => validateDirectory(filePath, "test directory")).toThrow("test directory is not a directory");
     });
 
     it("should create nested directories when createIfMissing is true", () => {
@@ -234,19 +214,15 @@ describe("path_helpers", () => {
   describe("security scenarios", () => {
     it("should prevent null byte injection in file paths", () => {
       const maliciousPath = `/home/user/file.txt\0/../../etc/passwd`;
-      expect(() => validateAndNormalizePath(maliciousPath, "malicious file")).toThrow(
-        "Security: malicious file contains null bytes"
-      );
+      expect(() => validateAndNormalizePath(maliciousPath, "malicious file")).toThrow("Security: malicious file contains null bytes");
     });
 
     it("should prevent directory traversal with mixed .. and valid segments", () => {
       const baseDir = path.join(tempDir, "base");
       fs.mkdirSync(baseDir);
       const traversalPath = path.join(baseDir, "subdir/../../outside.txt");
-      
-      expect(() => validatePathWithinBase(traversalPath, baseDir, "traversal file")).toThrow(
-        /Security: traversal file must be within/
-      );
+
+      expect(() => validatePathWithinBase(traversalPath, baseDir, "traversal file")).toThrow(/Security: traversal file must be within/);
     });
 
     it("should handle Windows-style paths with backslashes", () => {
