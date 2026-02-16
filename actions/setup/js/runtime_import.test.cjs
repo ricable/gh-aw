@@ -502,6 +502,14 @@ describe("runtime_import", () => {
           // Should work with explicit .github/.actions/ prefix
           const result = await processRuntimeImport(".github/.actions/explicit.md", !1, tempDir);
           expect(result).toBe(actionsContent);
+        }),
+        it("should throw error when file not found in either .actions/ or workflows/", async () => {
+          // Create .actions directory but no file
+          const actionsDir = path.join(githubDir, ".actions");
+          fs.mkdirSync(actionsDir, { recursive: true });
+
+          // File doesn't exist in .actions/ or workflows/
+          await expect(processRuntimeImport("nonexistent.md", !1, tempDir)).rejects.toThrow("Runtime import file not found");
         }));
     }),
     describe("processRuntimeImports", () => {

@@ -772,8 +772,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     if (needsPrefixResolution) {
       // Try .actions/ first
       const actionsPath = path.join(".actions", filepath);
-      const actionsAbsolutePath = path.resolve(githubFolder, actionsPath);
-      const normalizedActionsPath = path.normalize(actionsAbsolutePath);
+      const normalizedActionsPath = path.normalize(path.resolve(githubFolder, actionsPath));
 
       // Check if file exists in .actions/
       if (fs.existsSync(normalizedActionsPath)) {
