@@ -93,12 +93,21 @@ The macro supports:
 - URL fetching with automatic caching
 - Content sanitization (front matter removal, macro detection)
 - Automatic `.github/` prefix handling
+- Smart path resolution (checks `.github/.actions/` first, then `.github/workflows/`)
 
 ### Macro Syntax
 
 Use `{{#runtime-import filepath}}` to include file content at runtime. Optional imports use `{{#runtime-import? filepath}}` which don't fail if the file is missing.
 
-**Important:** All file paths are resolved within the `.github` folder. You can specify paths with or without the `.github/` prefix:
+**Path Resolution:** All file paths are resolved within the `.github` folder using a smart resolution strategy:
+
+1. **Explicit paths** (starting with `.github/`) are resolved directly within `.github/`
+2. **Simple paths** (without `.github/` prefix) are resolved in this order:
+   - First checks `.github/.actions/` 
+   - Falls back to `.github/workflows/` if not found
+3. **Skills** (starting with `.agents/`) are resolved at the workspace root
+
+This allows you to organize shared content in `.github/.actions/` while keeping workflow-specific files in `.github/workflows/`:
 
 ```aw wrap
 ---
@@ -111,9 +120,20 @@ engine: copilot
 Follow these coding guidelines:
 
 {{#runtime-import coding-standards.md}}
-<!-- Same as: {{#runtime-import .github/coding-standards.md}} -->
+<!-- Will check .github/.actions/coding-standards.md first -->
+<!-- Falls back to .github/workflows/coding-standards.md -->
 
 Review the code changes and provide feedback.
+```
+
+**Explicit paths:**
+
+```aw wrap
+# Reference a file in .actions/ explicitly
+{{#runtime-import .github/.actions/shared-instructions.md}}
+
+# Reference a file in workflows/ explicitly
+{{#runtime-import .github/workflows/workflow-specific.md}}
 ```
 
 **Line range extraction:**
