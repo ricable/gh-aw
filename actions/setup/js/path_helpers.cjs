@@ -25,7 +25,9 @@ function validateAndNormalizePath(filePath, description = "file path") {
     throw new Error(`Invalid ${description}: path must be a non-empty string`);
   }
 
-  core.info(`[validateAndNormalizePath] Validating ${description}: ${filePath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validateAndNormalizePath] Validating ${description}: ${filePath}`);
+  }
 
   // Remove any leading/trailing whitespace
   const trimmedPath = filePath.trim();
@@ -43,12 +45,16 @@ function validateAndNormalizePath(filePath, description = "file path") {
   const absolutePath = path.resolve(trimmedPath);
   const normalizedPath = path.normalize(absolutePath);
 
-  core.info(`[validateAndNormalizePath] Normalized path: ${normalizedPath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validateAndNormalizePath] Normalized path: ${normalizedPath}`);
+  }
 
   // Check for directory traversal patterns in the original path
   // We check the original because path.resolve() will already resolve ../ sequences
   if (trimmedPath.includes("..")) {
-    core.warning(`[validateAndNormalizePath] Path contains '..' sequence: ${trimmedPath}`);
+    if (typeof core !== "undefined") {
+      core.warning(`[validateAndNormalizePath] Path contains '..' sequence: ${trimmedPath}`);
+    }
     // This is allowed after normalization as long as it doesn't escape the base
   }
 
@@ -70,8 +76,10 @@ function validatePathWithinBase(filePath, baseDir, description = "file path") {
     throw new Error("Invalid base directory: must be a non-empty string");
   }
 
-  core.info(`[validatePathWithinBase] Validating ${description} within base: ${baseDir}`);
-  core.info(`[validatePathWithinBase] Input path: ${filePath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validatePathWithinBase] Validating ${description} within base: ${baseDir}`);
+    core.info(`[validatePathWithinBase] Input path: ${filePath}`);
+  }
 
   // Normalize both the base directory and the file path
   const normalizedBase = path.normalize(path.resolve(baseDir));
@@ -80,21 +88,27 @@ function validatePathWithinBase(filePath, baseDir, description = "file path") {
   // Get the relative path from base to the file
   const relativePath = path.relative(normalizedBase, normalizedPath);
 
-  core.info(`[validatePathWithinBase] Normalized base: ${normalizedBase}`);
-  core.info(`[validatePathWithinBase] Normalized path: ${normalizedPath}`);
-  core.info(`[validatePathWithinBase] Relative path: ${relativePath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validatePathWithinBase] Normalized base: ${normalizedBase}`);
+    core.info(`[validatePathWithinBase] Normalized path: ${normalizedPath}`);
+    core.info(`[validatePathWithinBase] Relative path: ${relativePath}`);
+  }
 
   // Check if the relative path starts with .. (escapes base directory)
   // or is absolute (not within base directory)
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    core.warning(`[validatePathWithinBase] Security violation detected`);
-    core.warning(`[validatePathWithinBase]   Base: ${normalizedBase}`);
-    core.warning(`[validatePathWithinBase]   Path: ${normalizedPath}`);
-    core.warning(`[validatePathWithinBase]   Relative: ${relativePath}`);
+    if (typeof core !== "undefined") {
+      core.warning(`[validatePathWithinBase] Security violation detected`);
+      core.warning(`[validatePathWithinBase]   Base: ${normalizedBase}`);
+      core.warning(`[validatePathWithinBase]   Path: ${normalizedPath}`);
+      core.warning(`[validatePathWithinBase]   Relative: ${relativePath}`);
+    }
     throw new Error(`Security: ${description} must be within ${baseDir} (attempted to access: ${relativePath})`);
   }
 
-  core.info(`[validatePathWithinBase] ✓ Path validated successfully: ${normalizedPath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validatePathWithinBase] ✓ Path validated successfully: ${normalizedPath}`);
+  }
   return normalizedPath;
 }
 
@@ -110,11 +124,15 @@ function validatePathWithinBase(filePath, baseDir, description = "file path") {
 function validateDirectory(dirPath, description = "directory", createIfMissing = false) {
   const normalizedPath = validateAndNormalizePath(dirPath, description);
 
-  core.info(`[validateDirectory] Checking ${description}: ${normalizedPath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validateDirectory] Checking ${description}: ${normalizedPath}`);
+  }
 
   if (!fs.existsSync(normalizedPath)) {
     if (createIfMissing) {
-      core.info(`[validateDirectory] Creating ${description}: ${normalizedPath}`);
+      if (typeof core !== "undefined") {
+        core.info(`[validateDirectory] Creating ${description}: ${normalizedPath}`);
+      }
       fs.mkdirSync(normalizedPath, { recursive: true });
     } else {
       throw new Error(`${description} does not exist: ${normalizedPath}`);
@@ -126,7 +144,9 @@ function validateDirectory(dirPath, description = "directory", createIfMissing =
     throw new Error(`${description} is not a directory: ${normalizedPath}`);
   }
 
-  core.info(`[validateDirectory] ✓ Directory validated: ${normalizedPath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[validateDirectory] ✓ Directory validated: ${normalizedPath}`);
+  }
   return normalizedPath;
 }
 
@@ -141,8 +161,10 @@ function safeJoin(...segments) {
   const joined = path.join(...segments);
   const normalized = path.normalize(joined);
 
-  core.info(`[safeJoin] Input segments: ${segments.join(", ")}`);
-  core.info(`[safeJoin] Normalized result: ${normalized}`);
+  if (typeof core !== "undefined") {
+    core.info(`[safeJoin] Input segments: ${segments.join(", ")}`);
+    core.info(`[safeJoin] Normalized result: ${normalized}`);
+  }
 
   return normalized;
 }
