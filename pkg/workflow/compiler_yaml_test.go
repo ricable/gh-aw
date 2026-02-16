@@ -1293,13 +1293,13 @@ Test content.`
 
 	// Expected sorted order for each test case
 	expectedImports := map[string][]string{
-		"reverse_alphabetical_imports": {"a-file.md", "m-file.md", "z-file.md"},
+		"reverse_alphabetical_imports":  {"a-file.md", "m-file.md", "z-file.md"},
 		"reverse_alphabetical_includes": {},
 		"mixed_order_both":              {"a-import.md", "b-import.md", "c-import.md"},
 		"nested_paths":                  {"common/a.md", "lib/m.md", "shared/z.md"},
 	}
 	expectedIncludes := map[string][]string{
-		"reverse_alphabetical_imports": {},
+		"reverse_alphabetical_imports":  {},
 		"reverse_alphabetical_includes": {"a-include.md", "m-include.md", "z-include.md"},
 		"mixed_order_both":              {"x-include.md", "y-include.md", "z-include.md"},
 		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},
