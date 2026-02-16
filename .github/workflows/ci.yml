@@ -1781,6 +1781,9 @@ jobs:
           cp gh-aw-linux-arm64 dist/linux-arm64
           echo "✅ dist directory prepared"
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Alpine Docker image
         run: |
           echo "Building Alpine Docker image..."
