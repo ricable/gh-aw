@@ -1300,13 +1300,13 @@ Test content.`
 		"reverse_alphabetical_imports":  {"z-file.md", "m-file.md", "a-file.md"}, // Preserve topological order
 		"reverse_alphabetical_includes": {},
 		"mixed_order_both":              {"b-import.md", "a-import.md", "c-import.md"}, // Preserve topological order
-		"nested_paths":                  {"shared/z.md", "common/a.md", "lib/m.md"}, // Preserve topological order
+		"nested_paths":                  {"shared/z.md", "common/a.md", "lib/m.md"},    // Preserve topological order
 	}
 	expectedIncludes := map[string][]string{
 		"reverse_alphabetical_imports":  {},
 		"reverse_alphabetical_includes": {"a-include.md", "m-include.md", "z-include.md"}, // Alphabetically sorted
 		"mixed_order_both":              {"x-include.md", "y-include.md", "z-include.md"}, // Alphabetically sorted
-		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},    // Alphabetically sorted
+		"nested_paths":                  {"helpers/k.md", "tools/y.md", "utils/b.md"},     // Alphabetically sorted
 	}
 
 	for _, tt := range tests {
