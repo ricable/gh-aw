@@ -100,10 +100,12 @@ Use `{{#runtime-import filepath}}` to include file content at runtime. Optional 
 
 **Important:** File path resolution rules:
 
-- **Bare paths** (e.g., `file.md`) are resolved relative to `.github/workflows/` directory
-- **Paths with `workflows/` prefix** (e.g., `workflows/file.md`) are resolved relative to `.github/` directory
-- **Paths with `.github/` prefix** (e.g., `.github/file.md`) have the prefix stripped and are resolved relative to `.github/` directory
+- **Bare paths** (e.g., `file.md`) are automatically prefixed with `workflows/` and resolved to `.github/workflows/file.md`
+- **Paths with `.github/` prefix** (e.g., `.github/docs/file.md`) have the prefix stripped and are resolved relative to `.github/` directory
 - **Paths with `.agents/` prefix** (e.g., `.agents/skill.md`) are resolved at repository root (skills folder)
+
+> [!WARNING]
+> **Do not use `workflows/` prefix** - it will be double-prefixed! Use bare paths or `.github/workflows/` instead.
 
 ```aw wrap
 ---
@@ -118,7 +120,7 @@ Follow these coding guidelines:
 {{#runtime-import coding-standards.md}}
 <!-- Loads .github/workflows/coding-standards.md -->
 
-{{#runtime-import workflows/shared/guide.md}}
+{{#runtime-import .github/workflows/shared/guide.md}}
 <!-- Loads .github/workflows/shared/guide.md -->
 
 {{#runtime-import .github/docs/standards.md}}
@@ -186,10 +188,12 @@ File paths are **restricted to the `.github` folder** (or `.agents/` at reposito
 ```aw wrap
 # ✅ Valid - Files in .github folder
 {{#runtime-import shared-instructions.md}}           # Loads .github/workflows/shared-instructions.md
-{{#runtime-import workflows/doc.md}}                 # Loads .github/workflows/doc.md
 {{#runtime-import .github/workflows/doc.md}}         # Loads .github/workflows/doc.md (prefix stripped)
 {{#runtime-import .github/docs/guide.md}}            # Loads .github/docs/guide.md
 {{#runtime-import .agents/skill.md}}                 # Loads .agents/skill.md (repository root)
+
+# ⚠️ Be careful - workflows/ prefix gets double-prefixed
+{{#runtime-import workflows/doc.md}}                 # Loads .github/workflows/workflows/doc.md (NOT .github/workflows/doc.md)
 
 # ❌ Invalid - Attempts to escape .github folder
 {{#runtime-import ../src/config.go}}                # Error: Must be within .github folder
