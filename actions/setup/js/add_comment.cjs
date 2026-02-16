@@ -51,11 +51,9 @@ async function minimizeComment(github, nodeId, reason = "outdated") {
  */
 async function findCommentsWithTrackerId(github, owner, repo, issueNumber, workflowId) {
   const comments = [];
-  let page = 1;
   const perPage = 100;
 
-  // Paginate through all comments
-  while (true) {
+  for (let page = 1; ; page++) {
     const { data } = await github.rest.issues.listComments({
       owner,
       repo,
@@ -64,22 +62,12 @@ async function findCommentsWithTrackerId(github, owner, repo, issueNumber, workf
       page,
     });
 
-    if (data.length === 0) {
-      break;
-    }
+    if (data.length === 0) break;
 
     // Filter comments that contain the workflow-id and are NOT reaction comments
-    const filteredComments = data
-      .filter(comment => comment.body?.includes(`<!-- gh-aw-workflow-id: ${workflowId} -->`) && !comment.body.includes(`<!-- gh-aw-comment-type: reaction -->`))
-      .map(({ id, node_id, body }) => ({ id, node_id, body }));
+    comments.push(...data.filter(comment => comment.body?.includes(`<!-- gh-aw-workflow-id: ${workflowId} -->`) && !comment.body.includes(`<!-- gh-aw-comment-type: reaction -->`)).map(({ id, node_id, body }) => ({ id, node_id, body })));
 
-    comments.push(...filteredComments);
-
-    if (data.length < perPage) {
-      break;
-    }
-
-    page++;
+    if (data.length < perPage) break;
   }
 
   return comments;
@@ -117,25 +105,21 @@ async function findDiscussionCommentsWithTrackerId(github, owner, repo, discussi
   const comments = [];
   let cursor = null;
 
-  while (true) {
+  do {
     const result = await github.graphql(query, { owner, repo, num: discussionNumber, cursor });
 
-    if (!result.repository?.discussion?.comments?.nodes) {
-      break;
-    }
+    if (!result.repository?.discussion?.comments?.nodes) break;
 
-    const filteredComments = result.repository.discussion.comments.nodes
-      .filter(comment => comment.body?.includes(`<!-- gh-aw-workflow-id: ${workflowId} -->`) && !comment.body.includes(`<!-- gh-aw-comment-type: reaction -->`))
-      .map(({ id, body }) => ({ id, body }));
+    comments.push(
+      ...result.repository.discussion.comments.nodes
+        .filter(comment => comment.body?.includes(`<!-- gh-aw-workflow-id: ${workflowId} -->`) && !comment.body.includes(`<!-- gh-aw-comment-type: reaction -->`))
+        .map(({ id, body }) => ({ id, body }))
+    );
 
-    comments.push(...filteredComments);
-
-    if (!result.repository.discussion.comments.pageInfo.hasNextPage) {
-      break;
-    }
-
-    cursor = result.repository.discussion.comments.pageInfo.endCursor;
-  }
+    const { hasNextPage, endCursor } = result.repository.discussion.comments.pageInfo;
+    if (!hasNextPage) break;
+    cursor = endCursor;
+  } while (true);
 
   return comments;
 }
@@ -203,6 +187,35 @@ async function hideOlderComments(github, owner, repo, itemNumber, workflowId, is
 }
 
 /**
+ * Retrieve discussion ID and URL
+ * @param {any} github - GitHub GraphQL instance
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} discussionNumber - Discussion number
+ * @returns {Promise<{id: string, url: string}>} Discussion details
+ */
+async function getDiscussionDetails(github, owner, repo, discussionNumber) {
+  const query = /* GraphQL */ `
+    query ($owner: String!, $repo: String!, $num: Int!) {
+      repository(owner: $owner, name: $repo) {
+        discussion(number: $num) {
+          id
+          url
+        }
+      }
+    }
+  `;
+
+  const { repository } = await github.graphql(query, { owner, repo, num: discussionNumber });
+
+  if (!repository?.discussion) {
+    throw new Error(`Discussion #${discussionNumber} not found in ${owner}/${repo}`);
+  }
+
+  return repository.discussion;
+}
+
+/**
  * Comment on a GitHub Discussion using GraphQL
  * @param {any} github - GitHub REST API instance
  * @param {string} owner - Repository owner
@@ -213,61 +226,88 @@ async function hideOlderComments(github, owner, repo, itemNumber, workflowId, is
  * @returns {Promise<{id: string, html_url: string, discussion_url: string}>} Comment details
  */
 async function commentOnDiscussion(github, owner, repo, discussionNumber, message, replyToId) {
-  // 1. Retrieve discussion node ID
-  const { repository } = await github.graphql(
-    `
-    query($owner: String!, $repo: String!, $num: Int!) {
-      repository(owner: $owner, name: $repo) {
-        discussion(number: $num) { 
-          id 
-          url
-        }
-      }
-    }`,
-    { owner, repo, num: discussionNumber }
-  );
+  const { id: discussionId, url: discussionUrl } = await getDiscussionDetails(github, owner, repo, discussionNumber);
 
-  if (!repository || !repository.discussion) {
-    throw new Error(`Discussion #${discussionNumber} not found in ${owner}/${repo}`);
-  }
-
-  const discussionId = repository.discussion.id;
-  const discussionUrl = repository.discussion.url;
-
-  // 2. Add comment (with optional replyToId for threading)
+  // Add comment (with optional replyToId for threading)
   const mutation = replyToId
-    ? `mutation($dId: ID!, $body: String!, $replyToId: ID!) {
-        addDiscussionComment(input: { discussionId: $dId, body: $body, replyToId: $replyToId }) {
-          comment { 
-            id 
-            body 
-            createdAt 
-            url
+    ? /* GraphQL */ `
+        mutation ($dId: ID!, $body: String!, $replyToId: ID!) {
+          addDiscussionComment(input: { discussionId: $dId, body: $body, replyToId: $replyToId }) {
+            comment {
+              id
+              body
+              createdAt
+              url
+            }
           }
         }
-      }`
-    : `mutation($dId: ID!, $body: String!) {
-        addDiscussionComment(input: { discussionId: $dId, body: $body }) {
-          comment { 
-            id 
-            body 
-            createdAt 
-            url
+      `
+    : /* GraphQL */ `
+        mutation ($dId: ID!, $body: String!) {
+          addDiscussionComment(input: { discussionId: $dId, body: $body }) {
+            comment {
+              id
+              body
+              createdAt
+              url
+            }
           }
         }
-      }`;
+      `;
 
   const variables = replyToId ? { dId: discussionId, body: message, replyToId } : { dId: discussionId, body: message };
-
   const result = await github.graphql(mutation, variables);
 
-  const comment = result.addDiscussionComment.comment;
-
   return {
-    id: comment.id,
-    html_url: comment.url,
+    id: result.addDiscussionComment.comment.id,
+    html_url: result.addDiscussionComment.comment.url,
     discussion_url: discussionUrl,
   };
+}
+
+/**
+ * Create a comment with automatic discussion fallback for 404s
+ * @param {any} github - GitHub API instance
+ * @param {Object} repoParts - Repository parts (owner, repo)
+ * @param {number} itemNumber - Item number
+ * @param {string} body - Comment body
+ * @param {boolean} isDiscussion - Whether this is a discussion
+ * @param {Object} item - Original item (for retry logic)
+ * @param {string} itemRepo - Repository string for logging
+ * @returns {Promise<{comment: {id: string|number, html_url: string}, isDiscussion: boolean}>}
+ */
+async function createCommentWithFallback(github, repoParts, itemNumber, body, isDiscussion, item, itemRepo) {
+  if (isDiscussion) {
+    const comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, body, null);
+    return { comment, isDiscussion: true };
+  }
+
+  // Try creating as issue/PR comment first
+  try {
+    const { data } = await github.rest.issues.createComment({
+      owner: repoParts.owner,
+      repo: repoParts.repo,
+      issue_number: itemNumber,
+      body,
+    });
+    return { comment: data, isDiscussion: false };
+  } catch (error) {
+    const errorMessage = getErrorMessage(error);
+    // @ts-expect-error - Error handling with optional chaining
+    const is404 = error?.status === 404 || errorMessage.includes("404") || errorMessage.toLowerCase().includes("not found");
+
+    // If 404 and item_number was explicitly provided, retry as discussion
+    if (is404 && item.item_number !== undefined && item.item_number !== null) {
+      core.info(`Item #${itemNumber} not found as issue/PR, retrying as discussion...`);
+
+      const comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, body, null);
+      core.info(`Found discussion #${itemNumber}, adding comment...`);
+      return { comment, isDiscussion: true };
+    }
+
+    // Re-throw for other errors
+    throw error;
+  }
 }
 
 /**
@@ -493,60 +533,25 @@ async function main(config = {}) {
 
     try {
       // Hide older comments if enabled AND append-only-comments is not enabled
-      // When append-only-comments is true, we want to keep all comments visible
       if (hideOlderCommentsEnabled && !appendOnlyComments && workflowId) {
         await hideOlderComments(github, repoParts.owner, repoParts.repo, itemNumber, workflowId, isDiscussion);
       } else if (hideOlderCommentsEnabled && appendOnlyComments) {
         core.info("Skipping hide-older-comments because append-only-comments is enabled");
       }
 
-      /** @type {{ id: string | number, html_url: string }} */
-      let comment;
-      if (isDiscussion) {
-        // Use GraphQL for discussions
-        const discussionQuery = `
-          query($owner: String!, $repo: String!, $number: Int!) {
-            repository(owner: $owner, name: $repo) {
-              discussion(number: $number) {
-                id
-              }
-            }
-          }
-        `;
-        const queryResult = await github.graphql(discussionQuery, {
-          owner: repoParts.owner,
-          repo: repoParts.repo,
-          number: itemNumber,
-        });
-
-        const discussionId = queryResult?.repository?.discussion?.id;
-        if (!discussionId) {
-          throw new Error(`Discussion #${itemNumber} not found in ${itemRepo}`);
-        }
-
-        comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, processedBody, null);
-      } else {
-        // Use REST API for issues/PRs
-        const { data } = await github.rest.issues.createComment({
-          owner: repoParts.owner,
-          repo: repoParts.repo,
-          issue_number: itemNumber,
-          body: processedBody,
-        });
-        comment = data;
-      }
+      // Create comment with automatic discussion fallback
+      const { comment, isDiscussion: finalIsDiscussion } = await createCommentWithFallback(github, repoParts, itemNumber, processedBody, isDiscussion, item, itemRepo);
 
       core.info(`Created comment: ${comment.html_url}`);
 
-      // Add tracking metadata
       const commentResult = {
         id: comment.id,
         html_url: comment.html_url,
         _tracking: {
           commentId: comment.id,
-          itemNumber: itemNumber,
+          itemNumber,
           repo: itemRepo,
-          isDiscussion: isDiscussion,
+          isDiscussion: finalIsDiscussion,
         },
       };
 
@@ -556,97 +561,16 @@ async function main(config = {}) {
         success: true,
         commentId: comment.id,
         url: comment.html_url,
-        itemNumber: itemNumber,
+        itemNumber,
         repo: itemRepo,
-        isDiscussion: isDiscussion,
+        isDiscussion: finalIsDiscussion,
       };
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-
-      // Check if this is a 404 error (discussion/issue was deleted or wrong type)
       // @ts-expect-error - Error handling with optional chaining
       const is404 = error?.status === 404 || errorMessage.includes("404") || errorMessage.toLowerCase().includes("not found");
 
-      // If 404 and item_number was explicitly provided and we tried as issue/PR,
-      // retry as a discussion (the user may have provided a discussion number)
-      if (is404 && !isDiscussion && item.item_number !== undefined && item.item_number !== null) {
-        core.info(`Item #${itemNumber} not found as issue/PR, retrying as discussion...`);
-
-        try {
-          // Try to find and comment on the discussion
-          const discussionQuery = `
-            query($owner: String!, $repo: String!, $number: Int!) {
-              repository(owner: $owner, name: $repo) {
-                discussion(number: $number) {
-                  id
-                }
-              }
-            }
-          `;
-          const queryResult = await github.graphql(discussionQuery, {
-            owner: repoParts.owner,
-            repo: repoParts.repo,
-            number: itemNumber,
-          });
-
-          const discussionId = queryResult?.repository?.discussion?.id;
-          if (!discussionId) {
-            throw new Error(`Discussion #${itemNumber} not found in ${itemRepo}`);
-          }
-
-          core.info(`Found discussion #${itemNumber}, adding comment...`);
-          const comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, processedBody, null);
-
-          core.info(`Created comment on discussion: ${comment.html_url}`);
-
-          // Add tracking metadata
-          const commentResult = {
-            id: comment.id,
-            html_url: comment.html_url,
-            _tracking: {
-              commentId: comment.id,
-              itemNumber: itemNumber,
-              repo: itemRepo,
-              isDiscussion: true,
-            },
-          };
-
-          createdComments.push(commentResult);
-
-          return {
-            success: true,
-            commentId: comment.id,
-            url: comment.html_url,
-            itemNumber: itemNumber,
-            repo: itemRepo,
-            isDiscussion: true,
-          };
-        } catch (discussionError) {
-          const discussionErrorMessage = getErrorMessage(discussionError);
-          // @ts-expect-error - Error handling with optional chaining
-          const isDiscussion404 = discussionError?.status === 404 || discussionErrorMessage.toLowerCase().includes("not found");
-
-          if (isDiscussion404) {
-            // Neither issue/PR nor discussion found - truly doesn't exist
-            core.warning(`Target #${itemNumber} was not found as issue, PR, or discussion (may have been deleted): ${discussionErrorMessage}`);
-            return {
-              success: true,
-              warning: `Target not found: ${discussionErrorMessage}`,
-              skipped: true,
-            };
-          }
-
-          // Other error when trying as discussion
-          core.error(`Failed to add comment to discussion: ${discussionErrorMessage}`);
-          return {
-            success: false,
-            error: discussionErrorMessage,
-          };
-        }
-      }
-
       if (is404) {
-        // Treat 404s as warnings - the target was deleted between execution and safe output processing
         core.warning(`Target was not found (may have been deleted): ${errorMessage}`);
         return {
           success: true,
@@ -655,7 +579,6 @@ async function main(config = {}) {
         };
       }
 
-      // For non-404 errors, fail as before
       core.error(`Failed to add comment: ${errorMessage}`);
       return {
         success: false,
