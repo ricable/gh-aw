@@ -35,14 +35,15 @@ func TestDockerfile_Exists(t *testing.T) {
 
 	// Verify essential components are present
 	requiredComponents := []string{
-		"FROM alpine:",           // Alpine base image
-		"github-cli",             // GitHub CLI package
-		"git",                    // Git package
-		"jq",                     // jq package
-		"bash",                   // Bash package
-		"ARG TARGETOS",           // Build argument for target OS
-		"ARG TARGETARCH",         // Build argument for target architecture
-		"ENTRYPOINT [\"gh-aw\"]", // Entrypoint
+		"FROM alpine:",                   // Alpine base image
+		"github-cli",                     // GitHub CLI package
+		"git",                            // Git package
+		"jq",                             // jq package
+		"bash",                           // Bash package
+		"ARG TARGETOS",                   // Build argument for target OS
+		"ARG TARGETARCH",                 // Build argument for target architecture
+		"dist/${TARGETOS}-${TARGETARCH}", // Binary path pattern
+		"ENTRYPOINT [\"gh-aw\"]",         // Entrypoint
 	}
 
 	for _, component := range requiredComponents {
@@ -125,13 +126,18 @@ func TestDockerBuild_WithMake(t *testing.T) {
 		t.Fatalf("Failed to build Linux binary: %v", err)
 	}
 
-	// Verify the Linux binary was created
-	binaryPath := filepath.Join(repoRoot, "gh-aw-linux-amd64")
-	if _, err := os.Stat(binaryPath); os.IsNotExist(err) {
-		t.Fatalf("Linux binary not found at %s", binaryPath)
+	// Verify the Linux binaries were created in repo root
+	binaryPathAmd64 := filepath.Join(repoRoot, "gh-aw-linux-amd64")
+	if _, err := os.Stat(binaryPathAmd64); os.IsNotExist(err) {
+		t.Fatalf("Linux amd64 binary not found at %s", binaryPathAmd64)
 	}
 
-	// Build Docker image using Makefile
+	binaryPathArm64 := filepath.Join(repoRoot, "gh-aw-linux-arm64")
+	if _, err := os.Stat(binaryPathArm64); os.IsNotExist(err) {
+		t.Fatalf("Linux arm64 binary not found at %s", binaryPathArm64)
+	}
+
+	// Build Docker image using Makefile (should create dist/ directory)
 	t.Log("Building Docker image with make docker-build...")
 	dockerBuildCmd := exec.Command("make", "docker-build")
 	dockerBuildCmd.Dir = repoRoot
@@ -139,6 +145,17 @@ func TestDockerBuild_WithMake(t *testing.T) {
 	if err != nil {
 		t.Logf("Docker build output: %s", dockerOutput)
 		t.Fatalf("Failed to build Docker image: %v", err)
+	}
+
+	// Verify dist directory structure was created
+	distAmd64Path := filepath.Join(repoRoot, "dist", "linux-amd64")
+	if _, err := os.Stat(distAmd64Path); os.IsNotExist(err) {
+		t.Errorf("dist/linux-amd64 binary not found at %s", distAmd64Path)
+	}
+
+	distArm64Path := filepath.Join(repoRoot, "dist", "linux-arm64")
+	if _, err := os.Stat(distArm64Path); os.IsNotExist(err) {
+		t.Errorf("dist/linux-arm64 binary not found at %s", distArm64Path)
 	}
 
 	t.Log("Docker image built successfully")

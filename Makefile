@@ -270,6 +270,10 @@ docker-build: build-linux
 		echo "Error: Docker is not installed."; \
 		exit 1; \
 	fi
+	@# Prepare dist directory structure for Docker build
+	@mkdir -p dist
+	@cp $(BINARY_NAME)-linux-amd64 dist/linux-amd64
+	@cp $(BINARY_NAME)-linux-arm64 dist/linux-arm64
 	@# Build for linux/amd64 by default for local testing using buildx
 	docker buildx build --platform linux/amd64 \
 		-t $(DOCKER_IMAGE):$(VERSION) \
@@ -292,6 +296,10 @@ docker-build-multiarch: build-linux
 		echo "Install with: docker buildx install"; \
 		exit 1; \
 	fi
+	@# Prepare dist directory structure for Docker build
+	@mkdir -p dist
+	@cp $(BINARY_NAME)-linux-amd64 dist/linux-amd64
+	@cp $(BINARY_NAME)-linux-arm64 dist/linux-arm64
 	@# Create buildx builder if it doesn't exist
 	@docker buildx create --use --name gh-aw-builder 2>/dev/null || docker buildx use gh-aw-builder
 	@# Build for multiple platforms
