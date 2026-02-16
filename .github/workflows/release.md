@@ -185,6 +185,11 @@ jobs:
           bash scripts/build-release.sh "$RELEASE_TAG"
           echo "✓ Binaries built successfully"
 
+      - name: Set up QEMU for multi-platform builds
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
       - name: Setup Docker Buildx (pre-validation)
         uses: docker/setup-buildx-action@v3
 

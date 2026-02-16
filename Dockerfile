@@ -17,8 +17,9 @@ RUN apk add --no-cache \
 # Expected values: TARGETOS=linux, TARGETARCH=amd64|arm64
 # For local builds without buildx, these must be provided explicitly:
 #   docker build --build-arg TARGETOS=linux --build-arg TARGETARCH=amd64 ...
-ARG TARGETOS
-ARG TARGETARCH
+# Default to linux/amd64 if not provided
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 
 # Create a directory for the binary
 WORKDIR /usr/local/bin

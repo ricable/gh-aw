@@ -274,6 +274,12 @@ docker-build: build-linux
 	@mkdir -p dist
 	@cp $(BINARY_NAME)-linux-amd64 dist/linux-amd64
 	@cp $(BINARY_NAME)-linux-arm64 dist/linux-arm64
+	@# Check if buildx is available
+	@if ! docker buildx version >/dev/null 2>&1; then \
+		echo "Error: Docker buildx is not available."; \
+		echo "Install with: docker buildx install"; \
+		exit 1; \
+	fi
 	@# Build for linux/amd64 by default for local testing using buildx
 	docker buildx build --platform linux/amd64 \
 		-t $(DOCKER_IMAGE):$(VERSION) \

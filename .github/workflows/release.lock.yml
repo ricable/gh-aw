@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# frontmatter-hash: a5680719c82cf3379019cf9cb1d23a3af798c67d011aa864b5228c59faaaa8e7
+# frontmatter-hash: 5ab9279679b4dcbf80e9fa430e222569d154c38e53b56d06959fa443aaf617ed
 
 name: "Release"
 "on":
@@ -1183,6 +1183,10 @@ jobs:
           echo "✓ Binaries built successfully"
         env:
           RELEASE_TAG: ${{ needs.config.outputs.release_tag }}
+      - name: Set up QEMU for multi-platform builds
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
       - name: Setup Docker Buildx (pre-validation)
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Build Docker image (validation only)
