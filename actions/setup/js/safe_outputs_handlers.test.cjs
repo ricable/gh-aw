@@ -347,4 +347,76 @@ describe("safe_outputs_handlers", () => {
       expect(result.content[0]).toHaveProperty("text");
     });
   });
+
+  describe("add_comment max count enforcement", () => {
+    it("should enforce max count at MCP server level", () => {
+      const config = {
+        add_comment: {
+          max: 2,
+        },
+      };
+
+      const handlersWithConfig = createHandlers(mockServer, mockAppendSafeOutput, config);
+
+      // First call should succeed
+      const result1 = handlersWithConfig.addCommentHandler({ body: "Comment 1" });
+      expect(result1).toBeDefined();
+      expect(mockAppendSafeOutput).toHaveBeenCalledTimes(1);
+
+      // Second call should succeed
+      const result2 = handlersWithConfig.addCommentHandler({ body: "Comment 2" });
+      expect(result2).toBeDefined();
+      expect(mockAppendSafeOutput).toHaveBeenCalledTimes(2);
+
+      // Third call should throw max count error
+      expect(() => {
+        handlersWithConfig.addCommentHandler({ body: "Comment 3" });
+      }).toThrow(/Max count of 2 add_comment invocations reached/);
+
+      // Verify append was not called for the third attempt
+      expect(mockAppendSafeOutput).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not enforce max count when not configured", () => {
+      const config = {
+        add_comment: {}, // No max property
+      };
+
+      const handlersWithConfig = createHandlers(mockServer, mockAppendSafeOutput, config);
+
+      // Multiple calls should all succeed
+      for (let i = 0; i < 25; i++) {
+        const result = handlersWithConfig.addCommentHandler({ body: `Comment ${i}` });
+        expect(result).toBeDefined();
+      }
+
+      expect(mockAppendSafeOutput).toHaveBeenCalledTimes(25);
+    });
+
+    it("should track invocation counts per tool type independently", () => {
+      const config = {
+        add_comment: { max: 2 },
+        create_issue: { max: 3 },
+      };
+
+      const handlersWithConfig = createHandlers(mockServer, mockAppendSafeOutput, config);
+
+      // Use add_comment twice (should succeed)
+      handlersWithConfig.addCommentHandler({ body: "Comment 1" });
+      handlersWithConfig.addCommentHandler({ body: "Comment 2" });
+
+      // Use defaultHandler for create_issue three times (should succeed)
+      handlersWithConfig.defaultHandler("create_issue")({ title: "Issue 1" });
+      handlersWithConfig.defaultHandler("create_issue")({ title: "Issue 2" });
+      handlersWithConfig.defaultHandler("create_issue")({ title: "Issue 3" });
+
+      // Both limits should be reached independently
+      expect(() => {
+        handlersWithConfig.addCommentHandler({ body: "Comment 3" });
+      }).toThrow(/Max count of 2 add_comment invocations reached/);
+
+      // create_issue has not yet hit its limit
+      expect(mockAppendSafeOutput).toHaveBeenCalledTimes(5);
+    });
+  });
 });
