@@ -355,7 +355,9 @@ function evaluateExpression(expr) {
     } catch (error) {
       // If evaluation fails, log but don't throw
       const errorMessage = error instanceof Error ? error.message : String(error);
-      core.warning(`Failed to evaluate expression "${trimmed}": ${errorMessage}`);
+      if (typeof core !== "undefined") {
+        core.warning(`Failed to evaluate expression "${trimmed}": ${errorMessage}`);
+      }
     }
   }
 
@@ -380,7 +382,9 @@ function processExpressions(content, source) {
     return content;
   }
 
-  core.info(`Found ${matches.length} expression(s) in ${source}`);
+  if (typeof core !== "undefined") {
+    core.info(`Found ${matches.length} expression(s) in ${source}`);
+  }
 
   const unsafeExpressions = [];
   const replacements = new Map();
@@ -430,7 +434,9 @@ function processExpressions(content, source) {
     result = result.replace(original, evaluated);
   }
 
-  core.info(`Successfully processed ${replacements.size} safe expression(s) in ${source}`);
+  if (typeof core !== "undefined") {
+    core.info(`Successfully processed ${replacements.size} safe expression(s) in ${source}`);
+  }
   return result;
 }
 
@@ -468,13 +474,17 @@ async function fetchUrlContent(url, cacheDir) {
     const oneHourInMs = 60 * 60 * 1000;
 
     if (ageInMs < oneHourInMs) {
-      core.info(`Using cached content for URL: ${url}`);
+      if (typeof core !== "undefined") {
+        core.info(`Using cached content for URL: ${url}`);
+      }
       return fs.readFileSync(cacheFile, "utf8");
     }
   }
 
   // Fetch URL content
-  core.info(`Fetching content from URL: ${url}`);
+  if (typeof core !== "undefined") {
+    core.info(`Fetching content from URL: ${url}`);
+  }
 
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith("https") ? https : http;
@@ -522,7 +532,9 @@ async function processUrlImport(url, optional, startLine, endLine) {
   } catch (error) {
     if (optional) {
       const errorMessage = getErrorMessage(error);
-      core.warning(`Optional runtime import URL failed: ${url}: ${errorMessage}`);
+      if (typeof core !== "undefined") {
+        core.warning(`Optional runtime import URL failed: ${url}: ${errorMessage}`);
+      }
       return "";
     }
     throw error;
@@ -553,7 +565,9 @@ async function processUrlImport(url, optional, startLine, endLine) {
 
   // Check for front matter and warn
   if (hasFrontMatter(content)) {
-    core.warning(`URL ${url} contains front matter which will be ignored in runtime import`);
+    if (typeof core !== "undefined") {
+      core.warning(`URL ${url} contains front matter which will be ignored in runtime import`);
+    }
     // Remove front matter (everything between first --- and second ---)
     const lines = content.split("\n");
     let inFrontMatter = false;
@@ -706,55 +720,81 @@ function generatePlaceholderName(expr) {
  * @throws {Error} - If file/URL is not found and import is not optional, or if GitHub Actions macros are detected
  */
 async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, startLine, endLine) {
-  core.info(`[processRuntimeImport] Processing import: ${filepathOrUrl}`);
-  core.info(`[processRuntimeImport] Optional: ${optional}, Workspace: ${workspaceDir}`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] Processing import: ${filepathOrUrl}`);
+  }
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] Optional: ${optional}, Workspace: ${workspaceDir}`);
+  }
   if (startLine !== undefined || endLine !== undefined) {
-    core.info(`[processRuntimeImport] Line range: ${startLine || 1}-${endLine || "end"}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Line range: ${startLine || 1}-${endLine || "end"}`);
+    }
   }
 
   // Check if this is a URL
   if (/^https?:\/\//i.test(filepathOrUrl)) {
-    core.info(`[processRuntimeImport] Detected URL import: ${filepathOrUrl}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Detected URL import: ${filepathOrUrl}`);
+    }
     return await processUrlImport(filepathOrUrl, optional, startLine, endLine);
   }
 
   // Otherwise, process as a file
-  core.info(`[processRuntimeImport] Processing as file import`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] Processing as file import`);
+  }
   let filepath = filepathOrUrl;
   let isAgentsPath = false;
 
   // Check if this is a .agents/ path (top-level folder for skills)
   if (filepath.startsWith(".agents/")) {
     isAgentsPath = true;
-    core.info(`[processRuntimeImport] Detected .agents/ path (Unix-style)`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Detected .agents/ path (Unix-style)`);
+    }
     // Keep .agents/ as is - it's a top-level folder at workspace root
   } else if (filepath.startsWith(".agents\\")) {
     isAgentsPath = true;
-    core.info(`[processRuntimeImport] Detected .agents\\ path (Windows-style)`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Detected .agents\\ path (Windows-style)`);
+    }
     // Keep .agents\ as is - it's a top-level folder at workspace root (Windows)
   } else if (filepath.startsWith(".github/")) {
     // Trim .github/ prefix if provided (support both .github/file and file)
-    core.info(`[processRuntimeImport] Detected .github/ prefix (Unix-style), trimming`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Detected .github/ prefix (Unix-style), trimming`);
+    }
     filepath = filepath.substring(8); // Remove ".github/"
   } else if (filepath.startsWith(".github\\")) {
-    core.info(`[processRuntimeImport] Detected .github\\ prefix (Windows-style), trimming`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Detected .github\\ prefix (Windows-style), trimming`);
+    }
     filepath = filepath.substring(8); // Remove ".github\" (Windows)
   } else {
     // If path doesn't start with .github or .agents, prefix with workflows/
     // This makes imports like "a.md" resolve to ".github/workflows/a.md"
-    core.info(`[processRuntimeImport] No special prefix detected, adding workflows/ prefix`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] No special prefix detected, adding workflows/ prefix`);
+    }
     filepath = path.join("workflows", filepath);
   }
 
-  core.info(`[processRuntimeImport] Processed filepath: ${filepath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] Processed filepath: ${filepath}`);
+  }
 
   // Remove leading ./ or ../ if present (only for non-agents paths)
   if (!isAgentsPath) {
     if (filepath.startsWith("./")) {
-      core.info(`[processRuntimeImport] Removing ./ prefix`);
+      if (typeof core !== "undefined") {
+        core.info(`[processRuntimeImport] Removing ./ prefix`);
+      }
       filepath = filepath.substring(2);
     } else if (filepath.startsWith(".\\")) {
-      core.info(`[processRuntimeImport] Removing .\\ prefix`);
+      if (typeof core !== "undefined") {
+        core.info(`[processRuntimeImport] Removing .\\ prefix`);
+      }
       filepath = filepath.substring(2);
     }
   }
@@ -764,37 +804,63 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   let absolutePath, normalizedPath, baseFolder, normalizedBaseFolder;
 
   if (isAgentsPath) {
-    core.info(`[processRuntimeImport] Resolving .agents/ path relative to workspace root`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Resolving .agents/ path relative to workspace root`);
+    }
     // .agents/ paths resolve to top-level .agents folder at workspace root
     baseFolder = workspaceDir;
     absolutePath = path.resolve(workspaceDir, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(baseFolder);
 
-    core.info(`[processRuntimeImport] Base folder: ${normalizedBaseFolder}`);
-    core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
-    core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Base folder: ${normalizedBaseFolder}`);
+    }
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
+    }
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
+    }
 
     // Security check: ensure the resolved path is within the workspace
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
-    core.info(`[processRuntimeImport] Relative path from base: ${relativePath}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Relative path from base: ${relativePath}`);
+    }
 
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-      core.warning(`[processRuntimeImport] Security violation: Path escapes workspace`);
-      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
-      core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport] Security violation: Path escapes workspace`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
+      }
       throw new Error(`Security: Path ${filepathOrUrl} must be within workspace (resolves to: ${relativePath})`);
     }
     // Additional check: ensure path stays within .agents folder
     if (!relativePath.startsWith(".agents" + path.sep) && relativePath !== ".agents") {
-      core.warning(`[processRuntimeImport] Security violation: Path escapes .agents folder`);
-      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
-      core.warning(`[processRuntimeImport]   Relative path: ${relativePath}`);
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport] Security violation: Path escapes .agents folder`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Relative path: ${relativePath}`);
+      }
       throw new Error(`Security: Path ${filepathOrUrl} must be within .agents folder`);
     }
-    core.info(`[processRuntimeImport] ✓ Security check passed for .agents/ path`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] ✓ Security check passed for .agents/ path`);
+    }
   } else {
-    core.info(`[processRuntimeImport] Resolving regular path relative to .github folder`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Resolving regular path relative to .github folder`);
+    }
     // Regular paths resolve within .github folder
     const githubFolder = path.join(workspaceDir, ".github");
     baseFolder = githubFolder;
@@ -802,40 +868,68 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(githubFolder);
 
-    core.info(`[processRuntimeImport] Base folder (.github): ${normalizedBaseFolder}`);
-    core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
-    core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Base folder (.github): ${normalizedBaseFolder}`);
+    }
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
+    }
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
+    }
 
     // Security check: ensure the resolved path is within the .github folder
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
-    core.info(`[processRuntimeImport] Relative path from .github: ${relativePath}`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] Relative path from .github: ${relativePath}`);
+    }
 
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-      core.warning(`[processRuntimeImport] Security violation: Path escapes .github folder`);
-      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
-      core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport] Security violation: Path escapes .github folder`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
+      }
       throw new Error(`Security: Path ${filepathOrUrl} must be within .github folder (resolves to: ${relativePath})`);
     }
-    core.info(`[processRuntimeImport] ✓ Security check passed for .github path`);
+    if (typeof core !== "undefined") {
+      core.info(`[processRuntimeImport] ✓ Security check passed for .github path`);
+    }
   }
 
   // Check if file exists
-  core.info(`[processRuntimeImport] Checking if file exists: ${normalizedPath}`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] Checking if file exists: ${normalizedPath}`);
+  }
   if (!fs.existsSync(normalizedPath)) {
     if (optional) {
-      core.warning(`[processRuntimeImport] Optional runtime import file not found: ${filepath}`);
-      core.warning(`Optional runtime import file not found: ${filepath}`);
+      if (typeof core !== "undefined") {
+        core.warning(`[processRuntimeImport] Optional runtime import file not found: ${filepath}`);
+      }
+      if (typeof core !== "undefined") {
+        core.warning(`Optional runtime import file not found: ${filepath}`);
+      }
       return "";
     }
-    core.warning(`[processRuntimeImport] Runtime import file not found: ${filepath}`);
+    if (typeof core !== "undefined") {
+      core.warning(`[processRuntimeImport] Runtime import file not found: ${filepath}`);
+    }
     throw new Error(`Runtime import file not found: ${filepath}`);
   }
 
-  core.info(`[processRuntimeImport] ✓ File exists, reading content...`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] ✓ File exists, reading content...`);
+  }
 
   // Read the file
   let content = fs.readFileSync(normalizedPath, "utf8");
-  core.info(`[processRuntimeImport] File size: ${content.length} characters`);
+  if (typeof core !== "undefined") {
+    core.info(`[processRuntimeImport] File size: ${content.length} characters`);
+  }
 
   // If line range is specified, extract those lines first (before other processing)
   if (startLine !== undefined || endLine !== undefined) {
@@ -862,7 +956,9 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
 
   // Check for front matter and warn
   if (hasFrontMatter(content)) {
-    core.warning(`File ${filepath} contains front matter which will be ignored in runtime import`);
+    if (typeof core !== "undefined") {
+      core.warning(`File ${filepath} contains front matter which will be ignored in runtime import`);
+    }
     // Remove front matter (everything between first --- and second ---)
     const lines = content.split("\n");
     let inFrontMatter = false;
@@ -966,7 +1062,9 @@ async function processRuntimeImports(content, workspaceDir, importedFiles = new 
       const cachedContent = importCache.get(filepathWithRange);
       if (cachedContent !== undefined) {
         processedContent = processedContent.replace(fullMatch, cachedContent);
-        core.info(`Reusing cached content for ${filepathWithRange}`);
+        if (typeof core !== "undefined") {
+          core.info(`Reusing cached content for ${filepathWithRange}`);
+        }
         continue;
       }
     }
@@ -986,7 +1084,9 @@ async function processRuntimeImports(content, workspaceDir, importedFiles = new 
 
       // Recursively process any runtime-import macros in the imported content
       if (importedContent && /\{\{#runtime-import/.test(importedContent)) {
-        core.info(`Recursively processing runtime-imports in ${filepathWithRange}`);
+        if (typeof core !== "undefined") {
+          core.info(`Recursively processing runtime-imports in ${filepathWithRange}`);
+        }
         importedContent = await processRuntimeImports(importedContent, workspaceDir, importedFiles, importCache, [...importStack]);
       }
 
