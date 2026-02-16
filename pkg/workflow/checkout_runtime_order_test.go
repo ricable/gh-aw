@@ -119,17 +119,23 @@ steps:
 
 	t.Logf("Found %d steps: %v", len(stepNames), stepNames)
 
-	if len(stepNames) < 5 {
-		t.Fatalf("Expected at least 5 steps, got %d: %v", len(stepNames), stepNames)
+	if len(stepNames) < 12 {
+		t.Fatalf("Expected at least 12 steps, got %d: %v", len(stepNames), stepNames)
 	}
 
 	// Verify the order in dev mode (when local actions are used):
 	// 1. First step should be "Checkout actions folder" (checkout local actions)
 	// 2. Second step should be "Setup Scripts" (use the checked out action)
-	// 3. Third step should be "Create gh-aw temp directory" (before custom steps)
-	// 4. Fourth step should be "Checkout code" (from custom steps - full checkout, no separate .github checkout needed)
-	// 5. Fifth step should be "Setup Node.js" (runtime setup, inserted after checkout)
-	// 6. Sixth step should be "Use Node" (from custom steps)
+	// 3. Third step should be "Create gh-aw temp directory" (before prompt and custom steps)
+	// 4. Fourth step should be "Generate agentic run info" (aw_info.json - after temp directory)
+	// 5. Fifth step should be "Create prompt with built-in context" (prompt rendering - after temp directory)
+	// 6. Sixth step should be "Substitute placeholders" (prompt rendering)
+	// 7. Seventh step should be "Interpolate variables and render templates" (prompt rendering)
+	// 8. Eighth step should be "Validate prompt placeholders" (prompt rendering)
+	// 9. Ninth step should be "Print prompt" (prompt rendering)
+	// 10. Tenth step should be "Checkout code" (from custom steps - full checkout, no separate .github checkout needed)
+	// 11. Eleventh step should be "Setup Node.js" (runtime setup, inserted after checkout)
+	// 12. Twelfth step should be "Use Node" (from custom steps)
 	// NOTE: The .github sparse checkout is skipped because custom steps contain a full checkout
 
 	if stepNames[0] != "Checkout actions folder" {
@@ -144,16 +150,40 @@ steps:
 		t.Errorf("Third step should be 'Create gh-aw temp directory', got '%s'", stepNames[2])
 	}
 
-	if stepNames[3] != "Checkout code" {
-		t.Errorf("Fourth step should be 'Checkout code', got '%s'", stepNames[3])
+	if stepNames[3] != "Generate agentic run info" {
+		t.Errorf("Fourth step should be 'Generate agentic run info' (after temp directory), got '%s'", stepNames[3])
 	}
 
-	if stepNames[4] != "Setup Node.js" {
-		t.Errorf("Fifth step should be 'Setup Node.js' (runtime setup after checkout), got '%s'", stepNames[4])
+	if stepNames[4] != "Create prompt with built-in context" {
+		t.Errorf("Fifth step should be 'Create prompt with built-in context', got '%s'", stepNames[4])
 	}
 
-	if stepNames[5] != "Use Node" {
-		t.Errorf("Sixth step should be 'Use Node', got '%s'", stepNames[5])
+	if stepNames[5] != "Substitute placeholders" {
+		t.Errorf("Sixth step should be 'Substitute placeholders', got '%s'", stepNames[5])
+	}
+
+	if stepNames[6] != "Interpolate variables and render templates" {
+		t.Errorf("Seventh step should be 'Interpolate variables and render templates', got '%s'", stepNames[6])
+	}
+
+	if stepNames[7] != "Validate prompt placeholders" {
+		t.Errorf("Eighth step should be 'Validate prompt placeholders', got '%s'", stepNames[7])
+	}
+
+	if stepNames[8] != "Print prompt" {
+		t.Errorf("Ninth step should be 'Print prompt', got '%s'", stepNames[8])
+	}
+
+	if stepNames[9] != "Checkout code" {
+		t.Errorf("Tenth step should be 'Checkout code', got '%s'", stepNames[9])
+	}
+
+	if stepNames[10] != "Setup Node.js" {
+		t.Errorf("Eleventh step should be 'Setup Node.js' (runtime setup after checkout), got '%s'", stepNames[10])
+	}
+
+	if stepNames[11] != "Use Node" {
+		t.Errorf("Twelfth step should be 'Use Node', got '%s'", stepNames[11])
 	}
 
 	// Verify that .github checkout is NOT present (redundant with full checkout in custom steps)
@@ -189,7 +219,7 @@ steps:
 	}
 
 	t.Logf("Step order is correct:")
-	for i, name := range stepNames[:6] {
+	for i, name := range stepNames[:12] {
 		t.Logf("  %d. %s", i+1, name)
 	}
 }
