@@ -225,6 +225,44 @@ func (c *Compiler) generateCheckoutGitHubFolder(data *WorkflowData) []string {
 	}
 }
 
+// generateSparseCheckoutRecoveryStep generates a step to re-checkout .github and .agents folders
+// after custom steps that use git sparse-checkout. This ensures runtime imports can access workflow
+// markdown files even if sparse-checkout removed the .github folder.
+//
+// This step is only generated when:
+// 1. Custom steps contain git sparse-checkout commands
+// 2. The workflow uses runtime imports (has import paths or main workflow markdown)
+//
+// Returns a slice of strings representing the YAML step lines, or nil if not needed.
+func (c *Compiler) generateSparseCheckoutRecoveryStep(data *WorkflowData) []string {
+	// Only generate if custom steps contain sparse-checkout commands
+	if !ContainsSparseCheckout(data.CustomSteps) {
+		return nil
+	}
+
+	// Only generate if the workflow uses runtime imports
+	// (either has import paths or main workflow markdown)
+	hasRuntimeImports := len(data.ImportPaths) > 0 || data.MainWorkflowMarkdown != ""
+	if !hasRuntimeImports {
+		compilerYamlHelpersLog.Print("Skipping sparse-checkout recovery: no runtime imports detected")
+		return nil
+	}
+
+	compilerYamlHelpersLog.Print("Generating sparse-checkout recovery step: custom steps use git sparse-checkout and runtime imports are present")
+
+	// Generate a step to re-checkout .github and .agents folders
+	return []string{
+		"      - name: Re-checkout .github and .agents after sparse-checkout\n",
+		fmt.Sprintf("        uses: %s\n", GetActionPin("actions/checkout")),
+		"        with:\n",
+		"          sparse-checkout: |\n",
+		"            .github\n",
+		"            .agents\n",
+		"          fetch-depth: 1\n",
+		"          persist-credentials: false\n",
+	}
+}
+
 // generateGitHubScriptWithRequire generates a github-script step that loads a module using require().
 // Instead of repeating the global variable assignments inline, it uses the setup_globals helper function.
 //

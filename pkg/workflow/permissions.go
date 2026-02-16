@@ -74,6 +74,32 @@ func ContainsCheckout(customSteps string) bool {
 	return false
 }
 
+// ContainsSparseCheckout returns true if the given custom steps contain git sparse-checkout commands.
+// This is used to detect when custom steps modify the checkout to exclude certain directories,
+// which could remove the .github folder needed for runtime imports.
+func ContainsSparseCheckout(customSteps string) bool {
+	if customSteps == "" {
+		return false
+	}
+
+	// Look for git sparse-checkout command patterns
+	sparseCheckoutPatterns := []string{
+		"git sparse-checkout",
+		"sparse-checkout set",
+		"sparse-checkout init",
+	}
+
+	lowerSteps := strings.ToLower(customSteps)
+	for _, pattern := range sparseCheckoutPatterns {
+		if strings.Contains(lowerSteps, pattern) {
+			permissionsLog.Print("Detected git sparse-checkout in custom steps")
+			return true
+		}
+	}
+
+	return false
+}
+
 // PermissionLevel represents the level of access (read, write, none)
 type PermissionLevel string
 
