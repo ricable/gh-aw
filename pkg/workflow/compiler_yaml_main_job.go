@@ -152,6 +152,26 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	yaml.WriteString("      - name: Create gh-aw temp directory\n")
 	yaml.WriteString("        run: bash /opt/gh-aw/actions/create_gh_aw_tmp_dir.sh\n")
 
+	// Get the engine early so we can generate aw_info.json
+	engine, err := c.getAgenticEngine(data.AI)
+	if err != nil {
+		return err
+	}
+
+	// Ensure MCP gateway defaults are set before generating aw_info.json
+	// This is needed so that awmg_version is populated correctly
+	if HasMCPServers(data) {
+		ensureDefaultMCPGatewayConfig(data)
+	}
+
+	// Generate aw_info.json as early as possible (right after temp directory creation)
+	// This must run before secret validation and workflow overview
+	c.generateCreateAwInfo(yaml, data, engine)
+
+	// Add prompt creation steps after checkout and before custom steps
+	// This ensures prompt is ready early in the workflow execution
+	c.generatePrompt(yaml, data)
+
 	// Add custom steps if present
 	if data.CustomSteps != "" {
 		if customStepsContainCheckout && len(runtimeSetupSteps) > 0 {
@@ -187,22 +207,6 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	// Add step to checkout PR branch if the event is pull_request
 	c.generatePRReadyForReviewCheckout(yaml, data)
 
-	// Add Node.js setup if the engine requires it and it's not already set up in custom steps
-	engine, err := c.getAgenticEngine(data.AI)
-
-	if err != nil {
-		return err
-	}
-
-	// Ensure MCP gateway defaults are set before generating aw_info.json
-	// This is needed so that awmg_version is populated correctly
-	if HasMCPServers(data) {
-		ensureDefaultMCPGatewayConfig(data)
-	}
-
-	// Generate aw_info.json with agentic run metadata (must run before secret validation and workflow overview)
-	c.generateCreateAwInfo(yaml, data, engine)
-
 	// Add engine-specific installation steps (includes Node.js setup and secret validation for npm-based engines)
 	installSteps := engine.GetInstallationSteps(data)
 	compilerYamlLog.Printf("Adding %d engine installation steps for %s", len(installSteps), engine.GetID())
@@ -229,12 +233,9 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	// Stop-time safety checks are now handled by a dedicated job (stop_time_check)
 	// No longer generated in the main job steps
 
-	// Generate workflow overview to step summary early, before prompts
+	// Generate workflow overview to step summary
 	// This reads from aw_info.json for consistent data
 	c.generateWorkflowOverviewStep(yaml, data, engine)
-
-	// Add prompt creation step
-	c.generatePrompt(yaml, data)
 
 	// Collect artifact paths for unified upload at the end
 	var artifactPaths []string

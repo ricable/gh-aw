@@ -128,38 +128,6 @@ jobs:
           persist-credentials: false
       - name: Create gh-aw temp directory
         run: bash /opt/gh-aw/actions/create_gh_aw_tmp_dir.sh
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_ID: ${{ needs.release.outputs.release_id }}
-          RELEASE_TAG: ${{ needs.config.outputs.release_tag }}
-        name: Setup environment and fetch release data
-        run: "set -e\nmkdir -p /tmp/gh-aw/release-data\n\n# Use the release ID and tag from the release job\necho \"Release ID from release job: $RELEASE_ID\"\necho \"Release tag from release job: $RELEASE_TAG\"\n\necho \"Processing release: $RELEASE_TAG\"\necho \"RELEASE_TAG=$RELEASE_TAG\" >> \"$GITHUB_ENV\"\n\n# Get the current release information\n# Use release ID to fetch release data\ngh api \"/repos/${{ github.repository }}/releases/$RELEASE_ID\" > /tmp/gh-aw/release-data/current_release.json\necho \"✓ Fetched current release information\"\n\n# Get the previous release to determine the range\nPREV_RELEASE_TAG=$(gh release list --limit 2 --json tagName --jq '.[1].tagName // empty')\n\nif [ -z \"$PREV_RELEASE_TAG\" ]; then\n  echo \"No previous release found. This appears to be the first release.\"\n  echo \"PREV_RELEASE_TAG=\" >> \"$GITHUB_ENV\"\n  touch /tmp/gh-aw/release-data/pull_requests.json\n  echo \"[]\" > /tmp/gh-aw/release-data/pull_requests.json\nelse\n  echo \"Previous release: $PREV_RELEASE_TAG\"\n  echo \"PREV_RELEASE_TAG=$PREV_RELEASE_TAG\" >> \"$GITHUB_ENV\"\n  \n  # Get commits between releases\n  echo \"Fetching commits between $PREV_RELEASE_TAG and $RELEASE_TAG...\"\n  git fetch --unshallow 2>/dev/null || git fetch --depth=1000\n  \n  # Get all merged PRs between the two releases\n  echo \"Fetching pull requests merged between releases...\"\n  PREV_PUBLISHED_AT=$(gh release view \"$PREV_RELEASE_TAG\" --json publishedAt --jq .publishedAt)\n  CURR_PUBLISHED_AT=$(gh release view \"$RELEASE_TAG\" --json publishedAt --jq .publishedAt)\n  gh pr list \\\n    --state merged \\\n    --limit 1000 \\\n    --json number,title,author,labels,mergedAt,url,body \\\n    --jq \"[.[] | select(.mergedAt >= \\\"$PREV_PUBLISHED_AT\\\" and .mergedAt <= \\\"$CURR_PUBLISHED_AT\\\")]\" \\\n    > /tmp/gh-aw/release-data/pull_requests.json\n  \n  PR_COUNT=$(jq length \"/tmp/gh-aw/release-data/pull_requests.json\")\n  echo \"✓ Fetched $PR_COUNT pull requests\"\nfi\n\n# Get the CHANGELOG.md content around this version\nif [ -f \"CHANGELOG.md\" ]; then\n  cp CHANGELOG.md /tmp/gh-aw/release-data/CHANGELOG.md\n  echo \"✓ Copied CHANGELOG.md for reference\"\nfi\n\n# List documentation files for linking\nfind docs -type f -name \"*.md\" 2>/dev/null > /tmp/gh-aw/release-data/docs_files.txt || echo \"No docs directory found\"\n\necho \"✓ Setup complete. Data available in /tmp/gh-aw/release-data/\"\n"
-
-      - name: Configure Git credentials
-        env:
-          REPO_NAME: ${{ github.repository }}
-          SERVER_URL: ${{ github.server_url }}
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          # Re-authenticate git with GitHub token
-          SERVER_URL_STRIPPED="${SERVER_URL#https://}"
-          git remote set-url origin "https://x-access-token:${{ github.token }}@${SERVER_URL_STRIPPED}/${REPO_NAME}.git"
-          echo "Git configured with standard GitHub Actions identity"
-      - name: Checkout PR branch
-        id: checkout-pr
-        if: |
-          github.event.pull_request
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-        with:
-          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-          script: |
-            const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
-            setupGlobals(core, github, context, exec, io);
-            const { main } = require('/opt/gh-aw/actions/checkout_pr_branch.cjs');
-            await main();
       - name: Generate agentic run info
         id: generate_aw_info
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
@@ -203,6 +171,178 @@ jobs:
             
             // Set model as output for reuse in other steps/jobs
             core.setOutput('model', awInfo.model);
+      - name: Create prompt with built-in context
+        env:
+          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+          GH_AW_SAFE_OUTPUTS: ${{ env.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_GITHUB_ACTOR: ${{ github.actor }}
+          GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
+          GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
+          GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
+          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
+        run: |
+          bash /opt/gh-aw/actions/create_prompt_first.sh
+          cat << 'GH_AW_PROMPT_EOF' > "$GH_AW_PROMPT"
+          <system>
+          GH_AW_PROMPT_EOF
+          cat "/opt/gh-aw/prompts/xpia.md" >> "$GH_AW_PROMPT"
+          cat "/opt/gh-aw/prompts/temp_folder_prompt.md" >> "$GH_AW_PROMPT"
+          cat "/opt/gh-aw/prompts/markdown.md" >> "$GH_AW_PROMPT"
+          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
+          <safe-outputs>
+          <description>GitHub API Access Instructions</description>
+          <important>
+          The gh CLI is NOT authenticated. Do NOT use gh commands for GitHub operations.
+          </important>
+          <instructions>
+          To create or modify GitHub resources (issues, discussions, pull requests, etc.), you MUST call the appropriate safe output tool. Simply writing content will NOT work - the workflow requires actual tool calls.
+          
+          Temporary IDs: Some safe output tools support a temporary ID field (usually named temporary_id) so you can reference newly-created items elsewhere in the SAME agent output (for example, using #aw_abc1 in a later body). 
+          
+          **IMPORTANT - temporary_id format rules:**
+          - If you DON'T need to reference the item later, OMIT the temporary_id field entirely (it will be auto-generated if needed)
+          - If you DO need cross-references/chaining, you MUST match this EXACT validation regex: /^aw_[A-Za-z0-9]{3,8}$/i
+          - Format: aw_ prefix followed by 3 to 8 alphanumeric characters (A-Z, a-z, 0-9, case-insensitive)
+          - Valid alphanumeric characters: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+          - INVALID examples: aw_ab (too short), aw_123456789 (too long), aw_test-id (contains hyphen), aw_id_123 (contains underscore)
+          - VALID examples: aw_abc, aw_abc1, aw_Test123, aw_A1B2C3D4, aw_12345678
+          - To generate valid IDs: use 3-8 random alphanumeric characters or omit the field to let the system auto-generate
+          
+          Do NOT invent other aw_* formats — downstream steps will reject them with validation errors matching against /^aw_[A-Za-z0-9]{3,8}$/i.
+          
+          Discover available tools from the safeoutputs MCP server.
+          
+          **Critical**: Tool calls write structured data that downstream jobs process. Without tool calls, follow-up actions will be skipped.
+          
+          **Note**: If you made no other safe output tool calls during this workflow execution, call the "noop" tool to provide a status message indicating completion or that no actions were needed.
+          </instructions>
+          </safe-outputs>
+          <github-context>
+          The following GitHub context information is available for this workflow:
+          {{#if __GH_AW_GITHUB_ACTOR__ }}
+          - **actor**: __GH_AW_GITHUB_ACTOR__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_REPOSITORY__ }}
+          - **repository**: __GH_AW_GITHUB_REPOSITORY__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_WORKSPACE__ }}
+          - **workspace**: __GH_AW_GITHUB_WORKSPACE__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_EVENT_ISSUE_NUMBER__ }}
+          - **issue-number**: #__GH_AW_GITHUB_EVENT_ISSUE_NUMBER__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__ }}
+          - **discussion-number**: #__GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__ }}
+          - **pull-request-number**: #__GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_EVENT_COMMENT_ID__ }}
+          - **comment-id**: __GH_AW_GITHUB_EVENT_COMMENT_ID__
+          {{/if}}
+          {{#if __GH_AW_GITHUB_RUN_ID__ }}
+          - **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__
+          {{/if}}
+          </github-context>
+          
+          GH_AW_PROMPT_EOF
+          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
+          </system>
+          GH_AW_PROMPT_EOF
+          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
+          {{#runtime-import .github/workflows/shared/mood.md}}
+          GH_AW_PROMPT_EOF
+          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
+          {{#runtime-import .github/workflows/release.md}}
+          GH_AW_PROMPT_EOF
+      - name: Substitute placeholders
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+          GH_AW_GITHUB_ACTOR: ${{ github.actor }}
+          GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
+          GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
+          GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
+          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
+        with:
+          script: |
+            const substitutePlaceholders = require('/opt/gh-aw/actions/substitute_placeholders.cjs');
+            
+            // Call the substitution function
+            return await substitutePlaceholders({
+              file: process.env.GH_AW_PROMPT,
+              substitutions: {
+                GH_AW_GITHUB_ACTOR: process.env.GH_AW_GITHUB_ACTOR,
+                GH_AW_GITHUB_EVENT_COMMENT_ID: process.env.GH_AW_GITHUB_EVENT_COMMENT_ID,
+                GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: process.env.GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER,
+                GH_AW_GITHUB_EVENT_ISSUE_NUMBER: process.env.GH_AW_GITHUB_EVENT_ISSUE_NUMBER,
+                GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: process.env.GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER,
+                GH_AW_GITHUB_REPOSITORY: process.env.GH_AW_GITHUB_REPOSITORY,
+                GH_AW_GITHUB_RUN_ID: process.env.GH_AW_GITHUB_RUN_ID,
+                GH_AW_GITHUB_WORKSPACE: process.env.GH_AW_GITHUB_WORKSPACE,
+                GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: process.env.GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID
+              }
+            });
+      - name: Interpolate variables and render templates
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
+        with:
+          script: |
+            const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
+            setupGlobals(core, github, context, exec, io);
+            const { main } = require('/opt/gh-aw/actions/interpolate_prompt.cjs');
+            await main();
+      - name: Validate prompt placeholders
+        env:
+          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+        run: bash /opt/gh-aw/actions/validate_prompt_placeholders.sh
+      - name: Print prompt
+        env:
+          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+        run: bash /opt/gh-aw/actions/print_prompt_summary.sh
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.release.outputs.release_id }}
+          RELEASE_TAG: ${{ needs.config.outputs.release_tag }}
+        name: Setup environment and fetch release data
+        run: "set -e\nmkdir -p /tmp/gh-aw/release-data\n\n# Use the release ID and tag from the release job\necho \"Release ID from release job: $RELEASE_ID\"\necho \"Release tag from release job: $RELEASE_TAG\"\n\necho \"Processing release: $RELEASE_TAG\"\necho \"RELEASE_TAG=$RELEASE_TAG\" >> \"$GITHUB_ENV\"\n\n# Get the current release information\n# Use release ID to fetch release data\ngh api \"/repos/${{ github.repository }}/releases/$RELEASE_ID\" > /tmp/gh-aw/release-data/current_release.json\necho \"✓ Fetched current release information\"\n\n# Get the previous release to determine the range\nPREV_RELEASE_TAG=$(gh release list --limit 2 --json tagName --jq '.[1].tagName // empty')\n\nif [ -z \"$PREV_RELEASE_TAG\" ]; then\n  echo \"No previous release found. This appears to be the first release.\"\n  echo \"PREV_RELEASE_TAG=\" >> \"$GITHUB_ENV\"\n  touch /tmp/gh-aw/release-data/pull_requests.json\n  echo \"[]\" > /tmp/gh-aw/release-data/pull_requests.json\nelse\n  echo \"Previous release: $PREV_RELEASE_TAG\"\n  echo \"PREV_RELEASE_TAG=$PREV_RELEASE_TAG\" >> \"$GITHUB_ENV\"\n  \n  # Get commits between releases\n  echo \"Fetching commits between $PREV_RELEASE_TAG and $RELEASE_TAG...\"\n  git fetch --unshallow 2>/dev/null || git fetch --depth=1000\n  \n  # Get all merged PRs between the two releases\n  echo \"Fetching pull requests merged between releases...\"\n  PREV_PUBLISHED_AT=$(gh release view \"$PREV_RELEASE_TAG\" --json publishedAt --jq .publishedAt)\n  CURR_PUBLISHED_AT=$(gh release view \"$RELEASE_TAG\" --json publishedAt --jq .publishedAt)\n  gh pr list \\\n    --state merged \\\n    --limit 1000 \\\n    --json number,title,author,labels,mergedAt,url,body \\\n    --jq \"[.[] | select(.mergedAt >= \\\"$PREV_PUBLISHED_AT\\\" and .mergedAt <= \\\"$CURR_PUBLISHED_AT\\\")]\" \\\n    > /tmp/gh-aw/release-data/pull_requests.json\n  \n  PR_COUNT=$(jq length \"/tmp/gh-aw/release-data/pull_requests.json\")\n  echo \"✓ Fetched $PR_COUNT pull requests\"\nfi\n\n# Get the CHANGELOG.md content around this version\nif [ -f \"CHANGELOG.md\" ]; then\n  cp CHANGELOG.md /tmp/gh-aw/release-data/CHANGELOG.md\n  echo \"✓ Copied CHANGELOG.md for reference\"\nfi\n\n# List documentation files for linking\nfind docs -type f -name \"*.md\" 2>/dev/null > /tmp/gh-aw/release-data/docs_files.txt || echo \"No docs directory found\"\n\necho \"✓ Setup complete. Data available in /tmp/gh-aw/release-data/\"\n"
+
+      - name: Configure Git credentials
+        env:
+          REPO_NAME: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          # Re-authenticate git with GitHub token
+          SERVER_URL_STRIPPED="${SERVER_URL#https://}"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@${SERVER_URL_STRIPPED}/${REPO_NAME}.git"
+          echo "Git configured with standard GitHub Actions identity"
+      - name: Checkout PR branch
+        id: checkout-pr
+        if: |
+          github.event.pull_request
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+        with:
+          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
+            setupGlobals(core, github, context, exec, io);
+            const { main } = require('/opt/gh-aw/actions/checkout_pr_branch.cjs');
+            await main();
       - name: Validate COPILOT_GITHUB_TOKEN secret
         id: validate-secret
         run: /opt/gh-aw/actions/validate_multi_secret.sh COPILOT_GITHUB_TOKEN 'GitHub Copilot CLI' https://github.github.com/gh-aw/reference/engines/#github-copilot-default
@@ -497,146 +637,6 @@ jobs:
           script: |
             const { generateWorkflowOverview } = require('/opt/gh-aw/actions/generate_workflow_overview.cjs');
             await generateWorkflowOverview(core);
-      - name: Create prompt with built-in context
-        env:
-          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_SAFE_OUTPUTS: ${{ env.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_GITHUB_ACTOR: ${{ github.actor }}
-          GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
-          GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
-          GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
-          GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
-          GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
-          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
-        run: |
-          bash /opt/gh-aw/actions/create_prompt_first.sh
-          cat << 'GH_AW_PROMPT_EOF' > "$GH_AW_PROMPT"
-          <system>
-          GH_AW_PROMPT_EOF
-          cat "/opt/gh-aw/prompts/xpia.md" >> "$GH_AW_PROMPT"
-          cat "/opt/gh-aw/prompts/temp_folder_prompt.md" >> "$GH_AW_PROMPT"
-          cat "/opt/gh-aw/prompts/markdown.md" >> "$GH_AW_PROMPT"
-          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          <safe-outputs>
-          <description>GitHub API Access Instructions</description>
-          <important>
-          The gh CLI is NOT authenticated. Do NOT use gh commands for GitHub operations.
-          </important>
-          <instructions>
-          To create or modify GitHub resources (issues, discussions, pull requests, etc.), you MUST call the appropriate safe output tool. Simply writing content will NOT work - the workflow requires actual tool calls.
-          
-          Temporary IDs: Some safe output tools support a temporary ID field (usually named temporary_id) so you can reference newly-created items elsewhere in the SAME agent output (for example, using #aw_abc1 in a later body). 
-          
-          **IMPORTANT - temporary_id format rules:**
-          - If you DON'T need to reference the item later, OMIT the temporary_id field entirely (it will be auto-generated if needed)
-          - If you DO need cross-references/chaining, you MUST match this EXACT validation regex: /^aw_[A-Za-z0-9]{3,8}$/i
-          - Format: aw_ prefix followed by 3 to 8 alphanumeric characters (A-Z, a-z, 0-9, case-insensitive)
-          - Valid alphanumeric characters: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
-          - INVALID examples: aw_ab (too short), aw_123456789 (too long), aw_test-id (contains hyphen), aw_id_123 (contains underscore)
-          - VALID examples: aw_abc, aw_abc1, aw_Test123, aw_A1B2C3D4, aw_12345678
-          - To generate valid IDs: use 3-8 random alphanumeric characters or omit the field to let the system auto-generate
-          
-          Do NOT invent other aw_* formats — downstream steps will reject them with validation errors matching against /^aw_[A-Za-z0-9]{3,8}$/i.
-          
-          Discover available tools from the safeoutputs MCP server.
-          
-          **Critical**: Tool calls write structured data that downstream jobs process. Without tool calls, follow-up actions will be skipped.
-          
-          **Note**: If you made no other safe output tool calls during this workflow execution, call the "noop" tool to provide a status message indicating completion or that no actions were needed.
-          </instructions>
-          </safe-outputs>
-          <github-context>
-          The following GitHub context information is available for this workflow:
-          {{#if __GH_AW_GITHUB_ACTOR__ }}
-          - **actor**: __GH_AW_GITHUB_ACTOR__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_REPOSITORY__ }}
-          - **repository**: __GH_AW_GITHUB_REPOSITORY__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_WORKSPACE__ }}
-          - **workspace**: __GH_AW_GITHUB_WORKSPACE__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_ISSUE_NUMBER__ }}
-          - **issue-number**: #__GH_AW_GITHUB_EVENT_ISSUE_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__ }}
-          - **discussion-number**: #__GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__ }}
-          - **pull-request-number**: #__GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_EVENT_COMMENT_ID__ }}
-          - **comment-id**: __GH_AW_GITHUB_EVENT_COMMENT_ID__
-          {{/if}}
-          {{#if __GH_AW_GITHUB_RUN_ID__ }}
-          - **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__
-          {{/if}}
-          </github-context>
-          
-          GH_AW_PROMPT_EOF
-          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          </system>
-          GH_AW_PROMPT_EOF
-          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
-          GH_AW_PROMPT_EOF
-          cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/release.md}}
-          GH_AW_PROMPT_EOF
-      - name: Substitute placeholders
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_GITHUB_ACTOR: ${{ github.actor }}
-          GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
-          GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
-          GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
-          GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
-          GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
-          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
-        with:
-          script: |
-            const substitutePlaceholders = require('/opt/gh-aw/actions/substitute_placeholders.cjs');
-            
-            // Call the substitution function
-            return await substitutePlaceholders({
-              file: process.env.GH_AW_PROMPT,
-              substitutions: {
-                GH_AW_GITHUB_ACTOR: process.env.GH_AW_GITHUB_ACTOR,
-                GH_AW_GITHUB_EVENT_COMMENT_ID: process.env.GH_AW_GITHUB_EVENT_COMMENT_ID,
-                GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: process.env.GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER,
-                GH_AW_GITHUB_EVENT_ISSUE_NUMBER: process.env.GH_AW_GITHUB_EVENT_ISSUE_NUMBER,
-                GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: process.env.GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER,
-                GH_AW_GITHUB_REPOSITORY: process.env.GH_AW_GITHUB_REPOSITORY,
-                GH_AW_GITHUB_RUN_ID: process.env.GH_AW_GITHUB_RUN_ID,
-                GH_AW_GITHUB_WORKSPACE: process.env.GH_AW_GITHUB_WORKSPACE,
-                GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: process.env.GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID
-              }
-            });
-      - name: Interpolate variables and render templates
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
-          GH_AW_NEEDS_RELEASE_OUTPUTS_RELEASE_ID: ${{ needs.release.outputs.release_id }}
-        with:
-          script: |
-            const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
-            setupGlobals(core, github, context, exec, io);
-            const { main } = require('/opt/gh-aw/actions/interpolate_prompt.cjs');
-            await main();
-      - name: Validate prompt placeholders
-        env:
-          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-        run: bash /opt/gh-aw/actions/validate_prompt_placeholders.sh
-      - name: Print prompt
-        env:
-          GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-        run: bash /opt/gh-aw/actions/print_prompt_summary.sh
       - name: Clean git credentials
         run: bash /opt/gh-aw/actions/clean_git_credentials.sh
       - name: Execute GitHub Copilot CLI
