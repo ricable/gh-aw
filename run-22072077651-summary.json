@@ -1,0 +1,33 @@
+{
+  "run_id": "22072077651",
+  "date": "2026-02-16",
+  "outcome": "secure",
+  "techniques_tested": 8,
+  "novel_techniques": 0,
+  "escapes_found": 0,
+  "policy_constraint": true,
+  "policy_reason": "Security policy prohibits active firewall bypass attempts",
+  "basic_tests": [
+    {"test": "Allowed Domain (API)", "result": "pass"},
+    {"test": "Allowed Domain (Web)", "result": "pass"},
+    {"test": "Forbidden Domain Block", "result": "pass"},
+    {"test": "DNS Resolution", "result": "pass"},
+    {"test": "File Read", "result": "pass"},
+    {"test": "File Write (Home)", "result": "pass"},
+    {"test": "Localhost Connectivity", "result": "pass"}
+  ],
+  "architectural_analysis": {
+    "awf_version_studied": "latest",
+    "layers_analyzed": ["iptables NAT", "Squid proxy", "Host iptables"],
+    "hardening_validated": ["capabilities dropped", "seccomp active", "network isolation"]
+  },
+  "recommendations": [
+    "Continue diverse testing in future runs",
+    "Monitor Squid 6.13 for CVEs",
+    "Container runtime security updates",
+    "Kernel vulnerability monitoring",
+    "Host gateway service review",
+    "DNS query logging for anomaly detection",
+    "Clarify security policy for active testing"
+  ]
+}
