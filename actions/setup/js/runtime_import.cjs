@@ -727,9 +727,10 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     filepath = filepath.substring(8); // Remove ".github/"
   } else if (filepath.startsWith(".github\\")) {
     filepath = filepath.substring(8); // Remove ".github\" (Windows)
-  } else {
-    // If path doesn't start with .github or .agents, prefix with workflows/
+  } else if (!filepath.startsWith("workflows/") && !filepath.startsWith("workflows\\")) {
+    // If path doesn't start with .github, .agents, or workflows, prefix with workflows/
     // This makes imports like "a.md" resolve to ".github/workflows/a.md"
+    // But paths already starting with "workflows/" are left as-is to avoid double-prefixing
     filepath = path.join("workflows", filepath);
   }
 

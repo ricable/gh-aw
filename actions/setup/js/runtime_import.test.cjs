@@ -434,6 +434,20 @@ describe("runtime_import", () => {
           const result = await processRuntimeImport("test-no-prefix.md", !1, tempDir);
           expect(result).toBe(content);
         }),
+        it("should handle workflows/ prefix without double-prefixing", async () => {
+          const content = "Test with workflows/ prefix";
+          fs.writeFileSync(path.join(workflowsDir, "test-workflows-prefix.md"), content);
+          const result = await processRuntimeImport("workflows/test-workflows-prefix.md", !1, tempDir);
+          expect(result).toBe(content);
+        }),
+        it("should handle workflows/ prefix with subdirectories", async () => {
+          const subdir = path.join(workflowsDir, "shared");
+          fs.mkdirSync(subdir, { recursive: true });
+          const content = "Test workflows/ with subdirectory";
+          fs.writeFileSync(path.join(subdir, "doc.md"), content);
+          const result = await processRuntimeImport("workflows/shared/doc.md", !1, tempDir);
+          expect(result).toBe(content);
+        }),
         it("should support .agents/ prefix (top-level folder)", async () => {
           // .agents is a top-level folder at workspace root, not inside .github
           const agentsDir = path.join(tempDir, ".agents");
