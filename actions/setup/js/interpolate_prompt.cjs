@@ -9,6 +9,7 @@ const fs = require("fs");
 const { isTruthy } = require("./is_truthy.cjs");
 const { processRuntimeImports } = require("./runtime_import.cjs");
 const { getErrorMessage } = require("./error_helpers.cjs");
+const { validateAndNormalizePath, validateDirectory } = require("./path_helpers.cjs");
 
 /**
  * Interpolates variables in the prompt content
@@ -144,7 +145,11 @@ async function main() {
       core.setFailed("GH_AW_PROMPT environment variable is not set");
       return;
     }
-    core.info(`[main] Prompt path: ${promptPath}`);
+    core.info(`[main] GH_AW_PROMPT (raw): ${promptPath}`);
+    
+    // Validate and normalize the prompt file path for security
+    const validatedPromptPath = validateAndNormalizePath(promptPath, "prompt file path");
+    core.info(`[main] Validated prompt path: ${validatedPromptPath}`);
 
     // Get the workspace directory for runtime imports
     const workspaceDir = process.env.GITHUB_WORKSPACE;
@@ -152,11 +157,15 @@ async function main() {
       core.setFailed("GITHUB_WORKSPACE environment variable is not set");
       return;
     }
-    core.info(`[main] Workspace directory: ${workspaceDir}`);
+    core.info(`[main] GITHUB_WORKSPACE (raw): ${workspaceDir}`);
+    
+    // Validate and normalize the workspace directory for security
+    const validatedWorkspaceDir = validateDirectory(workspaceDir, "workspace directory");
+    core.info(`[main] Validated workspace directory: ${validatedWorkspaceDir}`);
 
     // Read the prompt file
     core.info(`[main] Reading prompt file...`);
-    let content = fs.readFileSync(promptPath, "utf8");
+    let content = fs.readFileSync(validatedPromptPath, "utf8");
     const originalLength = content.length;
     core.info(`[main] Original content length: ${originalLength} characters`);
     core.info(`[main] First 200 characters: ${content.substring(0, 200).replace(/\n/g, "\\n")}`);
@@ -174,7 +183,7 @@ async function main() {
       });
 
       const beforeImports = content.length;
-      content = await processRuntimeImports(content, workspaceDir);
+      content = await processRuntimeImports(content, validatedWorkspaceDir);
       const afterImports = content.length;
 
       core.info(`Runtime imports processed successfully`);
@@ -236,11 +245,11 @@ async function main() {
     core.info("\n========================================");
     core.info("[main] STEP 4: Writing Output");
     core.info("========================================");
-    core.info(`Writing processed content back to: ${promptPath}`);
+    core.info(`Writing processed content back to: ${validatedPromptPath}`);
     core.info(`Final content length: ${content.length} characters`);
     core.info(`Total length change: ${originalLength} -> ${content.length} (${content.length > originalLength ? "+" : ""}${content.length - originalLength})`);
 
-    fs.writeFileSync(promptPath, content, "utf8");
+    fs.writeFileSync(validatedPromptPath, content, "utf8");
 
     core.info(`Last 200 characters: ${content.substring(Math.max(0, content.length - 200)).replace(/\n/g, "\\n")}`);
     core.info("========================================");

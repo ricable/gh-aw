@@ -12,6 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const { getErrorMessage } = require("./error_helpers.cjs");
+const { safeJoin } = require("./path_helpers.cjs");
 
 /**
  * List all files recursively in a directory
@@ -22,19 +23,25 @@ const { getErrorMessage } = require("./error_helpers.cjs");
 function listFilesRecursively(dirPath, relativeTo) {
   const files = [];
   try {
+    core.info(`[listFilesRecursively] Listing files in: ${dirPath}`);
     if (!fs.existsSync(dirPath)) {
+      core.info(`[listFilesRecursively] Directory does not exist: ${dirPath}`);
       return files;
     }
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    core.info(`[listFilesRecursively] Found ${entries.length} entries in ${dirPath}`);
     for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
+      const fullPath = safeJoin(dirPath, entry.name);
       if (entry.isDirectory()) {
+        core.info(`[listFilesRecursively] Recursing into directory: ${entry.name}`);
         files.push(...listFilesRecursively(fullPath, relativeTo));
       } else {
         const displayPath = relativeTo ? path.relative(relativeTo, fullPath) : fullPath;
+        core.info(`[listFilesRecursively] Found file: ${displayPath}`);
         files.push(displayPath);
       }
     }
+    core.info(`[listFilesRecursively] Total files found: ${files.length}`);
   } catch (error) {
     core.warning("Failed to list files in " + dirPath + ": " + getErrorMessage(error));
   }
@@ -50,10 +57,14 @@ function listFilesRecursively(dirPath, relativeTo) {
  * @returns {boolean} True if file exists (or not required), false otherwise
  */
 function checkFileExists(filePath, artifactDir, fileDescription, required) {
+  core.info(`[checkFileExists] Checking ${fileDescription}: ${filePath}`);
+  core.info(`[checkFileExists] Required: ${required}`);
+  
   if (fs.existsSync(filePath)) {
     try {
       const stats = fs.statSync(filePath);
       const fileInfo = filePath + " (" + stats.size + " bytes)";
+      core.info(`[checkFileExists] ✓ ${fileDescription} found: ${fileInfo}`);
       core.info(fileDescription + " found: " + fileInfo);
       return true;
     } catch (error) {
@@ -62,8 +73,10 @@ function checkFileExists(filePath, artifactDir, fileDescription, required) {
     }
   } else {
     if (required) {
-      core.error("❌ " + fileDescription + " not found at: " + filePath);
+      core.warning(`[checkFileExists] ❌ ${fileDescription} not found at: ${filePath}`);
+      core.warning("❌ " + fileDescription + " not found at: " + filePath);
       // List all files in artifact directory for debugging
+      core.info(`[checkFileExists] Listing artifact directory for debugging: ${artifactDir}`);
       core.info("📁 Listing all files in artifact directory: " + artifactDir);
       const files = listFilesRecursively(artifactDir, artifactDir);
       if (files.length === 0) {
@@ -75,6 +88,7 @@ function checkFileExists(filePath, artifactDir, fileDescription, required) {
       core.setFailed("❌ " + fileDescription + " not found at: " + filePath);
       return false;
     } else {
+      core.info(`[checkFileExists] No ${fileDescription.toLowerCase()} found at: ${filePath} (optional)`);
       core.info("No " + fileDescription.toLowerCase() + " found at: " + filePath);
       return true;
     }

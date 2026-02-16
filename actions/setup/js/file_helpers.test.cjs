@@ -117,7 +117,7 @@ describe("checkFileExists", () => {
 
     const result = checkFileExists(filePath, tempDir, "Test file", true);
     expect(result).toBe(false);
-    expect(mockCore.errorCalls.some(msg => msg.includes("Test file not found"))).toBe(true);
+    expect(mockCore.warningCalls.some(msg => msg.includes("Test file not found"))).toBe(true);
     expect(mockCore.setFailedCalls).toHaveLength(1);
   });
 

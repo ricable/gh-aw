@@ -2,6 +2,11 @@ const fs = require("fs"),
   os = require("os"),
   path = require("path"),
   substitutePlaceholders = require("./substitute_placeholders.cjs");
+
+// Mock the global core object
+const core = { info: vi.fn(), warning: vi.fn(), setFailed: vi.fn() };
+global.core = core;
+
 describe("substitutePlaceholders", () => {
   let tempDir, testFile;
   (beforeEach(() => {

@@ -706,38 +706,55 @@ function generatePlaceholderName(expr) {
  * @throws {Error} - If file/URL is not found and import is not optional, or if GitHub Actions macros are detected
  */
 async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, startLine, endLine) {
+  core.info(`[processRuntimeImport] Processing import: ${filepathOrUrl}`);
+  core.info(`[processRuntimeImport] Optional: ${optional}, Workspace: ${workspaceDir}`);
+  if (startLine !== undefined || endLine !== undefined) {
+    core.info(`[processRuntimeImport] Line range: ${startLine || 1}-${endLine || "end"}`);
+  }
+  
   // Check if this is a URL
   if (/^https?:\/\//i.test(filepathOrUrl)) {
+    core.info(`[processRuntimeImport] Detected URL import: ${filepathOrUrl}`);
     return await processUrlImport(filepathOrUrl, optional, startLine, endLine);
   }
 
   // Otherwise, process as a file
+  core.info(`[processRuntimeImport] Processing as file import`);
   let filepath = filepathOrUrl;
   let isAgentsPath = false;
 
   // Check if this is a .agents/ path (top-level folder for skills)
   if (filepath.startsWith(".agents/")) {
     isAgentsPath = true;
+    core.info(`[processRuntimeImport] Detected .agents/ path (Unix-style)`);
     // Keep .agents/ as is - it's a top-level folder at workspace root
   } else if (filepath.startsWith(".agents\\")) {
     isAgentsPath = true;
+    core.info(`[processRuntimeImport] Detected .agents\\ path (Windows-style)`);
     // Keep .agents\ as is - it's a top-level folder at workspace root (Windows)
   } else if (filepath.startsWith(".github/")) {
     // Trim .github/ prefix if provided (support both .github/file and file)
+    core.info(`[processRuntimeImport] Detected .github/ prefix (Unix-style), trimming`);
     filepath = filepath.substring(8); // Remove ".github/"
   } else if (filepath.startsWith(".github\\")) {
+    core.info(`[processRuntimeImport] Detected .github\\ prefix (Windows-style), trimming`);
     filepath = filepath.substring(8); // Remove ".github\" (Windows)
   } else {
     // If path doesn't start with .github or .agents, prefix with workflows/
     // This makes imports like "a.md" resolve to ".github/workflows/a.md"
+    core.info(`[processRuntimeImport] No special prefix detected, adding workflows/ prefix`);
     filepath = path.join("workflows", filepath);
   }
+  
+  core.info(`[processRuntimeImport] Processed filepath: ${filepath}`);
 
   // Remove leading ./ or ../ if present (only for non-agents paths)
   if (!isAgentsPath) {
     if (filepath.startsWith("./")) {
+      core.info(`[processRuntimeImport] Removing ./ prefix`);
       filepath = filepath.substring(2);
     } else if (filepath.startsWith(".\\")) {
+      core.info(`[processRuntimeImport] Removing .\\ prefix`);
       filepath = filepath.substring(2);
     }
   }
@@ -747,47 +764,78 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   let absolutePath, normalizedPath, baseFolder, normalizedBaseFolder;
 
   if (isAgentsPath) {
+    core.info(`[processRuntimeImport] Resolving .agents/ path relative to workspace root`);
     // .agents/ paths resolve to top-level .agents folder at workspace root
     baseFolder = workspaceDir;
     absolutePath = path.resolve(workspaceDir, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(baseFolder);
+    
+    core.info(`[processRuntimeImport] Base folder: ${normalizedBaseFolder}`);
+    core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
+    core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
 
     // Security check: ensure the resolved path is within the workspace
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
+    core.info(`[processRuntimeImport] Relative path from base: ${relativePath}`);
+    
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      core.warning(`[processRuntimeImport] Security violation: Path escapes workspace`);
+      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
       throw new Error(`Security: Path ${filepathOrUrl} must be within workspace (resolves to: ${relativePath})`);
     }
     // Additional check: ensure path stays within .agents folder
     if (!relativePath.startsWith(".agents" + path.sep) && relativePath !== ".agents") {
+      core.warning(`[processRuntimeImport] Security violation: Path escapes .agents folder`);
+      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      core.warning(`[processRuntimeImport]   Relative path: ${relativePath}`);
       throw new Error(`Security: Path ${filepathOrUrl} must be within .agents folder`);
     }
+    core.info(`[processRuntimeImport] ✓ Security check passed for .agents/ path`);
   } else {
+    core.info(`[processRuntimeImport] Resolving regular path relative to .github folder`);
     // Regular paths resolve within .github folder
     const githubFolder = path.join(workspaceDir, ".github");
     baseFolder = githubFolder;
     absolutePath = path.resolve(githubFolder, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(githubFolder);
+    
+    core.info(`[processRuntimeImport] Base folder (.github): ${normalizedBaseFolder}`);
+    core.info(`[processRuntimeImport] Absolute path: ${absolutePath}`);
+    core.info(`[processRuntimeImport] Normalized path: ${normalizedPath}`);
 
     // Security check: ensure the resolved path is within the .github folder
     const relativePath = path.relative(normalizedBaseFolder, normalizedPath);
+    core.info(`[processRuntimeImport] Relative path from .github: ${relativePath}`);
+    
     if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      core.warning(`[processRuntimeImport] Security violation: Path escapes .github folder`);
+      core.warning(`[processRuntimeImport]   Original: ${filepathOrUrl}`);
+      core.warning(`[processRuntimeImport]   Resolves to: ${relativePath}`);
       throw new Error(`Security: Path ${filepathOrUrl} must be within .github folder (resolves to: ${relativePath})`);
     }
+    core.info(`[processRuntimeImport] ✓ Security check passed for .github path`);
   }
 
   // Check if file exists
+  core.info(`[processRuntimeImport] Checking if file exists: ${normalizedPath}`);
   if (!fs.existsSync(normalizedPath)) {
     if (optional) {
+      core.warning(`[processRuntimeImport] Optional runtime import file not found: ${filepath}`);
       core.warning(`Optional runtime import file not found: ${filepath}`);
       return "";
     }
+    core.warning(`[processRuntimeImport] Runtime import file not found: ${filepath}`);
     throw new Error(`Runtime import file not found: ${filepath}`);
   }
+  
+  core.info(`[processRuntimeImport] ✓ File exists, reading content...`);
 
   // Read the file
   let content = fs.readFileSync(normalizedPath, "utf8");
+  core.info(`[processRuntimeImport] File size: ${content.length} characters`);
 
   // If line range is specified, extract those lines first (before other processing)
   if (startLine !== undefined || endLine !== undefined) {

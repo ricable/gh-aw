@@ -1,6 +1,10 @@
 // @ts-check
 const { testTemplateSubstitution, testValueState } = require("./fuzz_template_substitution_harness.cjs");
 
+// Mock the global core object
+const core = { info: vi.fn(), warning: vi.fn(), setFailed: vi.fn() };
+global.core = core;
+
 describe("fuzz_template_substitution_harness", () => {
   describe("testValueState", () => {
     it("should handle undefined values correctly", async () => {
