@@ -448,6 +448,60 @@ describe("runtime_import", () => {
           fs.writeFileSync(path.join(tempDir, "outside.md"), "Outside content");
           // Use ../../ to escape .github/workflows and go up to the temp directory
           await expect(processRuntimeImport("../../outside.md", !1, tempDir)).rejects.toThrow("Security: Path");
+        }),
+        it("should check .github/.actions/ first before falling back to workflows/", async () => {
+          // Create .actions directory
+          const actionsDir = path.join(githubDir, ".actions");
+          fs.mkdirSync(actionsDir, { recursive: true });
+
+          // Create file in .actions
+          const actionsContent = "Content from .actions";
+          fs.writeFileSync(path.join(actionsDir, "shared-doc.md"), actionsContent);
+
+          // Should find it in .actions/ first
+          const result = await processRuntimeImport("shared-doc.md", !1, tempDir);
+          expect(result).toBe(actionsContent);
+        }),
+        it("should fall back to workflows/ when file not in .actions/", async () => {
+          // Create .actions directory but without the file
+          const actionsDir = path.join(githubDir, ".actions");
+          fs.mkdirSync(actionsDir, { recursive: true });
+
+          // Create file only in workflows
+          const workflowsContent = "Content from workflows";
+          fs.writeFileSync(path.join(workflowsDir, "workflow-doc.md"), workflowsContent);
+
+          // Should fall back to workflows/ when not found in .actions/
+          const result = await processRuntimeImport("workflow-doc.md", !1, tempDir);
+          expect(result).toBe(workflowsContent);
+        }),
+        it("should prefer .actions/ over workflows/ when file exists in both", async () => {
+          // Create .actions directory
+          const actionsDir = path.join(githubDir, ".actions");
+          fs.mkdirSync(actionsDir, { recursive: true });
+
+          // Create file in both locations with different content
+          const actionsContent = "Content from .actions";
+          const workflowsContent = "Content from workflows";
+          fs.writeFileSync(path.join(actionsDir, "duplicate.md"), actionsContent);
+          fs.writeFileSync(path.join(workflowsDir, "duplicate.md"), workflowsContent);
+
+          // Should prefer .actions/ version
+          const result = await processRuntimeImport("duplicate.md", !1, tempDir);
+          expect(result).toBe(actionsContent);
+        }),
+        it("should support explicit .github/.actions/ prefix", async () => {
+          // Create .actions directory
+          const actionsDir = path.join(githubDir, ".actions");
+          fs.mkdirSync(actionsDir, { recursive: true });
+
+          // Create file in .actions
+          const actionsContent = "Content from .actions with explicit prefix";
+          fs.writeFileSync(path.join(actionsDir, "explicit.md"), actionsContent);
+
+          // Should work with explicit .github/.actions/ prefix
+          const result = await processRuntimeImport(".github/.actions/explicit.md", !1, tempDir);
+          expect(result).toBe(actionsContent);
         }));
     }),
     describe("processRuntimeImports", () => {

@@ -714,6 +714,7 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   // Otherwise, process as a file
   let filepath = filepathOrUrl;
   let isAgentsPath = false;
+  let needsPrefixResolution = false;
 
   // Check if this is a .agents/ path (top-level folder for skills)
   if (filepath.startsWith(".agents/")) {
@@ -728,13 +729,13 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
   } else if (filepath.startsWith(".github\\")) {
     filepath = filepath.substring(8); // Remove ".github\" (Windows)
   } else {
-    // If path doesn't start with .github or .agents, prefix with workflows/
-    // This makes imports like "a.md" resolve to ".github/workflows/a.md"
-    filepath = path.join("workflows", filepath);
+    // If path doesn't start with .github or .agents, mark for prefix resolution
+    // We'll check .actions/ first, then fall back to workflows/
+    needsPrefixResolution = true;
   }
 
   // Remove leading ./ or ../ if present (only for non-agents paths)
-  if (!isAgentsPath) {
+  if (!isAgentsPath && !needsPrefixResolution) {
     if (filepath.startsWith("./")) {
       filepath = filepath.substring(2);
     } else if (filepath.startsWith(".\\")) {
@@ -766,6 +767,23 @@ async function processRuntimeImport(filepathOrUrl, optional, workspaceDir, start
     // Regular paths resolve within .github folder
     const githubFolder = path.join(workspaceDir, ".github");
     baseFolder = githubFolder;
+
+    // If path needs prefix resolution, try .actions/ first, then workflows/
+    if (needsPrefixResolution) {
+      // Try .actions/ first
+      const actionsPath = path.join(".actions", filepath);
+      const actionsAbsolutePath = path.resolve(githubFolder, actionsPath);
+      const normalizedActionsPath = path.normalize(actionsAbsolutePath);
+
+      // Check if file exists in .actions/
+      if (fs.existsSync(normalizedActionsPath)) {
+        filepath = actionsPath;
+      } else {
+        // Fall back to workflows/
+        filepath = path.join("workflows", filepath);
+      }
+    }
+
     absolutePath = path.resolve(githubFolder, filepath);
     normalizedPath = path.normalize(absolutePath);
     normalizedBaseFolder = path.normalize(githubFolder);
