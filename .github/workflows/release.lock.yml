@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# frontmatter-hash: cc2b8c6b51e275896e8102fe283fdb0e690e468cd8e5693425a35d14bb622645
+# frontmatter-hash: a5680719c82cf3379019cf9cb1d23a3af798c67d011aa864b5228c59faaaa8e7
 
 name: "Release"
 "on":
@@ -1188,12 +1188,10 @@ jobs:
       - name: Build Docker image (validation only)
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          build-args: |
-            BINARY=dist/linux-amd64
           cache-from: type=gha
           context: .
           load: false
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: false
       - name: Create GitHub release
         id: get_release
@@ -1273,17 +1271,15 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,format=long
             type=raw,value=latest,enable={{is_default_branch}}
-      - name: Build and push Docker image (amd64)
+      - name: Build and push Docker image (multi-platform)
         id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          build-args: |
-            BINARY=dist/linux-amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: .
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           provenance: mode=max
           push: true
           sbom: true

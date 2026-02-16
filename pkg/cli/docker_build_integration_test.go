@@ -40,7 +40,8 @@ func TestDockerfile_Exists(t *testing.T) {
 		"git",                    // Git package
 		"jq",                     // jq package
 		"bash",                   // Bash package
-		"ARG BINARY",             // Build argument for binary
+		"ARG TARGETOS",           // Build argument for target OS
+		"ARG TARGETARCH",         // Build argument for target architecture
 		"ENTRYPOINT [\"gh-aw\"]", // Entrypoint
 	}
 

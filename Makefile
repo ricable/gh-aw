@@ -270,11 +270,12 @@ docker-build: build-linux
 		echo "Error: Docker is not installed."; \
 		exit 1; \
 	fi
-	@# Build for linux/amd64 by default for local testing
-	docker build -t $(DOCKER_IMAGE):$(VERSION) \
-		--build-arg BINARY=$(BINARY_NAME)-linux-amd64 \
+	@# Build for linux/amd64 by default for local testing using buildx
+	docker buildx build --platform linux/amd64 \
+		-t $(DOCKER_IMAGE):$(VERSION) \
+		-t $(DOCKER_IMAGE):latest \
+		--load \
 		-f Dockerfile .
-	@docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
 	@echo "✓ Docker image built: $(DOCKER_IMAGE):$(VERSION)"
 	@echo "✓ Docker image tagged: $(DOCKER_IMAGE):latest"
 

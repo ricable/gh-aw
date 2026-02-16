@@ -192,11 +192,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: false
           load: false
-          build-args: |
-            BINARY=dist/linux-amd64
           cache-from: type=gha
 
       - name: Create GitHub release
@@ -287,17 +285,15 @@ jobs:
             type=sha,format=long
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image (amd64)
+      - name: Build and push Docker image (multi-platform)
         id: build
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            BINARY=dist/linux-amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           sbom: true

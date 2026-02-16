@@ -13,14 +13,17 @@ RUN apk add --no-cache \
     ca-certificates \
     github-cli
 
-# Accept build argument for binary name (defaults to linux-amd64)
-ARG BINARY=gh-aw-linux-amd64
+# Docker Buildx automatically provides these ARGs for multi-platform builds
+ARG TARGETOS
+ARG TARGETARCH
 
 # Create a directory for the binary
 WORKDIR /usr/local/bin
 
-# Copy the gh-aw binary from build context
-COPY ${BINARY} /usr/local/bin/gh-aw
+# Copy the appropriate binary based on target platform
+# TARGETOS=linux, TARGETARCH=amd64 -> dist/linux-amd64
+# TARGETOS=linux, TARGETARCH=arm64 -> dist/linux-arm64
+COPY dist/${TARGETOS}-${TARGETARCH} /usr/local/bin/gh-aw
 
 # Ensure the binary is executable
 RUN chmod +x /usr/local/bin/gh-aw
