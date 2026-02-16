@@ -12,13 +12,6 @@
 //   const server = require("./safe_outputs_mcp_server.cjs");
 //   server.startSafeOutputsServer();
 
-// Set up core shim for Node.js environment (when @actions/core is not available)
-// @ts-expect-error - Assigning to global properties that are declared as const
-if (typeof global.core === "undefined") {
-  // @ts-expect-error - Assigning to global properties that are declared as const
-  global.core = require("./core_shim.cjs");
-}
-
 const { createServer, registerTool, normalizeTool, start } = require("./mcp_server_core.cjs");
 const { createAppendFunction } = require("./safe_outputs_append.cjs");
 const { createHandlers } = require("./safe_outputs_handlers.cjs");

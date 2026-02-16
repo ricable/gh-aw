@@ -18,13 +18,6 @@
  *   startSafeInputsServer("/path/to/tools.json");
  */
 
-// Set up core shim for Node.js environment (when @actions/core is not available)
-// @ts-expect-error - Assigning to global properties that are declared as const
-if (typeof global.core === "undefined") {
-  // @ts-expect-error - Assigning to global properties that are declared as const
-  global.core = require("./core_shim.cjs");
-}
-
 const { createServer, registerTool, start } = require("./mcp_server_core.cjs");
 const { loadConfig } = require("./safe_inputs_config_loader.cjs");
 const { createToolConfig } = require("./safe_inputs_tool_factory.cjs");
