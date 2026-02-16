@@ -1773,11 +1773,20 @@ jobs:
       - name: Build Linux binary for Alpine
         run: make build-linux
 
+      - name: Prepare dist directory for Docker build
+        run: |
+          echo "Preparing dist directory structure..."
+          mkdir -p dist
+          cp gh-aw-linux-amd64 dist/linux-amd64
+          cp gh-aw-linux-arm64 dist/linux-arm64
+          echo "✅ dist directory prepared"
+
       - name: Build Alpine Docker image
         run: |
           echo "Building Alpine Docker image..."
-          docker build -t gh-aw-alpine:test \
-            --build-arg BINARY=gh-aw-linux-amd64 \
+          docker buildx build --platform linux/amd64 \
+            -t gh-aw-alpine:test \
+            --load \
             -f Dockerfile .
           echo "✅ Alpine Docker image built successfully"
 
