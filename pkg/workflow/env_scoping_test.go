@@ -279,10 +279,10 @@ func TestEnvVariableOrdering(t *testing.T) {
 		"on":     "workflow_dispatch",
 		"engine": "copilot",
 		"env": map[string]any{
-			"ZEBRA":   "last",
-			"ALPHA":   "first",
-			"MIDDLE":  "middle",
-			"BETA":    "second",
+			"ZEBRA":  "last",
+			"ALPHA":  "first",
+			"MIDDLE": "middle",
+			"BETA":   "second",
 		},
 	}
 

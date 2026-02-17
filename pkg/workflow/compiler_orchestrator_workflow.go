@@ -205,7 +205,7 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 	workflowData.Environment = c.extractTopLevelYAMLSection(frontmatter, "environment")
 	workflowData.Container = c.extractTopLevelYAMLSection(frontmatter, "container")
 	workflowData.Cache = c.extractTopLevelYAMLSection(frontmatter, "cache")
-	
+
 	return nil
 }
 
