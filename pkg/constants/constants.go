@@ -693,7 +693,7 @@ type EngineOption struct {
 	SecretName         string   // The name of the secret required for this engine (e.g., "COPILOT_GITHUB_TOKEN")
 	AlternativeSecrets []string // Alternative secret names that can also be used for this engine
 	EnvVarName         string   // Alternative environment variable name if different from SecretName (optional)
-	KeyURL             string   // URL where users can obtain their API key (empty for engines with special setup like Copilot)
+	KeyURL             string   // URL where users can obtain their API key/token (may be empty if not applicable)
 	WhenNeeded         string   // Human-readable description of when this secret is needed
 }
 
