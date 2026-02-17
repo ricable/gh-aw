@@ -142,10 +142,8 @@ func (c *Compiler) generateWorkflowBody(yaml *strings.Builder, data *WorkflowDat
 	yaml.WriteString(data.Concurrency + "\n\n")
 	yaml.WriteString(data.RunName + "\n\n")
 
-	// Add env section if present
-	if data.Env != "" {
-		yaml.WriteString(data.Env + "\n\n")
-	}
+	// Note: env variables from frontmatter are now applied at the agent job level, not globally
+	// See compiler_activation_jobs.go buildMainJob() for agent job env configuration
 
 	// Add cache comment if cache configuration was provided
 	if data.Cache != "" {

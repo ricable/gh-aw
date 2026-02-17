@@ -396,7 +396,8 @@ type WorkflowData struct {
 	Network               string // top-level network permissions configuration
 	Concurrency           string // workflow-level concurrency configuration
 	RunName               string
-	Env                   string
+	Env                   string            // YAML string representation (for backward compatibility, not rendered globally)
+	EnvMap                map[string]string // Environment variables as map (for agent job rendering)
 	If                    string
 	TimeoutMinutes        string
 	CustomSteps           string

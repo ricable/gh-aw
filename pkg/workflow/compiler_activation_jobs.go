@@ -894,6 +894,18 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 		env["GH_AW_WORKFLOW_ID_SANITIZED"] = sanitizedID
 	}
 
+	// Add frontmatter env variables to the agent job
+	// These are user-defined environment variables that should only be applied to the agent job
+	if len(data.EnvMap) > 0 {
+		compilerActivationJobsLog.Printf("Adding %d frontmatter env variables to agent job", len(data.EnvMap))
+		if env == nil {
+			env = make(map[string]string)
+		}
+		for key, value := range data.EnvMap {
+			env[key] = value
+		}
+	}
+
 	// Generate agent concurrency configuration
 	agentConcurrency := GenerateJobConcurrencyConfig(data)
 
