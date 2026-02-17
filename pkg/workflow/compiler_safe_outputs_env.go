@@ -48,7 +48,8 @@ func (c *Compiler) addAllSafeOutputConfigEnvVars(steps *[]string, data *Workflow
 	if data.SafeOutputs.AddLabels != nil {
 		cfg := data.SafeOutputs.AddLabels
 		// Add staged flag if needed (but not if target-repo is specified or we're in trial mode)
-		if !c.trialMode && data.SafeOutputs.Staged && !stagedFlagAdded && cfg.TargetRepoSlug == "" {
+		// Check both global staged flag and per-handler staged flag
+		if !c.trialMode && (data.SafeOutputs.Staged || cfg.Staged) && !stagedFlagAdded && cfg.TargetRepoSlug == "" {
 			*steps = append(*steps, "          GH_AW_SAFE_OUTPUTS_STAGED: \"true\"\n")
 			stagedFlagAdded = true
 		}
@@ -59,7 +60,8 @@ func (c *Compiler) addAllSafeOutputConfigEnvVars(steps *[]string, data *Workflow
 	if data.SafeOutputs.RemoveLabels != nil {
 		cfg := data.SafeOutputs.RemoveLabels
 		// Add staged flag if needed (but not if target-repo is specified or we're in trial mode)
-		if !c.trialMode && data.SafeOutputs.Staged && !stagedFlagAdded && cfg.TargetRepoSlug == "" {
+		// Check both global staged flag and per-handler staged flag
+		if !c.trialMode && (data.SafeOutputs.Staged || cfg.Staged) && !stagedFlagAdded && cfg.TargetRepoSlug == "" {
 			*steps = append(*steps, "          GH_AW_SAFE_OUTPUTS_STAGED: \"true\"\n")
 			stagedFlagAdded = true
 		}

@@ -120,6 +120,13 @@ func buildSafeOutputJobEnvVars(trialMode bool, trialLogicalRepoSlug string, stag
 // that all safe-output job builders need: metadata + staged/target repo handling
 // This reduces duplication in safe-output job builders
 func (c *Compiler) buildStandardSafeOutputEnvVars(data *WorkflowData, targetRepoSlug string) []string {
+	return c.buildStandardSafeOutputEnvVarsWithPerHandlerStaged(data, targetRepoSlug, false)
+}
+
+// buildStandardSafeOutputEnvVarsWithPerHandlerStaged builds the standard set of environment variables
+// with support for per-handler staged flag. The staged flag is set if either the global flag
+// or the per-handler flag is true.
+func (c *Compiler) buildStandardSafeOutputEnvVarsWithPerHandlerStaged(data *WorkflowData, targetRepoSlug string, perHandlerStaged bool) []string {
 	var customEnvVars []string
 
 	// Add workflow metadata (name, source, and tracker-id)
@@ -128,11 +135,15 @@ func (c *Compiler) buildStandardSafeOutputEnvVars(data *WorkflowData, targetRepo
 	// Add engine metadata (id, version, model) for XML comment marker
 	customEnvVars = append(customEnvVars, buildEngineMetadataEnvVars(data.EngineConfig)...)
 
+	// Check both global and per-handler staged flags (OR operation)
+	globalStaged := data.SafeOutputs.Staged
+	effectiveStaged := globalStaged || perHandlerStaged
+
 	// Add common safe output job environment variables (staged/target repo)
 	customEnvVars = append(customEnvVars, buildSafeOutputJobEnvVars(
 		c.trialMode,
 		c.trialLogicalRepoSlug,
-		data.SafeOutputs.Staged,
+		effectiveStaged,
 		targetRepoSlug,
 	)...)
 

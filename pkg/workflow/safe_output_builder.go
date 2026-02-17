@@ -301,7 +301,9 @@ func (c *Compiler) BuildListSafeOutputJob(data *WorkflowData, mainJobName string
 	customEnvVars := BuildListJobEnvVars(builderConfig.EnvPrefix, listJobConfig, maxCount)
 
 	// Add standard environment variables (metadata + staged/target repo)
-	customEnvVars = append(customEnvVars, c.buildStandardSafeOutputEnvVars(data, listJobConfig.TargetRepoSlug)...)
+	// Check both global and per-handler staged flags
+	perHandlerStaged := baseSafeOutputConfig.Staged
+	customEnvVars = append(customEnvVars, c.buildStandardSafeOutputEnvVarsWithPerHandlerStaged(data, listJobConfig.TargetRepoSlug, perHandlerStaged)...)
 
 	// Create outputs for the job
 	outputs := map[string]string{
