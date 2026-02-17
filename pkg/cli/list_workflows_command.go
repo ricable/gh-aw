@@ -38,12 +38,13 @@ Unlike 'status', this command does not check GitHub workflow state or time remai
 The optional pattern argument filters workflows by name (case-insensitive substring match).
 
 Examples:
-  ` + string(constants.CLIExtensionPrefix) + ` list                          # List all workflows in current repo
-  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw      # List workflows from github/gh-aw repo
-  ` + string(constants.CLIExtensionPrefix) + ` list ci-                       # List workflows with 'ci-' in name
-  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw ci-  # List workflows from github/gh-aw with 'ci-' in name
-  ` + string(constants.CLIExtensionPrefix) + ` list --json                    # Output in JSON format
-  ` + string(constants.CLIExtensionPrefix) + ` list --label automation        # List workflows with 'automation' label`,
+  ` + string(constants.CLIExtensionPrefix) + ` list                              # List all workflows in current repo
+  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw          # List workflows from github/gh-aw repo
+  ` + string(constants.CLIExtensionPrefix) + ` list --repo org/repo --path workflows  # List from custom path
+  ` + string(constants.CLIExtensionPrefix) + ` list ci-                           # List workflows with 'ci-' in name
+  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw ci-      # List workflows from github/gh-aw with 'ci-' in name
+  ` + string(constants.CLIExtensionPrefix) + ` list --json                        # Output in JSON format
+  ` + string(constants.CLIExtensionPrefix) + ` list --label automation            # List workflows with 'automation' label`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var pattern string
 			if len(args) > 0 {
@@ -51,16 +52,18 @@ Examples:
 			}
 
 			repo, _ := cmd.Flags().GetString("repo")
+			path, _ := cmd.Flags().GetString("path")
 			verbose, _ := cmd.Flags().GetBool("verbose")
 			jsonFlag, _ := cmd.Flags().GetBool("json")
 			labelFilter, _ := cmd.Flags().GetString("label")
-			return RunListWorkflows(repo, pattern, verbose, jsonFlag, labelFilter)
+			return RunListWorkflows(repo, path, pattern, verbose, jsonFlag, labelFilter)
 		},
 	}
 
 	addRepoFlag(cmd)
 	addJSONFlag(cmd)
 	cmd.Flags().String("label", "", "Filter workflows by label")
+	cmd.Flags().String("path", ".github/workflows", "Path to workflows directory in the repository")
 
 	// Register completions for list command
 	cmd.ValidArgsFunction = CompleteWorkflowNames
@@ -69,8 +72,8 @@ Examples:
 }
 
 // RunListWorkflows lists workflows without checking GitHub status
-func RunListWorkflows(repo, pattern string, verbose bool, jsonOutput bool, labelFilter string) error {
-	listWorkflowsLog.Printf("Listing workflows: repo=%s, pattern=%s, jsonOutput=%v, labelFilter=%s", repo, pattern, jsonOutput, labelFilter)
+func RunListWorkflows(repo, path, pattern string, verbose bool, jsonOutput bool, labelFilter string) error {
+	listWorkflowsLog.Printf("Listing workflows: repo=%s, path=%s, pattern=%s, jsonOutput=%v, labelFilter=%s", repo, path, pattern, jsonOutput, labelFilter)
 
 	var mdFiles []string
 	var err error
@@ -82,7 +85,7 @@ func RunListWorkflows(repo, pattern string, verbose bool, jsonOutput bool, label
 		if verbose && !jsonOutput {
 			fmt.Fprintf(os.Stderr, "Listing workflow files from %s\n", repo)
 		}
-		mdFiles, err = getRemoteWorkflowFiles(repo, verbose, jsonOutput)
+		mdFiles, err = getRemoteWorkflowFiles(repo, path, verbose, jsonOutput)
 	} else {
 		// List workflows from local repository
 		if verbose && !jsonOutput {
@@ -229,7 +232,7 @@ func RunListWorkflows(repo, pattern string, verbose bool, jsonOutput bool, label
 }
 
 // getRemoteWorkflowFiles fetches the list of workflow files from a remote repository
-func getRemoteWorkflowFiles(repoSpec string, verbose bool, jsonOutput bool) ([]string, error) {
+func getRemoteWorkflowFiles(repoSpec, workflowPath string, verbose bool, jsonOutput bool) ([]string, error) {
 	// Parse repo spec: owner/repo[@ref]
 	var owner, repo, ref string
 	parts := strings.SplitN(repoSpec, "@", 2)
@@ -249,11 +252,11 @@ func getRemoteWorkflowFiles(repoSpec string, verbose bool, jsonOutput bool) ([]s
 	repo = repoParts[1]
 
 	if verbose && !jsonOutput {
-		fmt.Fprintf(os.Stderr, "Fetching workflow files from %s/%s@%s\n", owner, repo, ref)
+		fmt.Fprintf(os.Stderr, "Fetching workflow files from %s/%s@%s (path: %s)\n", owner, repo, ref, workflowPath)
 	}
 
 	// Use the parser package to list workflow files
-	files, err := parser.ListWorkflowFiles(owner, repo, ref)
+	files, err := parser.ListWorkflowFiles(owner, repo, ref, workflowPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list workflow files from %s/%s: %w", owner, repo, err)
 	}

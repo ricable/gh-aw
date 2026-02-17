@@ -681,15 +681,15 @@ func downloadFileFromGitHubWithDepth(owner, repo, path, ref string, symlinkDepth
 }
 
 // ListWorkflowFiles lists workflow files from a remote GitHub repository
-// Returns a list of .md files in the .github/workflows directory (excluding subdirectories)
-func ListWorkflowFiles(owner, repo, ref string) ([]string, error) {
-	remoteLog.Printf("Listing workflow files for %s/%s@%s", owner, repo, ref)
+// Returns a list of .md files in the specified directory (excluding subdirectories)
+func ListWorkflowFiles(owner, repo, ref, workflowPath string) ([]string, error) {
+	remoteLog.Printf("Listing workflow files for %s/%s@%s (path: %s)", owner, repo, ref, workflowPath)
 
 	// Create REST client
 	client, err := api.DefaultRESTClient()
 	if err != nil {
 		remoteLog.Printf("Failed to create REST client, attempting git fallback: %v", err)
-		return listWorkflowFilesViaGit(owner, repo, ref)
+		return listWorkflowFilesViaGit(owner, repo, ref, workflowPath)
 	}
 
 	// Define response struct for GitHub contents API (array of file objects)
@@ -700,7 +700,7 @@ func ListWorkflowFiles(owner, repo, ref string) ([]string, error) {
 	}
 
 	// Fetch directory contents from GitHub API
-	endpoint := fmt.Sprintf("repos/%s/%s/contents/.github/workflows?ref=%s", owner, repo, ref)
+	endpoint := fmt.Sprintf("repos/%s/%s/contents/%s?ref=%s", owner, repo, workflowPath, ref)
 	err = client.Get(endpoint, &contents)
 	if err != nil {
 		errStr := err.Error()
@@ -709,7 +709,7 @@ func ListWorkflowFiles(owner, repo, ref string) ([]string, error) {
 		if gitutil.IsAuthError(errStr) {
 			remoteLog.Printf("GitHub API authentication failed, attempting git fallback for %s/%s@%s", owner, repo, ref)
 			// Try fallback using git commands for public repositories
-			files, gitErr := listWorkflowFilesViaGit(owner, repo, ref)
+			files, gitErr := listWorkflowFilesViaGit(owner, repo, ref, workflowPath)
 			if gitErr != nil {
 				// If git fallback also fails, return both errors
 				return nil, fmt.Errorf("failed to list workflow files via GitHub API (auth error) and git fallback: API error: %w, Git error: %v", err, gitErr)
@@ -717,7 +717,7 @@ func ListWorkflowFiles(owner, repo, ref string) ([]string, error) {
 			return files, nil
 		}
 
-		return nil, fmt.Errorf("failed to list workflow files from %s/%s@%s: %w", owner, repo, ref, err)
+		return nil, fmt.Errorf("failed to list workflow files from %s/%s@%s (path: %s): %w", owner, repo, ref, workflowPath, err)
 	}
 
 	// Filter to only .md files (not in subdirectories)
@@ -728,13 +728,13 @@ func ListWorkflowFiles(owner, repo, ref string) ([]string, error) {
 		}
 	}
 
-	remoteLog.Printf("Found %d workflow files in %s/%s@%s", len(workflowFiles), owner, repo, ref)
+	remoteLog.Printf("Found %d workflow files in %s/%s@%s (path: %s)", len(workflowFiles), owner, repo, ref, workflowPath)
 	return workflowFiles, nil
 }
 
 // listWorkflowFilesViaGit lists workflow files using git commands (fallback for auth errors)
-func listWorkflowFilesViaGit(owner, repo, ref string) ([]string, error) {
-	remoteLog.Printf("Attempting git fallback for listing workflow files: %s/%s@%s", owner, repo, ref)
+func listWorkflowFilesViaGit(owner, repo, ref, workflowPath string) ([]string, error) {
+	remoteLog.Printf("Attempting git fallback for listing workflow files: %s/%s@%s (path: %s)", owner, repo, ref, workflowPath)
 
 	githubHost := GetGitHubHostForRepo(owner, repo)
 	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
@@ -755,8 +755,8 @@ func listWorkflowFilesViaGit(owner, repo, ref string) ([]string, error) {
 		return nil, fmt.Errorf("failed to clone repository for %s/%s@%s: %w", owner, repo, ref, err)
 	}
 
-	// Use git ls-tree to list files in .github/workflows
-	lsTreeCmd := exec.Command("git", "-C", tmpDir, "ls-tree", "-r", "--name-only", "HEAD", ".github/workflows/")
+	// Use git ls-tree to list files in the specified workflows directory
+	lsTreeCmd := exec.Command("git", "-C", tmpDir, "ls-tree", "-r", "--name-only", "HEAD", workflowPath+"/")
 	lsTreeOutput, err := lsTreeCmd.CombinedOutput()
 	if err != nil {
 		remoteLog.Printf("Failed to list files: %s", string(lsTreeOutput))
@@ -771,16 +771,16 @@ func listWorkflowFilesViaGit(owner, repo, ref string) ([]string, error) {
 		if line == "" {
 			continue
 		}
-		// Only include .md files directly in .github/workflows (not in subdirectories)
+		// Only include .md files directly in the workflow path (not in subdirectories)
 		if strings.HasSuffix(strings.ToLower(line), ".md") {
-			// Check if it's a top-level file (no additional slashes after .github/workflows/)
-			afterWorkflows := strings.TrimPrefix(line, ".github/workflows/")
-			if !strings.Contains(afterWorkflows, "/") {
+			// Check if it's a top-level file (no additional slashes after workflowPath/)
+			afterWorkflowPath := strings.TrimPrefix(line, workflowPath+"/")
+			if !strings.Contains(afterWorkflowPath, "/") {
 				workflowFiles = append(workflowFiles, line)
 			}
 		}
 	}
 
-	remoteLog.Printf("Found %d workflow files via git for %s/%s@%s", len(workflowFiles), owner, repo, ref)
+	remoteLog.Printf("Found %d workflow files via git for %s/%s@%s (path: %s)", len(workflowFiles), owner, repo, ref, workflowPath)
 	return workflowFiles, nil
 }

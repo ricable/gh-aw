@@ -2148,9 +2148,9 @@ jobs:
           echo "## Comparing 'gh aw list' output with git clone results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # List workflows using gh aw list command
-          echo "Running: ./gh-aw list --repo githubnext/agentics --json"
-          ./gh-aw list --repo githubnext/agentics --json > /tmp/gh-aw-list.json
+          # List workflows using gh aw list command with custom path
+          echo "Running: ./gh-aw list --repo githubnext/agentics --path workflows --json"
+          ./gh-aw list --repo githubnext/agentics --path workflows --json > /tmp/gh-aw-list.json
           
           # Extract workflow names from JSON output
           echo "Extracting workflow names from gh aw list output..."
@@ -2161,7 +2161,7 @@ jobs:
           sort /tmp/workflow-list.txt > /tmp/git-workflows-sorted.txt
           
           # Display both lists
-          echo "### Workflows from 'gh aw list --repo githubnext/agentics'" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflows from 'gh aw list --repo githubnext/agentics --path workflows'" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat /tmp/gh-aw-workflows.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
