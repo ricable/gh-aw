@@ -21,6 +21,22 @@ import (
 
 var remoteLog = logger.New("parser:remote_fetch")
 
+// getGitHubHost returns the GitHub host URL from environment variables.
+// It checks GITHUB_SERVER_URL first (GitHub Actions standard),
+// then falls back to GH_HOST (gh CLI standard),
+// and finally defaults to https://github.com
+func getGitHubHost() string {
+	host := os.Getenv("GITHUB_SERVER_URL")
+	if host == "" {
+		host = os.Getenv("GH_HOST")
+	}
+	if host == "" {
+		host = "https://github.com"
+	}
+	// Remove trailing slash for consistency
+	return strings.TrimSuffix(host, "/")
+}
+
 // isUnderWorkflowsDirectory checks if a file path is a top-level workflow file (not in shared subdirectory)
 func isUnderWorkflowsDirectory(filePath string) bool {
 	// Normalize the path to use forward slashes
@@ -306,16 +322,7 @@ func downloadIncludeFromWorkflowSpec(spec string, cache *ImportCache) (string, e
 func resolveRefToSHAViaGit(owner, repo, ref string) (string, error) {
 	remoteLog.Printf("Attempting git ls-remote fallback for ref resolution: %s/%s@%s", owner, repo, ref)
 
-	// Get GitHub host from environment with fallback
-	githubHost := os.Getenv("GITHUB_SERVER_URL")
-	if githubHost == "" {
-		githubHost = os.Getenv("GH_HOST")
-	}
-	if githubHost == "" {
-		githubHost = "https://github.com"
-	}
-	githubHost = strings.TrimSuffix(githubHost, "/")
-
+	githubHost := getGitHubHost()
 	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
 
 	// Try to resolve the ref using git ls-remote
@@ -405,16 +412,7 @@ func resolveRefToSHA(owner, repo, ref string) (string, error) {
 func downloadFileViaGit(owner, repo, path, ref string) ([]byte, error) {
 	remoteLog.Printf("Attempting git fallback for %s/%s/%s@%s", owner, repo, path, ref)
 
-	// Get GitHub host from environment with fallback
-	githubHost := os.Getenv("GITHUB_SERVER_URL")
-	if githubHost == "" {
-		githubHost = os.Getenv("GH_HOST")
-	}
-	if githubHost == "" {
-		githubHost = "https://github.com"
-	}
-	githubHost = strings.TrimSuffix(githubHost, "/")
-
+	githubHost := getGitHubHost()
 	// Use git archive to get the file content without cloning
 	// This works for public repositories without authentication
 	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
@@ -452,16 +450,7 @@ func downloadFileViaGitClone(owner, repo, path, ref string) ([]byte, error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Get GitHub host from environment with fallback
-	githubHost := os.Getenv("GITHUB_SERVER_URL")
-	if githubHost == "" {
-		githubHost = os.Getenv("GH_HOST")
-	}
-	if githubHost == "" {
-		githubHost = "https://github.com"
-	}
-	githubHost = strings.TrimSuffix(githubHost, "/")
-
+	githubHost := getGitHubHost()
 	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
 
 	// Check if ref is a SHA (40 hex characters)
