@@ -156,7 +156,8 @@ func TestExtractYAMLSections_AllSections(t *testing.T) {
 		},
 	}
 
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err)
 
 	// Verify all sections were extracted
 	assert.NotEmpty(t, workflowData.On)
@@ -195,7 +196,8 @@ func TestExtractYAMLSections_MissingSections(t *testing.T) {
 	// Empty frontmatter
 	frontmatter := map[string]any{}
 
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err)
 
 	// All fields should be empty strings when not present
 	assert.Empty(t, workflowData.On)
@@ -1295,7 +1297,8 @@ func TestExtractYAMLSections_PartialSections(t *testing.T) {
 		// Missing: network, concurrency, run-name, env, features, if, runs-on, environment, container, cache
 	}
 
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err)
 
 	// Verify present sections were extracted
 	assert.NotEmpty(t, workflowData.On)

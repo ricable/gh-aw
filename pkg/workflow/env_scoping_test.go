@@ -37,7 +37,8 @@ func TestEnvScopingToAgentJob(t *testing.T) {
 	}
 
 	// Extract env map from frontmatter
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err, "extractYAMLSections should succeed")
 
 	// Verify EnvMap was populated
 	assert.NotNil(t, workflowData.EnvMap, "EnvMap should be populated from frontmatter")
@@ -122,7 +123,8 @@ func TestEnvMergedWithSafeOutputsEnv(t *testing.T) {
 	}
 
 	// Extract env map from frontmatter
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err, "extractYAMLSections should succeed")
 
 	// Build the main job
 	job, err := compiler.buildMainJob(workflowData, false)
@@ -167,7 +169,8 @@ func TestEnvNonStringValues(t *testing.T) {
 	}
 
 	// Extract env map from frontmatter
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err, "extractYAMLSections should succeed")
 
 	// Verify all types were converted to strings
 	assert.NotNil(t, workflowData.EnvMap, "EnvMap should be populated")
@@ -187,58 +190,86 @@ func TestEnvNonStringValues(t *testing.T) {
 	assert.Equal(t, "test", job.Env["STRING_VAR"])
 }
 
-// TestEnvReservedNamesProtection verifies that reserved system variable names
-// cannot be overridden by user-defined env variables
-func TestEnvReservedNamesProtection(t *testing.T) {
-	frontmatter := map[string]any{
-		"name":   "Test Reserved Names",
-		"on":     "workflow_dispatch",
-		"engine": "copilot",
-		"env": map[string]any{
-			"CUSTOM_VAR":         "allowed",
-			"GH_AW_SAFE_OUTPUTS": "should_be_ignored", // Reserved
-			"GH_AW_WORKFLOW_ID":  "should_be_ignored", // Reserved
-			"DEFAULT_BRANCH":     "should_be_ignored", // Reserved
-			"GH_AW_CUSTOM":       "should_be_ignored", // Reserved (GH_AW_ prefix)
+// TestEnvReservedNamesRejection verifies that reserved system variable names
+// are rejected at compile time with clear error messages
+func TestEnvReservedNamesRejection(t *testing.T) {
+	tests := []struct {
+		name          string
+		envVars       map[string]any
+		shouldError   bool
+		errorContains string
+	}{
+		{
+			name: "GH_AW_ prefix is rejected",
+			envVars: map[string]any{
+				"CUSTOM_VAR":         "allowed",
+				"GH_AW_SAFE_OUTPUTS": "should_fail",
+			},
+			shouldError:   true,
+			errorContains: "GH_AW_SAFE_OUTPUTS",
+		},
+		{
+			name: "DEFAULT_BRANCH is rejected",
+			envVars: map[string]any{
+				"CUSTOM_VAR":     "allowed",
+				"DEFAULT_BRANCH": "should_fail",
+			},
+			shouldError:   true,
+			errorContains: "DEFAULT_BRANCH",
+		},
+		{
+			name: "Any GH_AW_ prefix is rejected",
+			envVars: map[string]any{
+				"GH_AW_CUSTOM": "should_fail",
+			},
+			shouldError:   true,
+			errorContains: "GH_AW_",
+		},
+		{
+			name: "Non-reserved variables are allowed",
+			envVars: map[string]any{
+				"CUSTOM_VAR": "allowed",
+				"MY_API_KEY": "allowed",
+				"NODE_ENV":   "production",
+			},
+			shouldError: false,
 		},
 	}
 
-	compiler := NewCompiler()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			frontmatter := map[string]any{
+				"name":   "Test Reserved Names",
+				"on":     "workflow_dispatch",
+				"engine": "copilot",
+				"env":    tt.envVars,
+			}
 
-	workflowData := &WorkflowData{
-		Name: "Test Reserved Names",
-		On:   "on:\n  workflow_dispatch:",
-		AI:   "copilot",
-		EngineConfig: &EngineConfig{
-			ID: "copilot",
-		},
-		MarkdownContent: "# Test content",
-		WorkflowID:      "test-workflow", // This will generate GH_AW_WORKFLOW_ID_SANITIZED
+			compiler := NewCompiler()
+			workflowData := &WorkflowData{
+				Name: "Test Reserved Names",
+				On:   "on:\n  workflow_dispatch:",
+				AI:   "copilot",
+				EngineConfig: &EngineConfig{
+					ID: "copilot",
+				},
+				MarkdownContent: "# Test content",
+			}
+
+			// Extract env map from frontmatter - this should validate
+			err := compiler.extractYAMLSections(frontmatter, workflowData)
+
+			if tt.shouldError {
+				assert.Error(t, err, "Should fail for reserved variable names")
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains, "Error should mention the problematic variable")
+				}
+			} else {
+				assert.NoError(t, err, "Should succeed for non-reserved variables")
+				assert.NotNil(t, workflowData.EnvMap, "EnvMap should be populated")
+			}
+		})
 	}
-
-	// Extract env map from frontmatter
-	compiler.extractYAMLSections(frontmatter, workflowData)
-
-	// Build the main job
-	job, err := compiler.buildMainJob(workflowData, false)
-	require.NoError(t, err, "buildMainJob should succeed")
-
-	// Verify allowed variable is present
-	assert.Contains(t, job.Env, "CUSTOM_VAR", "Non-reserved var should be present")
-	assert.Equal(t, "allowed", job.Env["CUSTOM_VAR"])
-
-	// Verify reserved variables are NOT overridden by user values
-	// Instead, they should either not exist or have system values
-	if val, exists := job.Env["GH_AW_SAFE_OUTPUTS"]; exists {
-		assert.NotEqual(t, "should_be_ignored", val, "GH_AW_SAFE_OUTPUTS should not be overridden")
-	}
-	if val, exists := job.Env["DEFAULT_BRANCH"]; exists {
-		assert.NotEqual(t, "should_be_ignored", val, "DEFAULT_BRANCH should not be overridden")
-	}
-
-	// Verify system-generated variables are present with correct values
-	assert.Contains(t, job.Env, "GH_AW_WORKFLOW_ID_SANITIZED", "System var should be present")
-	assert.Equal(t, "testworkflow", job.Env["GH_AW_WORKFLOW_ID_SANITIZED"], "System var should have correct value")
 }
 
 // TestEnvVariableOrdering verifies that env variables are rendered in stable alphabetical order
@@ -269,7 +300,8 @@ func TestEnvVariableOrdering(t *testing.T) {
 	}
 
 	// Extract env map from frontmatter
-	compiler.extractYAMLSections(frontmatter, workflowData)
+	err := compiler.extractYAMLSections(frontmatter, workflowData)
+	require.NoError(t, err, "extractYAMLSections should succeed")
 
 	// Build the main job
 	job, err := compiler.buildMainJob(workflowData, false)

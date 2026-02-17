@@ -64,7 +64,9 @@ func (c *Compiler) ParseWorkflowFile(markdownPath string) (*WorkflowData, error)
 	workflowData.ActionPinWarnings = c.actionPinWarnings
 
 	// Extract YAML configuration sections from frontmatter
-	c.extractYAMLSections(result.Frontmatter, workflowData)
+	if err := c.extractYAMLSections(result.Frontmatter, workflowData); err != nil {
+		return nil, fmt.Errorf("failed to extract YAML sections: %w", err)
+	}
 
 	// Merge features from imports
 	if len(engineSetup.importsResult.MergedFeatures) > 0 {
@@ -162,7 +164,7 @@ func (c *Compiler) buildInitialWorkflowData(
 }
 
 // extractYAMLSections extracts YAML configuration sections from frontmatter
-func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData *WorkflowData) {
+func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData *WorkflowData) error {
 	orchestratorWorkflowLog.Print("Extracting YAML sections from frontmatter")
 
 	workflowData.On = c.extractTopLevelYAMLSection(frontmatter, "on")
@@ -178,6 +180,14 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 		if envMap, ok := envValue.(map[string]any); ok {
 			workflowData.EnvMap = make(map[string]string)
 			for key, value := range envMap {
+				// Validate that env variable names don't use reserved prefixes
+				if strings.HasPrefix(key, "GH_AW_") {
+					return fmt.Errorf("env variable %q uses reserved prefix 'GH_AW_' which is reserved for system use", key)
+				}
+				if key == "DEFAULT_BRANCH" {
+					return fmt.Errorf("env variable 'DEFAULT_BRANCH' is reserved for system use")
+				}
+
 				// Convert all value types to strings (handles strings, numbers, booleans, etc.)
 				// This matches GitHub Actions behavior where env values are always strings
 				workflowData.EnvMap[key] = fmt.Sprintf("%v", value)
@@ -195,6 +205,8 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 	workflowData.Environment = c.extractTopLevelYAMLSection(frontmatter, "environment")
 	workflowData.Container = c.extractTopLevelYAMLSection(frontmatter, "container")
 	workflowData.Cache = c.extractTopLevelYAMLSection(frontmatter, "cache")
+	
+	return nil
 }
 
 // processAndMergeSteps handles the merging of imported steps with main workflow steps

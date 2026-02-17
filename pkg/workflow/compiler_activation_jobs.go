@@ -896,23 +896,13 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 
 	// Add frontmatter env variables to the agent job
 	// These are user-defined environment variables that should only be applied to the agent job
+	// Reserved variable names are validated at compile time in compiler_orchestrator_workflow.go
 	if len(data.EnvMap) > 0 {
 		compilerActivationJobsLog.Printf("Adding %d frontmatter env variables to agent job", len(data.EnvMap))
 		if env == nil {
 			env = make(map[string]string)
 		}
 		for key, value := range data.EnvMap {
-			// Prevent user-defined env vars from overriding reserved system variables
-			if strings.HasPrefix(key, "GH_AW_") || key == "DEFAULT_BRANCH" {
-				compilerActivationJobsLog.Printf("Ignoring frontmatter env variable %q because it uses a reserved name", key)
-				continue
-			}
-			// Prevent user-defined env vars from overriding reserved system variables
-			// GH_AW_* prefix is reserved for system use, as is DEFAULT_BRANCH
-			if strings.HasPrefix(key, "GH_AW_") || key == "DEFAULT_BRANCH" {
-				compilerActivationJobsLog.Printf("Ignoring frontmatter env variable %q because it uses a reserved name", key)
-				continue
-			}
 			env[key] = value
 		}
 	}
