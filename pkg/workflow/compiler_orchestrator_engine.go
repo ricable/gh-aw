@@ -224,6 +224,9 @@ func (c *Compiler) setupEngineAndImports(result *parser.FrontmatterResult, clean
 	// Enable firewall by default for claude engine when network restrictions are present
 	enableFirewallByDefaultForClaude(engineSetting, networkPermissions, sandboxConfig)
 
+	// Enable firewall by default for openclaw engine when network restrictions are present
+	enableFirewallByDefaultForOpenClaw(engineSetting, networkPermissions, sandboxConfig)
+
 	// Re-evaluate strict mode for firewall and network validation
 	// (it was restored after validateStrictMode but we need it again)
 	initialStrictModeForFirewall := c.strictMode

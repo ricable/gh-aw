@@ -121,6 +121,17 @@ func enableFirewallByDefaultForClaude(engineID string, networkPermissions *Netwo
 	enableFirewallByDefaultForEngine(engineID, networkPermissions, sandboxConfig)
 }
 
+// enableFirewallByDefaultForOpenClaw enables firewall by default for OpenClaw engine
+// when network restrictions are present but no explicit firewall configuration exists
+// and sandbox.agent is not explicitly set to false
+func enableFirewallByDefaultForOpenClaw(engineID string, networkPermissions *NetworkPermissions, sandboxConfig *SandboxConfig) {
+	if engineID != "openclaw" {
+		return
+	}
+
+	enableFirewallByDefaultForEngine(engineID, networkPermissions, sandboxConfig)
+}
+
 // enableFirewallByDefaultForEngine enables firewall by default for a given engine
 // when network restrictions are present but no explicit firewall configuration exists
 // and no SRT sandbox is configured (SRT and AWF are mutually exclusive)

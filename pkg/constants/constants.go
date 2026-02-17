@@ -340,6 +340,10 @@ const (
 	EnvVarModelDetectionClaude = "GH_AW_MODEL_DETECTION_CLAUDE"
 	// EnvVarModelDetectionCodex configures the default Codex model for detection
 	EnvVarModelDetectionCodex = "GH_AW_MODEL_DETECTION_CODEX"
+	// EnvVarModelAgentOpenClaw configures the default OpenClaw model for agent execution
+	EnvVarModelAgentOpenClaw = "GH_AW_MODEL_AGENT_OPENCLAW"
+	// EnvVarModelDetectionOpenClaw configures the default OpenClaw model for detection
+	EnvVarModelDetectionOpenClaw = "GH_AW_MODEL_DETECTION_OPENCLAW"
 
 	// Common environment variable names used across all engines
 
@@ -367,6 +371,9 @@ const (
 
 // DefaultCodexVersion is the default version of the OpenAI Codex CLI
 const DefaultCodexVersion Version = "0.101.0"
+
+// DefaultOpenClawVersion is the default version of the OpenClaw CLI
+const DefaultOpenClawVersion Version = "2026.2.15"
 
 // DefaultGitHubMCPServerVersion is the default version of the GitHub MCP server Docker image
 const DefaultGitHubMCPServerVersion Version = "v0.30.3"
@@ -679,11 +686,13 @@ const (
 	CodexEngine EngineName = "codex"
 	// CustomEngine is the custom engine identifier
 	CustomEngine EngineName = "custom"
+	// OpenClawEngine is the OpenClaw engine identifier
+	OpenClawEngine EngineName = "openclaw"
 )
 
 // AgenticEngines lists all supported agentic engine names
 // Note: This remains a string slice for backward compatibility with existing code
-var AgenticEngines = []string{string(ClaudeEngine), string(CodexEngine), string(CopilotEngine), string(CopilotSDKEngine)}
+var AgenticEngines = []string{string(ClaudeEngine), string(CodexEngine), string(CopilotEngine), string(CopilotSDKEngine), string(OpenClawEngine)}
 
 // EngineOption represents a selectable AI engine with its display metadata and secret configuration
 type EngineOption struct {
@@ -702,6 +711,7 @@ var EngineOptions = []EngineOption{
 	{string(CopilotSDKEngine), "GitHub Copilot SDK", "GitHub Copilot SDK with headless mode", "COPILOT_GITHUB_TOKEN", nil, "", ""},
 	{string(ClaudeEngine), "Claude", "Anthropic Claude Code coding agent", "ANTHROPIC_API_KEY", []string{"CLAUDE_CODE_OAUTH_TOKEN"}, "", "https://console.anthropic.com/settings/keys"},
 	{string(CodexEngine), "Codex", "OpenAI Codex/GPT engine", "OPENAI_API_KEY", []string{"CODEX_API_KEY"}, "", "https://platform.openai.com/api-keys"},
+	{string(OpenClawEngine), "OpenClaw", "OpenClaw agent platform with ACP support", "OPENCLAW_API_KEY", []string{"ANTHROPIC_API_KEY"}, "", ""},
 }
 
 // GetEngineOption returns the EngineOption for the given engine value, or nil if not found

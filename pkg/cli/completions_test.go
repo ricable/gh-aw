@@ -245,7 +245,7 @@ func TestCompleteEngineNames(t *testing.T) {
 		{
 			name:       "empty prefix returns all engines",
 			toComplete: "",
-			wantLen:    5, // copilot, copilot-sdk, claude, codex, custom
+			wantLen:    6, // copilot, copilot-sdk, claude, codex, custom, openclaw
 		},
 		{
 			name:       "c prefix returns claude, codex, copilot, copilot-sdk, custom",

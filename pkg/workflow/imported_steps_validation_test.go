@@ -139,7 +139,11 @@ imports:
 	require.Error(t, err, "Expected error in strict mode")
 	if err != nil {
 		assert.Contains(t, err.Error(), "ANTHROPIC_API_KEY")
-		assert.Contains(t, err.Error(), "Claude Code")
+		// ANTHROPIC_API_KEY is used by both Claude Code and OpenClaw engines
+		// The error may mention either engine depending on map iteration order
+		errMsg := err.Error()
+		assert.True(t, strings.Contains(errMsg, "Claude Code") || strings.Contains(errMsg, "OpenClaw"),
+			"Expected error to mention 'Claude Code' or 'OpenClaw', got: %s", errMsg)
 	}
 }
 

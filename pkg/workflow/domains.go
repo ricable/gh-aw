@@ -41,6 +41,14 @@ var CodexDefaultDomains = []string{
 	"openai.com",
 }
 
+// OpenClawDefaultDomains are the default domains required for OpenClaw CLI operation
+var OpenClawDefaultDomains = []string{
+	"api.anthropic.com",    // Default model provider (Anthropic)
+	"api.openai.com",       // Alternative model provider (OpenAI)
+	"host.docker.internal", // AWF gateway
+	"registry.npmjs.org",   // npm package installation
+}
+
 // ClaudeDefaultDomains are the default domains required for Claude Code CLI authentication and operation
 var ClaudeDefaultDomains = []string{
 	"*.githubusercontent.com",
@@ -477,6 +485,24 @@ func GetClaudeAllowedDomainsWithToolsAndRuntimes(network *NetworkPermissions, to
 	return mergeDomainsWithNetworkToolsAndRuntimes(ClaudeDefaultDomains, network, tools, runtimes)
 }
 
+// GetOpenClawAllowedDomains merges OpenClaw default domains with NetworkPermissions allowed domains
+// Returns a deduplicated, sorted, comma-separated string suitable for AWF's --allow-domains flag
+func GetOpenClawAllowedDomains(network *NetworkPermissions) string {
+	return mergeDomainsWithNetwork(OpenClawDefaultDomains, network)
+}
+
+// GetOpenClawAllowedDomainsWithTools merges OpenClaw default domains with NetworkPermissions allowed domains and HTTP MCP server domains
+// Returns a deduplicated, sorted, comma-separated string suitable for AWF's --allow-domains flag
+func GetOpenClawAllowedDomainsWithTools(network *NetworkPermissions, tools map[string]any) string {
+	return mergeDomainsWithNetworkAndTools(OpenClawDefaultDomains, network, tools)
+}
+
+// GetOpenClawAllowedDomainsWithToolsAndRuntimes merges OpenClaw default domains with NetworkPermissions, HTTP MCP server domains, and runtime ecosystem domains
+// Returns a deduplicated, sorted, comma-separated string suitable for AWF's --allow-domains flag
+func GetOpenClawAllowedDomainsWithToolsAndRuntimes(network *NetworkPermissions, tools map[string]any, runtimes map[string]any) string {
+	return mergeDomainsWithNetworkToolsAndRuntimes(OpenClawDefaultDomains, network, tools, runtimes)
+}
+
 // GetBlockedDomains returns the blocked domains from network permissions
 // Returns empty slice if no network permissions configured or no domains blocked
 // The returned list is sorted and deduplicated
@@ -564,6 +590,8 @@ func (c *Compiler) computeAllowedDomainsForSanitization(data *WorkflowData) stri
 		return GetCodexAllowedDomains(data.NetworkPermissions)
 	case "claude":
 		return GetClaudeAllowedDomains(data.NetworkPermissions)
+	case "openclaw":
+		return GetOpenClawAllowedDomains(data.NetworkPermissions)
 	default:
 		// For other engines, use network permissions only
 		domains := GetAllowedDomains(data.NetworkPermissions)
