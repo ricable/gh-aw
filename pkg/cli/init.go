@@ -190,48 +190,42 @@ func setupEngineSecrets(engine string, verbose bool) error {
 		return fmt.Errorf("failed to get current repository: %w", err)
 	}
 
-	// Get required secrets for the engine
-	tokensToCheck := getRecommendedTokensForEngine(engine)
+	// Get required secrets for the engine using unified function
+	requirements := GetRequiredSecretsForEngine(engine, true, false)
 
 	// Check environment for secrets
-	var availableSecrets []string
-	var missingSecrets []tokenSpec
+	var availableSecrets []SecretRequirement
+	var missingSecrets []SecretRequirement
 
-	for _, spec := range tokensToCheck {
+	for _, req := range requirements {
 		// Check if secret is available in environment
-		secretValue := os.Getenv(spec.Name)
+		secretValue := os.Getenv(req.Name)
 
 		// Try alternative environment variable names
-		//
 		// The init command should only detect explicitly set environment variables, not scrape
 		// the user's gh auth token. Using gh auth token for secrets would be a security risk
 		// as users may not realize their personal token is being uploaded to the repository.
-		// The trial command handles this differently with explicit warnings.
 		if secretValue == "" {
-			switch spec.Name {
-			case "ANTHROPIC_API_KEY":
-				secretValue = os.Getenv("ANTHROPIC_KEY")
-			case "OPENAI_API_KEY":
-				secretValue = os.Getenv("OPENAI_KEY")
-			case "COPILOT_GITHUB_TOKEN":
-				// Only check explicit environment variable, do NOT use gh auth token fallback
-				// This prevents accidentally uploading user's personal token to the repository
-				secretValue = os.Getenv("COPILOT_GITHUB_TOKEN")
+			for _, alt := range req.AlternativeEnvVars {
+				secretValue = os.Getenv(alt)
+				if secretValue != "" {
+					break
+				}
 			}
 		}
 
 		if secretValue != "" {
-			availableSecrets = append(availableSecrets, spec.Name)
+			availableSecrets = append(availableSecrets, req)
 		} else {
-			missingSecrets = append(missingSecrets, spec)
+			missingSecrets = append(missingSecrets, req)
 		}
 	}
 
 	// Display found secrets
 	if len(availableSecrets) > 0 {
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Found the following secrets in your environment:"))
-		for _, secretName := range availableSecrets {
-			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("  ✓ %s", secretName)))
+		for _, req := range availableSecrets {
+			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("  ✓ %s", req.Name)))
 		}
 		fmt.Fprintln(os.Stderr, "")
 
@@ -262,20 +256,20 @@ func setupEngineSecrets(engine string, verbose bool) error {
 			fmt.Fprintln(os.Stderr, "")
 
 			successCount := 0
-			for _, secretName := range availableSecrets {
-				if err := attemptSetSecret(secretName, repoSlug, verbose); err != nil {
+			for _, req := range availableSecrets {
+				if err := attemptSetSecret(req.Name, repoSlug, verbose); err != nil {
 					// Handle different types of errors gracefully
 					errMsg := err.Error()
 					if strings.Contains(errMsg, "403") || strings.Contains(errMsg, "Forbidden") ||
 						strings.Contains(errMsg, "permissions") || strings.Contains(errMsg, "Resource not accessible") {
-						fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("  ✗ Insufficient permissions to set %s", secretName)))
+						fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("  ✗ Insufficient permissions to set %s", req.Name)))
 						fmt.Fprintln(os.Stderr, console.FormatInfoMessage("    You may need to grant additional permissions to your GitHub token"))
 					} else {
-						fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("  ✗ Failed to set %s: %v", secretName, err)))
+						fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("  ✗ Failed to set %s: %v", req.Name, err)))
 					}
 				} else {
 					successCount++
-					fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("  ✓ Configured %s", secretName)))
+					fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("  ✓ Configured %s", req.Name)))
 				}
 			}
 
@@ -298,12 +292,12 @@ func setupEngineSecrets(engine string, verbose bool) error {
 		cmdOwner := parts[0]
 		cmdRepo := parts[1]
 
-		for _, spec := range missingSecrets {
+		for _, req := range missingSecrets {
 			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("  ✗ %s", spec.Name)))
-			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("    When needed: %s", spec.When)))
-			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("    Description: %s", spec.Description)))
-			fmt.Fprintln(os.Stderr, console.FormatCommandMessage(fmt.Sprintf("    gh aw secrets set %s --owner %s --repo %s", spec.Name, cmdOwner, cmdRepo)))
+			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("  ✗ %s", req.Name)))
+			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("    When needed: %s", req.WhenNeeded)))
+			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("    Description: %s", req.Description)))
+			fmt.Fprintln(os.Stderr, console.FormatCommandMessage(fmt.Sprintf("    gh aw secrets set %s --owner %s --repo %s", req.Name, cmdOwner, cmdRepo)))
 		}
 		fmt.Fprintln(os.Stderr, "")
 	}
@@ -335,21 +329,21 @@ func attemptSetSecret(secretName, repoSlug string, verbose bool) error {
 	}
 
 	// Get secret value from environment
-	//
 	// The init command should only use explicitly set environment variables to avoid
 	// accidentally uploading the user's personal gh auth token to the repository.
 	secretValue := os.Getenv(secretName)
 	if secretValue == "" {
-		// Try alternative names (but NOT gh auth token fallback for security)
-		switch secretName {
-		case "ANTHROPIC_API_KEY":
-			secretValue = os.Getenv("ANTHROPIC_KEY")
-		case "OPENAI_API_KEY":
-			secretValue = os.Getenv("OPENAI_KEY")
-		case "COPILOT_GITHUB_TOKEN":
-			// Only check explicit environment variable, do NOT use gh auth token fallback
-			// This prevents accidentally uploading user's personal token to the repository
-			secretValue = os.Getenv("COPILOT_GITHUB_TOKEN")
+		// Try alternative names from engine options (but NOT gh auth token fallback for security)
+		for _, opt := range constants.EngineOptions {
+			if opt.SecretName == secretName {
+				for _, alt := range opt.AlternativeSecrets {
+					secretValue = os.Getenv(alt)
+					if secretValue != "" {
+						break
+					}
+				}
+				break
+			}
 		}
 	}
 
