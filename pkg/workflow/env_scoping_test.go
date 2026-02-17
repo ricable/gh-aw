@@ -240,3 +240,83 @@ func TestEnvReservedNamesProtection(t *testing.T) {
 	assert.Contains(t, job.Env, "GH_AW_WORKFLOW_ID_SANITIZED", "System var should be present")
 	assert.Equal(t, "testworkflow", job.Env["GH_AW_WORKFLOW_ID_SANITIZED"], "System var should have correct value")
 }
+
+// TestEnvVariableOrdering verifies that env variables are rendered in stable alphabetical order
+func TestEnvVariableOrdering(t *testing.T) {
+	frontmatter := map[string]any{
+		"name":   "Test Env Ordering",
+		"on":     "workflow_dispatch",
+		"engine": "copilot",
+		"env": map[string]any{
+			"ZEBRA":   "last",
+			"ALPHA":   "first",
+			"MIDDLE":  "middle",
+			"BETA":    "second",
+		},
+	}
+
+	compiler := NewCompiler()
+
+	workflowData := &WorkflowData{
+		Name: "Test Env Ordering",
+		On:   "on:\n  workflow_dispatch:",
+		AI:   "copilot",
+		EngineConfig: &EngineConfig{
+			ID: "copilot",
+		},
+		MarkdownContent: "# Test content",
+		WorkflowID:      "test-workflow",
+	}
+
+	// Extract env map from frontmatter
+	compiler.extractYAMLSections(frontmatter, workflowData)
+
+	// Build the main job
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err, "buildMainJob should succeed")
+
+	// Render to YAML
+	jobManager := NewJobManager()
+	err = jobManager.AddJob(job)
+	require.NoError(t, err, "AddJob should succeed")
+
+	yamlOutput := jobManager.RenderToYAML()
+
+	// Extract the env section to verify ordering
+	lines := strings.Split(yamlOutput, "\n")
+	var envLines []string
+	inEnvSection := false
+	for _, line := range lines {
+		if strings.Contains(line, "    env:") {
+			inEnvSection = true
+			continue
+		}
+		if inEnvSection {
+			if strings.HasPrefix(line, "      ") && strings.Contains(line, ":") {
+				envLines = append(envLines, line)
+			} else if !strings.HasPrefix(line, "      ") {
+				break
+			}
+		}
+	}
+
+	// Verify we have env lines
+	require.Greater(t, len(envLines), 0, "Should have env variables in YAML output")
+
+	// Verify alphabetical ordering
+	// Expected order: ALPHA, BETA, GH_AW_WORKFLOW_ID_SANITIZED, MIDDLE, ZEBRA
+	assert.Contains(t, envLines[0], "ALPHA:", "First env var should be ALPHA (alphabetically first user var)")
+	assert.Contains(t, envLines[1], "BETA:", "Second env var should be BETA")
+	assert.Contains(t, envLines[2], "GH_AW_WORKFLOW_ID_SANITIZED:", "Third should be GH_AW_WORKFLOW_ID_SANITIZED")
+	assert.Contains(t, envLines[3], "MIDDLE:", "Fourth env var should be MIDDLE")
+	assert.Contains(t, envLines[4], "ZEBRA:", "Fifth env var should be ZEBRA")
+
+	// Verify stable ordering by compiling multiple times
+	for i := 0; i < 5; i++ {
+		jobManager2 := NewJobManager()
+		err = jobManager2.AddJob(job)
+		require.NoError(t, err)
+		yamlOutput2 := jobManager2.RenderToYAML()
+		assert.Equal(t, yamlOutput, yamlOutput2, "YAML output should be identical across multiple renderings (stable ordering)")
+	}
+}
