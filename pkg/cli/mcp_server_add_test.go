@@ -130,8 +130,8 @@ func TestMCPServer_AddToolInvocation(t *testing.T) {
 	}
 	defer session.Close()
 
-	// Test 1: Call with just repository (should list workflows)
-	t.Run("ListWorkflows", func(t *testing.T) {
+	// Test 1: Call with just repository (should fail - repo-only specs no longer supported)
+	t.Run("RepoOnlySpecError", func(t *testing.T) {
 		callResult, err := session.CallTool(ctx, &mcp.CallToolParams{
 			Name: "add",
 			Arguments: map[string]any{
@@ -139,6 +139,7 @@ func TestMCPServer_AddToolInvocation(t *testing.T) {
 			},
 		})
 
+		// Should succeed at the MCP level but contain an error message in result
 		if err != nil {
 			t.Fatalf("Failed to call add tool: %v", err)
 		}
@@ -160,11 +161,11 @@ func TestMCPServer_AddToolInvocation(t *testing.T) {
 			t.Fatal("add tool returned empty text content")
 		}
 
-		t.Logf("add tool output (list workflows):\n%s", outputText)
+		t.Logf("add tool output (repo-only spec error):\n%s", outputText)
 
-		// Output should mention available workflows or indicate repository was processed
-		if !strings.Contains(outputText, "workflow") && !strings.Contains(outputText, "Workflow") {
-			t.Logf("Warning: Output doesn't mention 'workflow': %s", outputText)
+		// Output should contain an error about the invalid format
+		if !strings.Contains(outputText, "workflow specification must be in format") {
+			t.Logf("Warning: Output doesn't mention expected error: %s", outputText)
 		}
 	})
 
