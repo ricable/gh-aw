@@ -902,6 +902,12 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 			env = make(map[string]string)
 		}
 		for key, value := range data.EnvMap {
+			// Prevent user-defined env vars from overriding reserved system variables
+			// GH_AW_* prefix is reserved for system use, as is DEFAULT_BRANCH
+			if strings.HasPrefix(key, "GH_AW_") || key == "DEFAULT_BRANCH" {
+				compilerActivationJobsLog.Printf("Ignoring frontmatter env variable %q because it uses a reserved name", key)
+				continue
+			}
 			env[key] = value
 		}
 	}

@@ -178,9 +178,9 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 		if envMap, ok := envValue.(map[string]any); ok {
 			workflowData.EnvMap = make(map[string]string)
 			for key, value := range envMap {
-				if strValue, ok := value.(string); ok {
-					workflowData.EnvMap[key] = strValue
-				}
+				// Convert all value types to strings (handles strings, numbers, booleans, etc.)
+				// This matches GitHub Actions behavior where env values are always strings
+				workflowData.EnvMap[key] = fmt.Sprintf("%v", value)
 			}
 		}
 	}

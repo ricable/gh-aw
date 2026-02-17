@@ -139,3 +139,104 @@ func TestEnvMergedWithSafeOutputsEnv(t *testing.T) {
 	assert.Contains(t, job.Env, "GH_AW_SAFE_OUTPUTS", "Job env should contain GH_AW_SAFE_OUTPUTS")
 	assert.Contains(t, job.Env, "GH_AW_SAFE_OUTPUTS_CONFIG_PATH", "Job env should contain config path")
 }
+
+// TestEnvNonStringValues verifies that non-string env values are converted to strings
+func TestEnvNonStringValues(t *testing.T) {
+	frontmatter := map[string]any{
+		"name":   "Test Non-String Env",
+		"on":     "workflow_dispatch",
+		"engine": "copilot",
+		"env": map[string]any{
+			"DEBUG_MODE":  true,   // boolean
+			"PORT":        3000,   // number
+			"MAX_RETRIES": 5,      // number
+			"STRING_VAR":  "test", // string
+		},
+	}
+
+	compiler := NewCompiler()
+
+	workflowData := &WorkflowData{
+		Name: "Test Non-String Env",
+		On:   "on:\n  workflow_dispatch:",
+		AI:   "copilot",
+		EngineConfig: &EngineConfig{
+			ID: "copilot",
+		},
+		MarkdownContent: "# Test content",
+	}
+
+	// Extract env map from frontmatter
+	compiler.extractYAMLSections(frontmatter, workflowData)
+
+	// Verify all types were converted to strings
+	assert.NotNil(t, workflowData.EnvMap, "EnvMap should be populated")
+	assert.Equal(t, "true", workflowData.EnvMap["DEBUG_MODE"], "Boolean should be converted to string")
+	assert.Equal(t, "3000", workflowData.EnvMap["PORT"], "Number should be converted to string")
+	assert.Equal(t, "5", workflowData.EnvMap["MAX_RETRIES"], "Number should be converted to string")
+	assert.Equal(t, "test", workflowData.EnvMap["STRING_VAR"], "String should remain unchanged")
+
+	// Build the main job
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err, "buildMainJob should succeed")
+
+	// Verify all converted values are in the job
+	assert.Equal(t, "true", job.Env["DEBUG_MODE"])
+	assert.Equal(t, "3000", job.Env["PORT"])
+	assert.Equal(t, "5", job.Env["MAX_RETRIES"])
+	assert.Equal(t, "test", job.Env["STRING_VAR"])
+}
+
+// TestEnvReservedNamesProtection verifies that reserved system variable names
+// cannot be overridden by user-defined env variables
+func TestEnvReservedNamesProtection(t *testing.T) {
+	frontmatter := map[string]any{
+		"name":   "Test Reserved Names",
+		"on":     "workflow_dispatch",
+		"engine": "copilot",
+		"env": map[string]any{
+			"CUSTOM_VAR":         "allowed",
+			"GH_AW_SAFE_OUTPUTS": "should_be_ignored", // Reserved
+			"GH_AW_WORKFLOW_ID":  "should_be_ignored", // Reserved
+			"DEFAULT_BRANCH":     "should_be_ignored", // Reserved
+			"GH_AW_CUSTOM":       "should_be_ignored", // Reserved (GH_AW_ prefix)
+		},
+	}
+
+	compiler := NewCompiler()
+
+	workflowData := &WorkflowData{
+		Name: "Test Reserved Names",
+		On:   "on:\n  workflow_dispatch:",
+		AI:   "copilot",
+		EngineConfig: &EngineConfig{
+			ID: "copilot",
+		},
+		MarkdownContent: "# Test content",
+		WorkflowID:      "test-workflow", // This will generate GH_AW_WORKFLOW_ID_SANITIZED
+	}
+
+	// Extract env map from frontmatter
+	compiler.extractYAMLSections(frontmatter, workflowData)
+
+	// Build the main job
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err, "buildMainJob should succeed")
+
+	// Verify allowed variable is present
+	assert.Contains(t, job.Env, "CUSTOM_VAR", "Non-reserved var should be present")
+	assert.Equal(t, "allowed", job.Env["CUSTOM_VAR"])
+
+	// Verify reserved variables are NOT overridden by user values
+	// Instead, they should either not exist or have system values
+	if val, exists := job.Env["GH_AW_SAFE_OUTPUTS"]; exists {
+		assert.NotEqual(t, "should_be_ignored", val, "GH_AW_SAFE_OUTPUTS should not be overridden")
+	}
+	if val, exists := job.Env["DEFAULT_BRANCH"]; exists {
+		assert.NotEqual(t, "should_be_ignored", val, "DEFAULT_BRANCH should not be overridden")
+	}
+
+	// Verify system-generated variables are present with correct values
+	assert.Contains(t, job.Env, "GH_AW_WORKFLOW_ID_SANITIZED", "System var should be present")
+	assert.Equal(t, "testworkflow", job.Env["GH_AW_WORKFLOW_ID_SANITIZED"], "System var should have correct value")
+}
