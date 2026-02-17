@@ -433,7 +433,8 @@ func createTransferPR(targetOwner, targetRepo string, prInfo *PRInfo, branchName
 
 		// Add fork as remote if not already present
 		remoteName := "fork"
-		forkRepoURL := fmt.Sprintf("https://github.com/%s/%s.git", forkOwner, forkRepo)
+		githubHost := getGitHubHost()
+		forkRepoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, forkOwner, forkRepo)
 
 		// Check if fork remote exists
 		checkRemoteCmd := exec.Command("git", "remote", "get-url", remoteName)
@@ -450,7 +451,7 @@ func createTransferPR(targetOwner, targetRepo string, prInfo *PRInfo, branchName
 
 		// Also ensure target repository is set as upstream remote if not already present
 		upstreamRemote := "upstream"
-		targetRepoURL := fmt.Sprintf("https://github.com/%s/%s.git", targetOwner, targetRepo)
+		targetRepoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, targetOwner, targetRepo)
 
 		// Check if upstream remote exists and points to the right repo
 		checkUpstreamCmd := exec.Command("git", "remote", "get-url", upstreamRemote)

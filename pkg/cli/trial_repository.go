@@ -93,10 +93,11 @@ func ensureTrialRepository(repoSlug string, cloneRepoSlug string, forceDeleteHos
 	}
 
 	if dryRun {
+		githubHost := getGitHubHost()
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("[DRY RUN] Would create repository with description: 'GitHub Agentic Workflows host repository'"))
-		fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("[DRY RUN] Would enable GitHub Actions permissions at: https://github.com/%s/settings/actions", repoSlug)))
+		fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("[DRY RUN] Would enable GitHub Actions permissions at: %s/%s/settings/actions", githubHost, repoSlug)))
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("[DRY RUN] Would enable discussions"))
-		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("[DRY RUN] Would create host repository: https://github.com/%s", repoSlug)))
+		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("[DRY RUN] Would create host repository: %s/%s", githubHost, repoSlug)))
 		return nil
 	}
 
@@ -111,19 +112,21 @@ func ensureTrialRepository(repoSlug string, cloneRepoSlug string, forceDeleteHos
 			if verbose {
 				fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("Repository already exists (detected via create error): %s", repoSlug)))
 			}
-			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Using existing host repository: https://github.com/%s", repoSlug)))
+			githubHost := getGitHubHost()
+			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Using existing host repository: %s/%s", githubHost, repoSlug)))
 			return nil
 		}
 		return fmt.Errorf("failed to create host repository: %w (output: %s)", err, string(output))
 	}
 
 	// Show host repository creation message with URL
-	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Created host repository: https://github.com/%s", repoSlug)))
+	githubHost := getGitHubHost()
+	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Created host repository: %s/%s", githubHost, repoSlug)))
 
 	// Prompt user to enable GitHub Actions permissions
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(""))
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("IMPORTANT: You must enable GitHub Actions permissions for the repository."))
-	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("1. Go to: https://github.com/%s/settings/actions", repoSlug)))
+	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("1. Go to: %s/%s/settings/actions", githubHost, repoSlug)))
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("2. Under 'Workflow permissions', select 'Allow GitHub Actions to create and approve pull requests'"))
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("3. Click 'Save'"))
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(""))
@@ -182,7 +185,8 @@ func cloneTrialHostRepository(repoSlug string, verbose bool) (string, error) {
 	}
 
 	// Clone the repository using the full slug
-	repoURL := fmt.Sprintf("https://github.com/%s.git", repoSlug)
+	githubHost := getGitHubHost()
+	repoURL := fmt.Sprintf("%s/%s.git", githubHost, repoSlug)
 
 	output, err := workflow.RunGitCombined(fmt.Sprintf("Cloning %s...", repoSlug), "clone", repoURL, tempDir)
 	if err != nil {
@@ -526,7 +530,8 @@ func cloneRepoContentsIntoHost(cloneRepoSlug string, cloneRepoVersion string, ho
 	defer os.RemoveAll(tempCloneDir)
 
 	// Clone the source repository
-	cloneURL := fmt.Sprintf("https://github.com/%s.git", cloneRepoSlug)
+	githubHost := getGitHubHost()
+	cloneURL := fmt.Sprintf("%s/%s.git", githubHost, cloneRepoSlug)
 
 	output, err := workflow.RunGitCombined(fmt.Sprintf("Cloning %s...", cloneRepoSlug), "clone", cloneURL, tempCloneDir)
 	if err != nil {
@@ -547,7 +552,7 @@ func cloneRepoContentsIntoHost(cloneRepoSlug string, cloneRepoVersion string, ho
 	}
 
 	// Add the host repository as a new remote
-	hostURL := fmt.Sprintf("https://github.com/%s.git", hostRepoSlug)
+	hostURL := fmt.Sprintf("%s/%s.git", githubHost, hostRepoSlug)
 	remoteCmd := exec.Command("git", "remote", "add", "host", hostURL)
 	if output, err := remoteCmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to add host remote: %w (output: %s)", err, string(output))

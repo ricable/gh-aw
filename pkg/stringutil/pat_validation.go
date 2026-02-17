@@ -83,17 +83,31 @@ func IsOAuthToken(token string) bool {
 // Returns:
 //   - error: An error with a descriptive message if the token is not valid, nil otherwise
 func ValidateCopilotPAT(token string) error {
+	return ValidateCopilotPATWithHost(token, "https://github.com")
+}
+
+// ValidateCopilotPATWithHost validates that a token is a valid fine-grained PAT for Copilot,
+// using the provided GitHub host for error messages.
+// Returns an error if the token is not a fine-grained PAT with a descriptive error message.
+//
+// Parameters:
+//   - token: The token string to validate
+//   - githubHost: The GitHub host URL (e.g., "https://github.com" or "https://github.enterprise.com")
+//
+// Returns:
+//   - error: An error with a descriptive message if the token is not valid, nil otherwise
+func ValidateCopilotPATWithHost(token string, githubHost string) error {
 	patType := ClassifyPAT(token)
 
 	switch patType {
 	case PATTypeFineGrained:
 		return nil
 	case PATTypeClassic:
-		return fmt.Errorf("classic personal access tokens (ghp_...) are not supported for Copilot. Please create a fine-grained PAT at https://github.com/settings/personal-access-tokens/new")
+		return fmt.Errorf("classic personal access tokens (ghp_...) are not supported for Copilot. Please create a fine-grained PAT at %s/settings/personal-access-tokens/new", githubHost)
 	case PATTypeOAuth:
-		return fmt.Errorf("OAuth tokens (gho_...) are not supported for Copilot. Please create a fine-grained PAT at https://github.com/settings/personal-access-tokens/new")
+		return fmt.Errorf("OAuth tokens (gho_...) are not supported for Copilot. Please create a fine-grained PAT at %s/settings/personal-access-tokens/new", githubHost)
 	default:
-		return fmt.Errorf("unrecognized token format. Please create a fine-grained PAT (starting with 'github_pat_') at https://github.com/settings/personal-access-tokens/new")
+		return fmt.Errorf("unrecognized token format. Please create a fine-grained PAT (starting with 'github_pat_') at %s/settings/personal-access-tokens/new", githubHost)
 	}
 }
 

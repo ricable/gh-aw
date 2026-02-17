@@ -181,3 +181,66 @@ func TestGetPATTypeDescription(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateCopilotPATWithHost(t *testing.T) {
+	tests := []struct {
+		name        string
+		token       string
+		githubHost  string
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name:        "valid fine-grained PAT with default host",
+			token:       "github_pat_abc123xyz",
+			githubHost:  "https://github.com",
+			expectError: false,
+		},
+		{
+			name:        "valid fine-grained PAT with enterprise host",
+			token:       "github_pat_abc123xyz",
+			githubHost:  "https://github.enterprise.com",
+			expectError: false,
+		},
+		{
+			name:        "classic PAT with default host",
+			token:       "ghp_abc123xyz",
+			githubHost:  "https://github.com",
+			expectError: true,
+			errorMsg:    "https://github.com/settings/personal-access-tokens/new",
+		},
+		{
+			name:        "classic PAT with enterprise host",
+			token:       "ghp_abc123xyz",
+			githubHost:  "https://github.enterprise.com",
+			expectError: true,
+			errorMsg:    "https://github.enterprise.com/settings/personal-access-tokens/new",
+		},
+		{
+			name:        "OAuth token with enterprise host",
+			token:       "gho_abc123xyz",
+			githubHost:  "https://github.enterprise.com",
+			expectError: true,
+			errorMsg:    "https://github.enterprise.com/settings/personal-access-tokens/new",
+		},
+		{
+			name:        "unknown token with enterprise host",
+			token:       "random_token",
+			githubHost:  "https://github.enterprise.com",
+			expectError: true,
+			errorMsg:    "https://github.enterprise.com/settings/personal-access-tokens/new",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateCopilotPATWithHost(tt.token, tt.githubHost)
+			if tt.expectError {
+				require.Error(t, err, "should return error for invalid token")
+				assert.Contains(t, err.Error(), tt.errorMsg, "error message should contain expected GitHub host URL")
+			} else {
+				assert.NoError(t, err, "should not return error for valid token")
+			}
+		})
+	}
+}
