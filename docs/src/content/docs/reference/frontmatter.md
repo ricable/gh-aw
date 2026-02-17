@@ -56,6 +56,25 @@ Tracks workflow origin in format `owner/repo/path@ref`. Automatically populated 
 source: "githubnext/agentics/workflows/ci-doctor.md@v1.0.0"
 ```
 
+### Prompt Versioning (`version:`)
+
+Semantic version string for tracking prompt evolution. Supports version comparison, rollback, and A/B testing. Follows [semantic versioning](https://semver.org/) format (major.minor.patch with optional pre-release and build metadata).
+
+```yaml wrap
+version: "1.0.0"              # Simple version
+version: "2.1.3-beta.1"       # With pre-release
+version: "1.0.0+build.123"    # With build metadata
+```
+
+The version appears in:
+- Compiled workflow header as a comment (`# Prompt Version: 1.0.0`)
+- Runtime `aw_info` JSON object (`prompt_version: "1.0.0"`)
+
+Use version increments to:
+- Track major prompt changes (1.0.0 → 2.0.0)
+- Document iterative improvements (1.0.0 → 1.1.0)
+- Test experimental variants (1.0.0-beta.1)
+
 ### Labels (`labels:`)
 
 Optional array of strings for categorizing and organizing workflows. Labels are displayed in `gh aw status` command output and can be filtered using the `--label` flag.

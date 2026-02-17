@@ -42,6 +42,12 @@ source: "example-value"
 # (optional)
 tracker-id: "example-value"
 
+# Prompt version using semantic versioning format (major.minor.patch with
+# optional pre-release and build metadata). Used to track prompt evolution for
+# testing, rollback, and A/B experiments.
+# (optional)
+version: "1.0.0"
+
 # Optional array of labels to categorize and organize workflows. Labels can be
 # used to filter workflows in status/list commands.
 # (optional)
