@@ -1301,12 +1301,39 @@ Auto-resolves target from workflow context (issue/PR events) when `issue_number`
 safe-outputs:
   assign-to-agent:
     name: "copilot"            # default agent (default: "copilot")
+    model: "claude-opus-4.6"   # default AI model (default: "auto")
+    custom-agent: "agent-id"   # default custom agent ID (optional)
+    custom-instructions: "..."  # default custom instructions (optional)
     allowed: [copilot]         # restrict to specific agents (optional)
     max: 1                     # max assignments (default: 1)
     target: "triggering"       # "triggering" (default), "*", or number
     target-repo: "owner/repo"  # where the issue lives (cross-repository)
     pull-request-repo: "owner/repo"      # where the PR should be created (may differ from issue repo)
     allowed-pull-request-repos: [owner/repo1, owner/repo2]  # additional allowed PR repositories
+```
+
+**Model Selection:**
+The `model` parameter allows you to specify which AI model the Copilot agent should use. Available options include:
+- `auto` - Auto-select model (default, currently Claude Sonnet 4.5)
+- `claude-sonnet-4.5` - Claude Sonnet 4.5
+- `claude-opus-4.5` - Claude Opus 4.5
+- `claude-opus-4.6` - Claude Opus 4.6
+- `gpt-5.1-codex-max` - GPT-5.1 Codex Max
+- `gpt-5.2-codex` - GPT-5.2 Codex
+
+The model can be set globally via the `model` configuration parameter, or overridden per-assignment using the `model` parameter in the `assign_to_agent` tool call:
+```python
+assign_to_agent(issue_number=123, agent="copilot", model="claude-opus-4.6")
+```
+
+**Custom Agent Configuration:**
+For advanced use cases, you can specify custom agent IDs and instructions:
+- `custom-agent` - Custom agent identifier for specialized agent configurations
+- `custom-instructions` - Instructions to guide the agent's behavior when working on the task
+
+These can also be overridden per-assignment:
+```python
+assign_to_agent(issue_number=123, agent="copilot", custom_agent="agent-123", custom_instructions="Focus on performance optimization")
 ```
 
 **Behavior:**

@@ -2974,7 +2974,23 @@ safe-outputs:
   assign-to-agent:
     # Default agent name to assign (default: 'copilot')
     # (optional)
-    name: "My Workflow"
+    name: "copilot"
+
+    # Default AI model to use for the agent (e.g., 'auto', 'claude-sonnet-4.5',
+    # 'claude-opus-4.5', 'claude-opus-4.6', 'gpt-5.1-codex-max', 'gpt-5.2-codex').
+    # Defaults to 'auto' if not specified.
+    # (optional)
+    model: "claude-opus-4.6"
+
+    # Default custom agent ID to use when assigning custom agents. This is used for
+    # specialized agent configurations beyond the standard Copilot agent.
+    # (optional)
+    custom-agent: "agent-id"
+
+    # Default custom instructions to provide to the agent. These instructions will
+    # guide the agent's behavior when working on the task.
+    # (optional)
+    custom-instructions: "Focus on performance optimization"
 
     # Optional list of allowed agent names. If specified, only these agents can be
     # assigned. When configured, existing agent assignees not in the list are removed
@@ -2998,6 +3014,21 @@ safe-outputs:
     # Takes precedence over trial target repo settings.
     # (optional)
     target-repo: "example-value"
+
+    # Target repository where the pull request should be created, in format
+    # 'owner/repo'. If omitted, the PR will be created in the same repository as the
+    # issue (specified by target-repo or the workflow's repository). This allows
+    # issues and code to live in different repositories.
+    # (optional)
+    pull-request-repo: "owner/repo"
+
+    # List of additional repositories that pull requests can be created in beyond
+    # pull-request-repo. Each entry should be in 'owner/repo' format. The repository
+    # specified by pull-request-repo is automatically allowed without needing to be
+    # listed here.
+    # (optional)
+    allowed-pull-request-repos: []
+      # Array of strings
 
     # If true, the workflow continues gracefully when agent assignment fails (e.g.,
     # due to missing token or insufficient permissions), logging a warning instead of
