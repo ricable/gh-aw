@@ -5,7 +5,6 @@ package cli
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -56,8 +55,8 @@ This is a test workflow.
 	}
 
 	// Verify the spec
-	if !strings.HasPrefix(spec.WorkflowPath, "./") {
-		t.Errorf("Expected WorkflowPath to start with './', got: %s", spec.WorkflowPath)
+	if !isLocalWorkflowPath(spec.WorkflowPath) {
+		t.Errorf("Expected WorkflowPath to be a local path, got: %s", spec.WorkflowPath)
 	}
 
 	if spec.WorkflowName != "test-workflow" {

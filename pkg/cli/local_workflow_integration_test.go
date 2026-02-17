@@ -92,18 +92,12 @@ This is a test local workflow.
 		t.Errorf("Expected buildSourceString() %q, got %q", expectedSourceString, sourceString)
 	}
 
-	// Test findWorkflowInPackageForRepo
-	content, sourceInfo, err := findWorkflowInPackageForRepo(spec, false)
-	if err != nil {
-		t.Fatalf("Failed to find local workflow: %v", err)
-	}
-
 	if string(content) != testContent {
 		t.Errorf("Content mismatch")
 	}
 
-	if sourceInfo.PackagePath != "." {
-		t.Errorf("Expected PackagePath '.', got %q", sourceInfo.PackagePath)
+	if !sourceInfo.IsLocal {
+		t.Errorf("Expected IsLocal true, got false")
 	}
 
 	if sourceInfo.SourcePath != "./workflows/test-local.md" {

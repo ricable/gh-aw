@@ -100,10 +100,11 @@ func TestAddWorkflows(t *testing.T) {
 			errorContains: "at least one workflow",
 		},
 		{
-			name:        "repo-only spec (should list workflows)",
-			workflows:   []string{"owner/repo"},
-			number:      1,
-			expectError: true, // Will error on workflow listing, but tests repo-only detection
+			name:          "repo-only spec (requires workflow path)",
+			workflows:     []string{"owner/repo"},
+			number:        1,
+			expectError:   true,
+			errorContains: "workflow specification must be in format",
 		},
 	}
 

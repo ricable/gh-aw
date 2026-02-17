@@ -222,29 +222,9 @@ func installWorkflowInTrialMode(ctx context.Context, tempDir string, parsedSpec 
 			fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("Installing workflow '%s' from '%s' in trial mode", parsedSpec.WorkflowName, parsedSpec.RepoSlug)))
 		}
 
-		// Install the source repository as a package
-		if err := InstallPackage(parsedSpec.RepoSlug, opts.Verbose); err != nil {
-			return fmt.Errorf("failed to install source repository: %w", err)
-		}
-
-		// Add the workflow from the installed package
-		addOpts := AddOptions{
-			Number:                 1,
-			Verbose:                opts.Verbose,
-			EngineOverride:         "",
-			Name:                   "",
-			Force:                  true,
-			AppendText:             opts.AppendText,
-			CreatePR:               false,
-			Push:                   false,
-			NoGitattributes:        false,
-			WorkflowDir:            "",
-			NoStopAfter:            false,
-			StopAfter:              "",
-			DisableSecurityScanner: opts.DisableSecurityScanner,
-		}
-		if _, err := AddWorkflows([]string{parsedSpec.String()}, addOpts); err != nil {
-			return fmt.Errorf("failed to add workflow: %w", err)
+		// Fetch the workflow content directly from GitHub (no cloning)
+		if err := installRemoteWorkflowInTrialMode(tempDir, parsedSpec, opts); err != nil {
+			return fmt.Errorf("failed to install remote workflow: %w", err)
 		}
 	}
 
@@ -365,6 +345,92 @@ func installLocalWorkflowInTrialMode(originalDir, tempDir string, parsedSpec *Wo
 
 	if opts.Verbose {
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Copied local workflow from %s to %s", sourcePath, destPath)))
+	}
+
+	return nil
+}
+
+// installRemoteWorkflowInTrialMode installs a remote workflow by fetching it directly from GitHub
+func installRemoteWorkflowInTrialMode(tempDir string, parsedSpec *WorkflowSpec, opts *TrialOptions) error {
+	trialRepoLog.Printf("Installing remote workflow in trial mode: %s", parsedSpec.String())
+
+	// Fetch the workflow content directly from GitHub
+	fetched, err := FetchWorkflowFromSource(parsedSpec, opts.Verbose)
+	if err != nil {
+		return fmt.Errorf("failed to fetch workflow from GitHub: %w", err)
+	}
+
+	content := fetched.Content
+
+	// Security scan: reject workflows containing malicious or dangerous content
+	if !opts.DisableSecurityScanner {
+		if findings := workflow.ScanMarkdownSecurity(string(content)); len(findings) > 0 {
+			fmt.Fprintln(os.Stderr, console.FormatErrorMessage("Security scan failed for workflow"))
+			fmt.Fprintln(os.Stderr, workflow.FormatSecurityFindings(findings))
+			return fmt.Errorf("workflow '%s' failed security scan: %d issue(s) detected", parsedSpec.WorkflowName, len(findings))
+		}
+		if opts.Verbose {
+			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Security scan passed"))
+		}
+	} else if opts.Verbose {
+		fmt.Fprintln(os.Stderr, console.FormatWarningMessage("Security scanning disabled"))
+	}
+
+	// Create the workflows directory in the temp directory
+	workflowsDir := filepath.Join(tempDir, constants.GetWorkflowDir())
+	workflowsDir, err = fileutil.ValidateAbsolutePath(workflowsDir)
+	if err != nil {
+		return fmt.Errorf("invalid workflows directory path: %w", err)
+	}
+
+	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create workflows directory: %w", err)
+	}
+
+	// Construct the destination path
+	destPath := filepath.Join(workflowsDir, parsedSpec.WorkflowName+".md")
+	destPath, err = fileutil.ValidateAbsolutePath(destPath)
+	if err != nil {
+		return fmt.Errorf("invalid destination path: %w", err)
+	}
+
+	// Append text if provided
+	if opts.AppendText != "" {
+		contentStr := string(content)
+		if !strings.HasSuffix(contentStr, "\n") {
+			contentStr += "\n"
+		}
+		contentStr += "\n" + opts.AppendText
+		content = []byte(contentStr)
+	}
+
+	// Add source field to frontmatter
+	sourceString := buildSourceStringWithCommitSHA(parsedSpec, fetched.CommitSHA)
+	if sourceString != "" {
+		updatedContent, err := addSourceToWorkflow(string(content), sourceString)
+		if err != nil {
+			if opts.Verbose {
+				fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Failed to add source field: %v", err)))
+			}
+		} else {
+			content = []byte(updatedContent)
+		}
+	}
+
+	// Write the workflow content to the destination
+	if err := os.WriteFile(destPath, content, 0644); err != nil {
+		return fmt.Errorf("failed to write workflow to destination: %w", err)
+	}
+
+	if opts.Verbose {
+		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Fetched remote workflow to %s", destPath)))
+	}
+
+	// Fetch and save include dependencies from the remote source
+	if err := fetchAndSaveRemoteIncludes(string(content), parsedSpec, workflowsDir, opts.Verbose, true, nil); err != nil {
+		if opts.Verbose {
+			fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Failed to fetch include dependencies: %v", err)))
+		}
 	}
 
 	return nil

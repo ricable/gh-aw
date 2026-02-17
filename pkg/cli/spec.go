@@ -33,11 +33,28 @@ type WorkflowSpec struct {
 	IsWildcard   bool   // true if this is a wildcard spec (e.g., "owner/repo/*")
 }
 
+// isLocalWorkflowPath checks if a path refers to a local filesystem workflow.
+// Local paths start with "./", "../", "/" (absolute Unix), or are Windows absolute paths.
+func isLocalWorkflowPath(path string) bool {
+	if strings.HasPrefix(path, "./") || strings.HasPrefix(path, "../") {
+		return true
+	}
+	// Absolute Unix paths
+	if strings.HasPrefix(path, "/") {
+		return true
+	}
+	// Windows absolute paths (e.g., C:\path or D:/path)
+	if len(path) >= 2 && path[1] == ':' {
+		return true
+	}
+	return false
+}
+
 // String returns the canonical string representation of the workflow spec
 // in the format "owner/repo/path[@version]" or just the WorkflowPath for local specs
 func (w *WorkflowSpec) String() string {
-	// For local workflows (starting with "./"), return just the WorkflowPath
-	if strings.HasPrefix(w.WorkflowPath, "./") {
+	// For local workflows, return just the WorkflowPath
+	if isLocalWorkflowPath(w.WorkflowPath) {
 		return w.WorkflowPath
 	}
 
@@ -57,7 +74,7 @@ func isRepoOnlySpec(spec string) bool {
 	}
 
 	// Local paths are not repo-only specs
-	if strings.HasPrefix(spec, "./") {
+	if isLocalWorkflowPath(spec) {
 		return false
 	}
 
@@ -195,8 +212,8 @@ func parseWorkflowSpec(spec string) (*WorkflowSpec, error) {
 		return parseGitHubURL(spec)
 	}
 
-	// Check if this is a local path starting with "./"
-	if strings.HasPrefix(spec, "./") {
+	// Check if this is a local path
+	if isLocalWorkflowPath(spec) {
 		specLog.Print("Detected local path format")
 		return parseLocalWorkflowSpec(spec)
 	}
