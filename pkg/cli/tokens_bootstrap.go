@@ -76,8 +76,17 @@ func runTokensBootstrap(engine, owner, repo string) error {
 	} else {
 		// When no engine specified, get all engine secrets plus system secrets
 		requirements = GetRequiredSecretsForEngine("", true, true)
-		// Add all engine-specific secrets as optional
+		// Add all engine-specific secrets as optional, deduplicating by secret name
+		// (e.g., CopilotEngine and CopilotSDKEngine both use COPILOT_GITHUB_TOKEN)
+		seenSecrets := make(map[string]bool)
+		for _, req := range requirements {
+			seenSecrets[req.Name] = true
+		}
 		for _, opt := range constants.EngineOptions {
+			if seenSecrets[opt.SecretName] {
+				continue // Skip duplicate secret names
+			}
+			seenSecrets[opt.SecretName] = true
 			requirements = append(requirements, SecretRequirement{
 				Name:               opt.SecretName,
 				WhenNeeded:         opt.WhenNeeded,

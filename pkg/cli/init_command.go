@@ -119,9 +119,9 @@ Examples:
 				!cmd.Flags().Changed("completions") && !cmd.Flags().Changed("push") &&
 				!cmd.Flags().Changed("create-pull-request") && !cmd.Flags().Changed("pr") {
 
-				// Enter interactive mode
-				initCommandLog.Print("Entering interactive mode")
-				return InitRepositoryInteractive(verbose, cmd.Root())
+				// Enter default mode (no flags provided)
+				initCommandLog.Print("Entering default mode")
+				return InitRepositoryDefault(verbose, cmd.Root())
 			}
 
 			initCommandLog.Printf("Executing init command: verbose=%v, mcp=%v, tokens=%v, engine=%v, codespaces=%v, codespaceEnabled=%v, completions=%v, push=%v, createPR=%v", verbose, mcp, tokens, engine, codespaceRepos, codespaceEnabled, completions, push, createPR)

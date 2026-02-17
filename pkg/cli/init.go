@@ -14,9 +14,9 @@ import (
 
 var initLog = logger.New("cli:init")
 
-// InitRepositoryInteractive initializes the repository for agentic workflows (non-interactive)
-// This always configures for Copilot with MCP support
-func InitRepositoryInteractive(verbose bool, rootCmd CommandProvider) error {
+// InitRepositoryDefault initializes the repository for agentic workflows with default settings.
+// This is used when no flags are provided and always configures for Copilot with MCP support.
+func InitRepositoryDefault(verbose bool, rootCmd CommandProvider) error {
 	initLog.Print("Starting repository initialization")
 
 	fmt.Fprintln(os.Stderr, "")
