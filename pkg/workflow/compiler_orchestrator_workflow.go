@@ -171,27 +171,20 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 	workflowData.Concurrency = c.extractTopLevelYAMLSection(frontmatter, "concurrency")
 	workflowData.RunName = c.extractTopLevelYAMLSection(frontmatter, "run-name")
 	workflowData.Env = c.extractTopLevelYAMLSection(frontmatter, "env")
-	
+
 	// Extract env as map for agent job-level rendering
 	// This allows env variables to be scoped to the agent job instead of globally
 	if envValue, exists := frontmatter["env"]; exists {
-		orchestratorWorkflowLog.Printf("Found env in frontmatter: %T", envValue)
 		if envMap, ok := envValue.(map[string]any); ok {
-			orchestratorWorkflowLog.Printf("Env is a map with %d entries", len(envMap))
 			workflowData.EnvMap = make(map[string]string)
 			for key, value := range envMap {
 				if strValue, ok := value.(string); ok {
 					workflowData.EnvMap[key] = strValue
-					orchestratorWorkflowLog.Printf("Added env var %s", key)
-				} else {
-					orchestratorWorkflowLog.Printf("Skipping non-string env var %s: type=%T", key, value)
 				}
 			}
-		} else {
-			orchestratorWorkflowLog.Printf("Env is not a map: %T", envValue)
 		}
 	}
-	
+
 	workflowData.Features = c.extractFeatures(frontmatter)
 	workflowData.If = c.extractIfCondition(frontmatter)
 

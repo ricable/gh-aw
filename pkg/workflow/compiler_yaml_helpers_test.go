@@ -281,16 +281,18 @@ func TestGenerateWorkflowBody(t *testing.T) {
 			},
 		},
 		{
-			name: "workflow with env",
+			name: "workflow with env (no longer rendered globally)",
 			data: &WorkflowData{
 				Name: "Test Workflow",
 				On:   "on:\n  push:",
-				Env:  "env:\n  FOO: bar",
+				Env:  "env:\n  FOO: bar", // Legacy field, not rendered globally
+				EnvMap: map[string]string{ // Job-level env
+					"FOO": "bar",
+				},
 			},
 			expectInStr: []string{
 				`name: "Test Workflow"`,
-				"env:",
-				"FOO: bar",
+				// Note: env is no longer rendered globally, only at job level
 			},
 		},
 		{
