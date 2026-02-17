@@ -145,31 +145,6 @@ func TestInitCommandInteractiveModeDetection(t *testing.T) {
 	}
 }
 
-func TestInitRepositoryInteractivePreconditions(t *testing.T) {
-	// Test that InitRepositoryInteractive properly checks preconditions
-
-	// Test 1: Fails in CI environment
-	t.Setenv("CI", "true")
-	err := InitRepositoryInteractive(false, nil)
-	if err == nil {
-		t.Error("Expected InitRepositoryInteractive to fail in CI environment")
-	}
-	if !strings.Contains(err.Error(), "automated tests or CI") {
-		t.Errorf("Expected error about CI environment, got: %v", err)
-	}
-
-	// Test 2: Fails in test mode
-	t.Setenv("CI", "")
-	t.Setenv("GO_TEST_MODE", "true")
-	err = InitRepositoryInteractive(false, nil)
-	if err == nil {
-		t.Error("Expected InitRepositoryInteractive to fail in test mode")
-	}
-	if !strings.Contains(err.Error(), "automated tests or CI") {
-		t.Errorf("Expected error about test mode, got: %v", err)
-	}
-}
-
 func TestInitRepositoryBasic(t *testing.T) {
 	tmpDir := testutil.TempDir(t, "test-*")
 

@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/huh"
 	"github.com/github/gh-aw/pkg/console"
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
@@ -15,39 +14,13 @@ import (
 
 var initLog = logger.New("cli:init")
 
-// InitRepositoryInteractive runs an interactive setup for the repository
+// InitRepositoryInteractive initializes the repository for agentic workflows (non-interactive)
+// This always configures for Copilot with MCP support
 func InitRepositoryInteractive(verbose bool, rootCmd CommandProvider) error {
-	initLog.Print("Starting interactive repository initialization")
-
-	// Assert this function is not running in automated unit tests
-	if os.Getenv("GO_TEST_MODE") == "true" || os.Getenv("CI") != "" {
-		return fmt.Errorf("interactive init cannot be used in automated tests or CI environments")
-	}
-
-	// Run shared precondition checks (same as `gh aw add`)
-	// This verifies: gh auth, git repo, Actions enabled, user permissions
-	preconditionResult, err := CheckInteractivePreconditions(verbose)
-	if err != nil {
-		return err
-	}
-	initLog.Printf("Precondition checks passed, repo: %s, isPublic: %v", preconditionResult.RepoSlug, preconditionResult.IsPublicRepo)
+	initLog.Print("Starting repository initialization")
 
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Welcome to GitHub Agentic Workflows setup!"))
-	fmt.Fprintln(os.Stderr, "")
-
-	// Prompt for engine selection
-	var selectedEngine string
-
-	// Use interactive prompt to select engine
-	form := createEngineSelectionForm(&selectedEngine, constants.EngineOptions)
-	if err := form.Run(); err != nil {
-		return fmt.Errorf("engine selection failed: %w", err)
-	}
-
-	initLog.Printf("User selected engine: %s", selectedEngine)
-	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("Configuring repository for %s engine...", selectedEngine)))
+	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Initializing repository for GitHub Agentic Workflows..."))
 	fmt.Fprintln(os.Stderr, "")
 
 	// Initialize repository with basic settings
@@ -55,39 +28,26 @@ func InitRepositoryInteractive(verbose bool, rootCmd CommandProvider) error {
 		return err
 	}
 
-	// Configure engine-specific settings
-	copilotMcp := false
-	if selectedEngine == string(constants.CopilotEngine) {
-		copilotMcp = true
-		initLog.Print("Copilot engine selected, enabling MCP configuration")
+	// Always configure Copilot MCP
+	initLog.Print("Configuring GitHub Copilot Agent MCP integration")
+
+	// Detect action mode for setup steps generation
+	actionMode := workflow.DetectActionMode(GetVersion())
+	initLog.Printf("Using action mode for copilot-setup-steps.yml: %s", actionMode)
+
+	// Create copilot-setup-steps.yml
+	if err := ensureCopilotSetupSteps(verbose, actionMode, GetVersion()); err != nil {
+		initLog.Printf("Failed to create copilot-setup-steps.yml: %v", err)
+		return fmt.Errorf("failed to create copilot-setup-steps.yml: %w", err)
 	}
+	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .github/workflows/copilot-setup-steps.yml"))
 
-	// Configure MCP if copilot is selected
-	if copilotMcp {
-		initLog.Print("Configuring GitHub Copilot Agent MCP integration")
-
-		// Detect action mode for setup steps generation
-		actionMode := workflow.DetectActionMode(GetVersion())
-		initLog.Printf("Using action mode for copilot-setup-steps.yml: %s", actionMode)
-
-		// Create copilot-setup-steps.yml
-		if err := ensureCopilotSetupSteps(verbose, actionMode, GetVersion()); err != nil {
-			initLog.Printf("Failed to create copilot-setup-steps.yml: %v", err)
-			return fmt.Errorf("failed to create copilot-setup-steps.yml: %w", err)
-		}
-		if verbose {
-			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .github/workflows/copilot-setup-steps.yml"))
-		}
-
-		// Create .vscode/mcp.json
-		if err := ensureMCPConfig(verbose); err != nil {
-			initLog.Printf("Failed to create MCP config: %v", err)
-			return fmt.Errorf("failed to create MCP config: %w", err)
-		}
-		if verbose {
-			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .vscode/mcp.json"))
-		}
+	// Create .vscode/mcp.json
+	if err := ensureMCPConfig(verbose); err != nil {
+		initLog.Printf("Failed to create MCP config: %v", err)
+		return fmt.Errorf("failed to create MCP config: %w", err)
 	}
+	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .vscode/mcp.json"))
 
 	// Configure VSCode settings
 	initLog.Print("Configuring VSCode settings")
@@ -95,19 +55,15 @@ func InitRepositoryInteractive(verbose bool, rootCmd CommandProvider) error {
 		initLog.Printf("Failed to update VSCode settings: %v", err)
 		return fmt.Errorf("failed to update VSCode settings: %w", err)
 	}
-	if verbose {
-		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Updated .vscode/settings.json"))
-	}
+	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Updated .vscode/settings.json"))
 
 	// Display success message
-	initLog.Print("Interactive repository initialization completed successfully")
+	initLog.Print("Repository initialization completed successfully")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Repository initialized for agentic workflows!"))
 	fmt.Fprintln(os.Stderr, "")
-	if copilotMcp {
-		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("GitHub Copilot Agent MCP integration configured"))
-		fmt.Fprintln(os.Stderr, "")
-	}
+	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("GitHub Copilot Agent MCP integration configured"))
+	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("To create a workflow, launch Copilot CLI: npx @github/copilot"))
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Then type /agent and select agentic-workflows"))
 	fmt.Fprintln(os.Stderr, "")
@@ -115,25 +71,6 @@ func InitRepositoryInteractive(verbose bool, rootCmd CommandProvider) error {
 	fmt.Fprintln(os.Stderr, "")
 
 	return nil
-}
-
-// createEngineSelectionForm creates an interactive form for engine selection
-func createEngineSelectionForm(selectedEngine *string, engineOptions []constants.EngineOption) *huh.Form {
-	// Build options for huh.Select
-	var options []huh.Option[string]
-	for _, opt := range engineOptions {
-		options = append(options, huh.NewOption(fmt.Sprintf("%s - %s", opt.Label, opt.Description), opt.Value))
-	}
-
-	return huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[string]().
-				Title("Which coding agent would you like to use?").
-				Description("Select the coding agent that will power your agentic workflows").
-				Options(options...).
-				Value(selectedEngine),
-		),
-	).WithAccessible(console.IsAccessibleMode())
 }
 
 // initializeBasicRepository sets up the basic repository structure
