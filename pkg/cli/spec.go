@@ -310,18 +310,11 @@ func parseLocalWorkflowSpec(spec string) (*WorkflowSpec, error) {
 		return nil, fmt.Errorf("local workflow specification must end with '.md' extension: %s", spec)
 	}
 
-	// Get current repository info
-	repoInfo, err := GetCurrentRepoSlug()
-	if err != nil {
-		specLog.Printf("Failed to get current repo slug: %v", err)
-		return nil, fmt.Errorf("failed to get current repository info for local workflow: %w", err)
-	}
-
-	specLog.Printf("Parsed local workflow: repo=%s, path=%s", repoInfo, spec)
+	specLog.Printf("Parsed local workflow: path=%s", spec)
 
 	return &WorkflowSpec{
 		RepoSpec: RepoSpec{
-			RepoSlug: repoInfo,
+			RepoSlug: "", // Local workflows have no remote repo
 			Version:  "", // Local workflows have no version
 		},
 		WorkflowPath: spec, // Keep the "./" prefix in WorkflowPath
