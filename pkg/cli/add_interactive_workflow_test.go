@@ -51,7 +51,7 @@ func TestGetWorkflowStatuses(t *testing.T) {
 			}
 			// If no error and statuses exist, verify they're valid
 			if err == nil && statuses != nil {
-				assert.True(t, len(statuses) >= 0, "Statuses should be a valid slice")
+				assert.GreaterOrEqual(t, len(statuses), 0, "Statuses should be a valid slice")
 			}
 		})
 	}

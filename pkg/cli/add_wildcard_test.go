@@ -11,6 +11,7 @@ import (
 
 	"github.com/github/gh-aw/pkg/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestParseWorkflowSpecWithWildcard tests parsing workflow specs with wildcards
@@ -283,7 +284,7 @@ func TestExpandLocalWildcardWorkflows_NoMatches(t *testing.T) {
 
 	_, err = expandLocalWildcardWorkflows(specs, false)
 	// Should error because no workflows found after expansion
-	assert.Error(t, err, "Should error when no workflows match")
+	require.Error(t, err, "Should error when no workflows match")
 	assert.Contains(t, err.Error(), "no workflows to add after expansion")
 }
 
