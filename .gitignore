@@ -167,6 +167,7 @@ test-inline-*.lock.yml
 *.zip
 # Temporary downloaded logs
 *.txt
+!.github/aw/prompt-pack-version.txt
 conclusion/
 detection/
 
