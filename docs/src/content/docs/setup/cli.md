@@ -117,20 +117,20 @@ Commands are organized by workflow lifecycle: creating, building, testing, monit
 
 #### `init`
 
-Initialize repository for agentic workflows. Configures `.gitattributes`, Copilot instructions, prompt files, and logs `.gitignore`. Enables MCP server integration by default (use `--no-mcp` to skip). Without arguments, enters interactive mode for engine selection and secret configuration.
+Initialize repository for agentic workflows. Configures `.gitattributes`, Copilot instructions, prompt files, and VSCode settings. Enables MCP server integration by default (use `--no-mcp` to skip). Without arguments, enters interactive mode for engine selection and secret configuration.
 
 ```bash wrap
 gh aw init                              # Interactive mode: select engine and configure secrets
-gh aw init --engine copilot             # Non-interactive with specific engine
+gh aw init -v                           # Interactive with verbose output
 gh aw init --no-mcp                     # Skip MCP server integration
-gh aw init --tokens --engine copilot    # Check Copilot token configuration
 gh aw init --codespaces                 # Configure devcontainer for current repo
 gh aw init --codespaces repo1,repo2     # Configure devcontainer for additional repos
 gh aw init --completions                # Install shell completions
 gh aw init --push                       # Initialize and automatically commit/push changes
+gh aw init --create-pull-request        # Initialize and create a pull request
 ```
 
-**Options:** `--engine` (copilot, claude, codex), `--no-mcp`, `--tokens`, `--codespaces`, `--completions`, `--push` (see [--push flag](#the---push-flag))
+**Options:** `--no-mcp`, `--codespaces`, `--completions`, `--push` (see [--push flag](#the---push-flag)), `--create-pull-request`
 
 #### `add`
 
