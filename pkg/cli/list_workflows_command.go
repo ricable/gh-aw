@@ -28,43 +28,29 @@ type WorkflowListItem struct {
 // NewListCommand creates the list command
 func NewListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list [owner/repo] [pattern]",
+		Use:   "list [pattern]",
 		Short: "List agentic workflows in the repository",
 		Long: `List all agentic workflows in a repository without checking their status.
 
 Displays a simplified table with workflow name, AI engine, and compilation status.
 Unlike 'status', this command does not check GitHub workflow state or time remaining.
 
-The optional owner/repo argument specifies a remote repository to list workflows from.
-If not provided, lists workflows from the current repository.
-
 The optional pattern argument filters workflows by name (case-insensitive substring match).
 
 Examples:
   ` + string(constants.CLIExtensionPrefix) + ` list                          # List all workflows in current repo
-  ` + string(constants.CLIExtensionPrefix) + ` list github/gh-aw             # List workflows from github/gh-aw repo
+  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw      # List workflows from github/gh-aw repo
   ` + string(constants.CLIExtensionPrefix) + ` list ci-                       # List workflows with 'ci-' in name
-  ` + string(constants.CLIExtensionPrefix) + ` list github/gh-aw ci-         # List workflows from github/gh-aw with 'ci-' in name
+  ` + string(constants.CLIExtensionPrefix) + ` list --repo github/gh-aw ci-  # List workflows from github/gh-aw with 'ci-' in name
   ` + string(constants.CLIExtensionPrefix) + ` list --json                    # Output in JSON format
   ` + string(constants.CLIExtensionPrefix) + ` list --label automation        # List workflows with 'automation' label`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var repo string
 			var pattern string
-
-			// Parse arguments: [owner/repo] [pattern]
 			if len(args) > 0 {
-				// Check if first arg looks like a repo (contains /)
-				if strings.Contains(args[0], "/") {
-					repo = args[0]
-					if len(args) > 1 {
-						pattern = args[1]
-					}
-				} else {
-					// First arg is pattern
-					pattern = args[0]
-				}
+				pattern = args[0]
 			}
 
+			repo, _ := cmd.Flags().GetString("repo")
 			verbose, _ := cmd.Flags().GetBool("verbose")
 			jsonFlag, _ := cmd.Flags().GetBool("json")
 			labelFilter, _ := cmd.Flags().GetString("label")
@@ -72,6 +58,7 @@ Examples:
 		},
 	}
 
+	addRepoFlag(cmd)
 	addJSONFlag(cmd)
 	cmd.Flags().String("label", "", "Filter workflows by label")
 
