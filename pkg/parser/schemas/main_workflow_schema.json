@@ -33,6 +33,12 @@
       "description": "Optional tracker identifier to tag all created assets (issues, discussions, comments, pull requests). Must be at least 8 characters and contain only alphanumeric characters, hyphens, and underscores. This identifier will be inserted in the body/description of all created assets to enable searching and retrieving assets associated with this workflow.",
       "examples": ["workflow-2024-q1", "team-alpha-bot", "security_audit_v2"]
     },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?(\\+[a-zA-Z0-9.-]+)?$",
+      "description": "Prompt version using semantic versioning format (major.minor.patch with optional pre-release and build metadata). Used to track prompt evolution for testing, rollback, and A/B experiments.",
+      "examples": ["1.0.0", "2.1.3", "1.0.0-beta.1", "1.2.3-alpha.1+build.123"]
+    },
     "labels": {
       "type": "array",
       "description": "Optional array of labels to categorize and organize workflows. Labels can be used to filter workflows in status/list commands.",

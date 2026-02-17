@@ -68,6 +68,24 @@ func (c *Compiler) extractSource(frontmatter map[string]any) string {
 	return ""
 }
 
+// extractVersion extracts the version field from frontmatter
+func (c *Compiler) extractVersion(frontmatter map[string]any) string {
+	value, exists := frontmatter["version"]
+	if !exists {
+		return ""
+	}
+
+	// Convert the value to string
+	if strValue, ok := value.(string); ok {
+		version := strings.TrimSpace(strValue)
+		frontmatterMetadataLog.Printf("Extracted version: %s", version)
+		return version
+	}
+
+	frontmatterMetadataLog.Printf("Version field is not a string: type=%T", value)
+	return ""
+}
+
 // extractTrackerID extracts and validates the tracker-id field from frontmatter
 func (c *Compiler) extractTrackerID(frontmatter map[string]any) (string, error) {
 	value, exists := frontmatter["tracker-id"]

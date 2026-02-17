@@ -76,6 +76,12 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 		fmt.Fprintf(yaml, "# Source: %s\n", cleanSource)
 	}
 
+	// Add version comment if provided
+	if data.Version != "" {
+		yaml.WriteString("#\n")
+		fmt.Fprintf(yaml, "# Prompt Version: %s\n", data.Version)
+	}
+
 	// Add manifest of imported/included files if any exist
 	if len(data.ImportedFiles) > 0 || len(data.IncludedFiles) > 0 {
 		yaml.WriteString("#\n")
@@ -510,6 +516,11 @@ func (c *Compiler) generateCreateAwInfo(yaml *strings.Builder, data *WorkflowDat
 	fmt.Fprintf(yaml, "              workflow_name: \"%s\",\n", data.Name)
 	fmt.Fprintf(yaml, "              experimental: %t,\n", engine.IsExperimental())
 	fmt.Fprintf(yaml, "              supports_tools_allowlist: %t,\n", engine.SupportsToolsAllowlist())
+
+	// Prompt version (if specified)
+	if data.Version != "" {
+		fmt.Fprintf(yaml, "              prompt_version: \"%s\",\n", data.Version)
+	}
 
 	// Run metadata
 	yaml.WriteString("              run_id: context.runId,\n")

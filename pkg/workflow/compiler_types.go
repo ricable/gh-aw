@@ -385,6 +385,7 @@ type WorkflowData struct {
 	FrontmatterYAML       string         // raw frontmatter YAML content (rendered as comment in lock file for reference)
 	Description           string         // optional description rendered as comment in lock file
 	Source                string         // optional source field (owner/repo@ref/path) rendered as comment in lock file
+	Version               string         // optional semantic version for the prompt (e.g., "1.0.0", "2.1.3-beta.1")
 	TrackerID             string         // optional tracker identifier for created assets (min 8 chars, alphanumeric + hyphens/underscores)
 	ImportedFiles         []string       // list of files imported via imports field (rendered as comment in lock file)
 	ImportedMarkdown      string         // Only imports WITH inputs (for compile-time substitution)
