@@ -92,7 +92,8 @@ func (c *AddInteractiveConfig) checkStatusAndOfferRun(ctx context.Context) error
 		addInteractiveLog.Print("Running in Codespaces, skipping run offer and showing Actions link")
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Running in GitHub Codespaces - please trigger the workflow manually from the Actions page"))
-		fmt.Fprintf(os.Stderr, "🔗 https://github.com/%s/actions\n", c.RepoOverride)
+		githubHost := getGitHubHost()
+		fmt.Fprintf(os.Stderr, "🔗 %s/%s/actions\n", githubHost, c.RepoOverride)
 		c.showFinalInstructions()
 		return nil
 	}

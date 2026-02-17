@@ -306,7 +306,17 @@ func downloadIncludeFromWorkflowSpec(spec string, cache *ImportCache) (string, e
 func resolveRefToSHAViaGit(owner, repo, ref string) (string, error) {
 	remoteLog.Printf("Attempting git ls-remote fallback for ref resolution: %s/%s@%s", owner, repo, ref)
 
-	repoURL := fmt.Sprintf("https://github.com/%s/%s.git", owner, repo)
+	// Get GitHub host from environment with fallback
+	githubHost := os.Getenv("GITHUB_SERVER_URL")
+	if githubHost == "" {
+		githubHost = os.Getenv("GH_HOST")
+	}
+	if githubHost == "" {
+		githubHost = "https://github.com"
+	}
+	githubHost = strings.TrimSuffix(githubHost, "/")
+
+	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
 
 	// Try to resolve the ref using git ls-remote
 	// Format: git ls-remote <repo> <ref>
@@ -395,9 +405,19 @@ func resolveRefToSHA(owner, repo, ref string) (string, error) {
 func downloadFileViaGit(owner, repo, path, ref string) ([]byte, error) {
 	remoteLog.Printf("Attempting git fallback for %s/%s/%s@%s", owner, repo, path, ref)
 
+	// Get GitHub host from environment with fallback
+	githubHost := os.Getenv("GITHUB_SERVER_URL")
+	if githubHost == "" {
+		githubHost = os.Getenv("GH_HOST")
+	}
+	if githubHost == "" {
+		githubHost = "https://github.com"
+	}
+	githubHost = strings.TrimSuffix(githubHost, "/")
+
 	// Use git archive to get the file content without cloning
 	// This works for public repositories without authentication
-	repoURL := fmt.Sprintf("https://github.com/%s/%s.git", owner, repo)
+	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
 
 	// git archive command: git archive --remote=<repo> <ref> <path>
 	cmd := exec.Command("git", "archive", "--remote="+repoURL, ref, path)
@@ -432,7 +452,17 @@ func downloadFileViaGitClone(owner, repo, path, ref string) ([]byte, error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	repoURL := fmt.Sprintf("https://github.com/%s/%s.git", owner, repo)
+	// Get GitHub host from environment with fallback
+	githubHost := os.Getenv("GITHUB_SERVER_URL")
+	if githubHost == "" {
+		githubHost = os.Getenv("GH_HOST")
+	}
+	if githubHost == "" {
+		githubHost = "https://github.com"
+	}
+	githubHost = strings.TrimSuffix(githubHost, "/")
+
+	repoURL := fmt.Sprintf("%s/%s/%s.git", githubHost, owner, repo)
 
 	// Check if ref is a SHA (40 hex characters)
 	isSHA := len(ref) == 40 && gitutil.IsHexString(ref)

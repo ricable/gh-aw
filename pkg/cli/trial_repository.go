@@ -78,7 +78,8 @@ func ensureTrialRepository(repoSlug string, cloneRepoSlug string, forceDeleteHos
 			if dryRun {
 				prefix = "[DRY RUN] "
 			}
-			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("%sUsing existing host repository: https://github.com/%s", prefix, repoSlug)))
+			githubHost := getGitHubHost()
+			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("%sUsing existing host repository: %s/%s", prefix, githubHost, repoSlug)))
 			return nil
 		}
 	}
