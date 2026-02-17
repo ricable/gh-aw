@@ -41,6 +41,15 @@ async function main() {
           content += `**Pull Request:** #${item.pull_number}\n`;
         }
         content += `**Agent:** ${item.agent || "copilot"}\n`;
+        if (item.model) {
+          content += `**Model:** ${item.model}\n`;
+        }
+        if (item.custom_agent) {
+          content += `**Custom Agent:** ${item.custom_agent}\n`;
+        }
+        if (item.custom_instructions) {
+          content += `**Custom Instructions:** ${item.custom_instructions}\n`;
+        }
         content += "\n";
         return content;
       },
@@ -51,6 +60,24 @@ async function main() {
   // Get default agent from configuration
   const defaultAgent = process.env.GH_AW_AGENT_DEFAULT?.trim() ?? "copilot";
   core.info(`Default agent: ${defaultAgent}`);
+
+  // Get default model from configuration
+  const defaultModel = process.env.GH_AW_AGENT_DEFAULT_MODEL?.trim();
+  if (defaultModel) {
+    core.info(`Default model: ${defaultModel}`);
+  }
+
+  // Get default custom agent from configuration
+  const defaultCustomAgent = process.env.GH_AW_AGENT_DEFAULT_CUSTOM_AGENT?.trim();
+  if (defaultCustomAgent) {
+    core.info(`Default custom agent: ${defaultCustomAgent}`);
+  }
+
+  // Get default custom instructions from configuration
+  const defaultCustomInstructions = process.env.GH_AW_AGENT_DEFAULT_CUSTOM_INSTRUCTIONS?.trim();
+  if (defaultCustomInstructions) {
+    core.info(`Default custom instructions: ${defaultCustomInstructions}`);
+  }
 
   // Get target configuration (defaults to "triggering")
   const targetConfig = process.env.GH_AW_AGENT_TARGET?.trim() || "triggering";
@@ -175,6 +202,9 @@ async function main() {
   for (let i = 0; i < itemsToProcess.length; i++) {
     const item = itemsToProcess[i];
     const agentName = item.agent ?? defaultAgent;
+    const model = item.model ?? defaultModel;
+    const customAgent = item.custom_agent ?? defaultCustomAgent;
+    const customInstructions = item.custom_instructions ?? defaultCustomInstructions;
 
     // Use these variables to allow temporary IDs to override target repo per-item.
     // Default to the configured target repo.
@@ -406,8 +436,18 @@ async function main() {
       // Assign agent using GraphQL mutation - uses built-in github object authenticated via github-token
       // Pass the allowed list so existing assignees are filtered before calling replaceActorsForAssignable
       // Pass the PR repo ID if configured (to specify where the PR should be created)
+      // Pass model, customAgent, and customInstructions if specified
       core.info(`Assigning ${agentName} coding agent to ${type} #${number}...`);
-      const success = await assignAgentToIssue(assignableId, agentId, currentAssignees, agentName, allowedAgents, effectivePullRequestRepoId);
+      if (model) {
+        core.info(`Using model: ${model}`);
+      }
+      if (customAgent) {
+        core.info(`Using custom agent: ${customAgent}`);
+      }
+      if (customInstructions) {
+        core.info(`Using custom instructions: ${customInstructions.substring(0, 100)}${customInstructions.length > 100 ? "..." : ""}`);
+      }
+      const success = await assignAgentToIssue(assignableId, agentId, currentAssignees, agentName, allowedAgents, effectivePullRequestRepoId, model, customAgent, customInstructions);
 
       if (!success) {
         throw new Error(`Failed to assign ${agentName} via GraphQL`);

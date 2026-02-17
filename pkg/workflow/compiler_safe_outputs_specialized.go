@@ -26,6 +26,21 @@ func (c *Compiler) buildAssignToAgentStepConfig(data *WorkflowData, mainJobName 
 		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_AGENT_DEFAULT: %q\n", cfg.DefaultAgent))
 	}
 
+	// Add default model environment variable
+	if cfg.DefaultModel != "" {
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_AGENT_DEFAULT_MODEL: %q\n", cfg.DefaultModel))
+	}
+
+	// Add default custom agent environment variable
+	if cfg.DefaultCustomAgent != "" {
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_AGENT_DEFAULT_CUSTOM_AGENT: %q\n", cfg.DefaultCustomAgent))
+	}
+
+	// Add default custom instructions environment variable
+	if cfg.DefaultCustomInstructions != "" {
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_AGENT_DEFAULT_CUSTOM_INSTRUCTIONS: %q\n", cfg.DefaultCustomInstructions))
+	}
+
 	// Add target configuration environment variable
 	if cfg.Target != "" {
 		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_AGENT_TARGET: %q\n", cfg.Target))
