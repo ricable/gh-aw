@@ -24,12 +24,12 @@ func TestEnvScopingToAgentJob(t *testing.T) {
 	}
 
 	compiler := NewCompiler()
-	
+
 	// Initialize workflow data
 	workflowData := &WorkflowData{
-		Name:        "Test Env Scoping",
-		On:          "on:\n  workflow_dispatch:",
-		AI:          "copilot",
+		Name: "Test Env Scoping",
+		On:   "on:\n  workflow_dispatch:",
+		AI:   "copilot",
 		EngineConfig: &EngineConfig{
 			ID: "copilot",
 		},
@@ -60,7 +60,7 @@ func TestEnvScopingToAgentJob(t *testing.T) {
 	jobManager := NewJobManager()
 	err = jobManager.AddJob(job)
 	require.NoError(t, err, "AddJob should succeed")
-	
+
 	yamlOutput := jobManager.RenderToYAML()
 
 	// Verify env is at job level, not workflow level
@@ -108,12 +108,12 @@ func TestEnvMergedWithSafeOutputsEnv(t *testing.T) {
 	}
 
 	compiler := NewCompiler()
-	
+
 	// Initialize workflow data
 	workflowData := &WorkflowData{
-		Name:        "Test Env Merging",
-		On:          "on:\n  workflow_dispatch:",
-		AI:          "copilot",
+		Name: "Test Env Merging",
+		On:   "on:\n  workflow_dispatch:",
+		AI:   "copilot",
 		EngineConfig: &EngineConfig{
 			ID: "copilot",
 		},
@@ -130,11 +130,11 @@ func TestEnvMergedWithSafeOutputsEnv(t *testing.T) {
 
 	// Verify both frontmatter env and safe-outputs env are present
 	assert.NotNil(t, job.Env, "Job should have env variables")
-	
+
 	// Frontmatter env
 	assert.Contains(t, job.Env, "CUSTOM_VAR", "Job env should contain custom env from frontmatter")
 	assert.Equal(t, "custom_value", job.Env["CUSTOM_VAR"])
-	
+
 	// Safe-outputs env (GH_AW_SAFE_OUTPUTS, etc.)
 	assert.Contains(t, job.Env, "GH_AW_SAFE_OUTPUTS", "Job env should contain GH_AW_SAFE_OUTPUTS")
 	assert.Contains(t, job.Env, "GH_AW_SAFE_OUTPUTS_CONFIG_PATH", "Job env should contain config path")

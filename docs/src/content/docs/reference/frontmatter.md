@@ -449,7 +449,7 @@ Automatically generates concurrency policies for the agent job. See [Concurrency
 
 ## Environment Variables (`env:`)
 
-Standard GitHub Actions `env:` syntax for workflow-level environment variables:
+Define environment variables scoped to the agent job using standard GitHub Actions `env:` syntax:
 
 ```yaml wrap
 env:
@@ -457,7 +457,11 @@ env:
   SECRET_VAR: ${{ secrets.MY_SECRET }}
 ```
 
-Environment variables can be defined at multiple scopes (workflow, job, step, engine, safe-outputs, etc.) with clear precedence rules. See [Environment Variables](/gh-aw/reference/environment-variables/) for complete documentation on all 13 env scopes and precedence order.
+**Scope**: Environment variables defined in the frontmatter `env:` section are applied **only to the agent job**, not to all jobs in the workflow. This provides better isolation and follows best practices for environment variable scoping.
+
+For custom jobs, define environment variables directly in the job configuration using `jobs.<job_id>.env`. For safe-output jobs, use `safe-outputs.env` or `safe-outputs.jobs.<job_name>.env`.
+
+Environment variables can be defined at multiple scopes (job, step, engine, safe-outputs, etc.) with clear precedence rules. See [Environment Variables](/gh-aw/reference/environment-variables/) for complete documentation on all env scopes and precedence order.
 
 ## Secrets (`secrets:`)
 

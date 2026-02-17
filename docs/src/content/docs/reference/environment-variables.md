@@ -13,7 +13,7 @@ GitHub Agentic Workflows supports environment variables in 13 distinct contexts:
 
 | Scope | Syntax | Context | Typical Use |
 |-------|--------|---------|-------------|
-| **Workflow-level** | `env:` | All jobs | Shared configuration |
+| **Frontmatter `env:`** | `env:` | Agent job only | Agent job configuration |
 | **Job-level** | `jobs.<job_id>.env` | All steps in job | Job-specific config |
 | **Step-level** | `steps[*].env` | Single step | Step-specific config |
 | **Engine** | `engine.env` | AI engine | Engine secrets, timeouts |
@@ -29,7 +29,7 @@ GitHub Agentic Workflows supports environment variables in 13 distinct contexts:
 
 ### Example Configurations
 
-**Workflow-level shared configuration:**
+**Frontmatter `env:` (agent job only):**
 ```yaml wrap
 ---
 env:
@@ -37,6 +37,9 @@ env:
   API_ENDPOINT: https://api.example.com
 ---
 ```
+
+> [!NOTE]
+> The frontmatter `env:` section applies **only to the agent job**, not to all jobs in the workflow. To set environment variables for custom jobs, use `jobs.<job_id>.env`. To set environment variables for safe-output jobs, use `safe-outputs.env` or `safe-outputs.jobs.<job_name>.env`.
 
 **Job-specific overrides:**
 ```yaml wrap
@@ -85,13 +88,16 @@ Environment variables follow a **most-specific-wins** model, consistent with Git
 
 1. **Step-level** (`steps[*].env`, `githubActionsStep.env`)
 2. **Job-level** (`jobs.<job_id>.env`)
-3. **Workflow-level** (`env:`)
+3. **Frontmatter `env:`** (applies to agent job only)
+
+> [!NOTE]
+> The frontmatter `env:` section is **not** workflow-level. It applies only to the agent job. Custom jobs must define their own environment variables using `jobs.<job_id>.env`.
 
 ### Safe Outputs Precedence
 
 1. **Job-specific** (`safe-outputs.jobs.<job_name>.env`)
 2. **Global** (`safe-outputs.env`)
-3. **Workflow-level** (`env:`)
+3. **Frontmatter `env:`** (if the safe-output job inherits from agent job)
 
 ### Context-Specific Scopes
 
@@ -102,33 +108,47 @@ These scopes are independent and operate in different contexts: `engine.env`, `c
 ```yaml wrap
 ---
 env:
-  API_KEY: default-key
+  API_KEY: agent-key      # Applied to agent job only
   DEBUG: "false"
 
 jobs:
   test:
     env:
-      API_KEY: test-key    # Overrides workflow-level
+      API_KEY: test-key    # Custom job defines its own env
       EXTRA: "value"
     steps:
       - run: |
-          # API_KEY = "test-key" (job-level override)
-          # DEBUG = "false" (workflow-level inherited)
+          # In 'test' job:
+          # API_KEY = "test-key" (job-level)
           # EXTRA = "value" (job-level)
+          # DEBUG is NOT available (frontmatter env not inherited)
+
+# In agent job:
+# API_KEY = "agent-key" (from frontmatter env)
+# DEBUG = "false" (from frontmatter env)
 ---
 ```
 
 ## Common Patterns
 
-**Shared configuration with job overrides:**
+**Agent job configuration:**
 ```yaml wrap
 ---
 env:
-  NODE_ENV: production
+  NODE_ENV: production  # Applied to agent job only
+---
+```
+
+**Custom jobs define their own env:**
+```yaml wrap
+---
+env:
+  AGENT_VAR: value  # Agent job only
+
 jobs:
   test:
     env:
-      NODE_ENV: test  # Override for testing
+      NODE_ENV: test  # Test job environment
 ---
 ```
 
@@ -191,41 +211,50 @@ During compilation, AWF extracts environment variables from frontmatter, preserv
 
 **Generated lock file structure:**
 ```yaml
-env:
-  SHARED_VAR: value
+# No workflow-level env section
 
 jobs:
   agent:
     env:
-      GH_AW_SAFE_OUTPUTS: /opt/gh-aw/safeoutputs/outputs.jsonl
+      # Frontmatter env variables merged with system env
       CUSTOM_VAR: ${{ secrets.CUSTOM_SECRET }}
+      GH_AW_SAFE_OUTPUTS: /opt/gh-aw/safeoutputs/outputs.jsonl
+      GH_AW_WORKFLOW_ID_SANITIZED: myworkflow
     steps:
       - name: Execute
         env:
           STEP_VAR: value
 ```
 
+> [!NOTE]
+> The frontmatter `env:` variables are merged into the agent job's `env:` section alongside system-generated variables like `GH_AW_SAFE_OUTPUTS` and `GH_AW_WORKFLOW_ID_SANITIZED`.
+
 ## Debugging Environment Variables
 
-**View all available variables:**
-```yaml wrap
-jobs:
-  debug:
-    steps:
-      - run: env | sort
-```
-
-**Test precedence:**
+**View all available variables in agent job:**
 ```yaml wrap
 ---
 env:
-  TEST_VAR: workflow
+  TEST_VAR: agent-value
+---
+
+# Add this to your workflow markdown to debug
+```
+
+The agent job will have access to `TEST_VAR` along with system variables.
+
+**Custom jobs define their own env:**
+```yaml wrap
+---
+env:
+  AGENT_VAR: agent-value  # Only in agent job
+
 jobs:
-  test:
+  debug:
     env:
-      TEST_VAR: job
+      DEBUG_VAR: custom-value  # Only in debug job
     steps:
-      - run: echo "TEST_VAR is $TEST_VAR"  # Outputs: "job"
+      - run: env | sort
 ---
 ```
 
