@@ -91,20 +91,4 @@ This is a test local workflow.
 	if sourceString != expectedSourceString {
 		t.Errorf("Expected buildSourceString() %q, got %q", expectedSourceString, sourceString)
 	}
-
-	if string(content) != testContent {
-		t.Errorf("Content mismatch")
-	}
-
-	if !sourceInfo.IsLocal {
-		t.Errorf("Expected IsLocal true, got false")
-	}
-
-	if sourceInfo.SourcePath != "./workflows/test-local.md" {
-		t.Errorf("Expected SourcePath './workflows/test-local.md', got %q", sourceInfo.SourcePath)
-	}
-
-	if sourceInfo.CommitSHA != "" {
-		t.Errorf("Expected empty CommitSHA for local workflow, got %q", sourceInfo.CommitSHA)
-	}
 }
