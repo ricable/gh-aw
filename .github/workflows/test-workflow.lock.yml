@@ -27,6 +27,19 @@
 #     - shared/mood.md
 #
 # frontmatter-hash: 7e28df1a5884fe8ab7987791066296378c3d879a1c3674706d645017734ec3de
+#
+# System Prompt Versions:
+# Generated: 2026-02-17T12:29:25Z
+# - cache_memory_prompt.md: 2026-02-17
+# - cache_memory_prompt_multi.md: 2026-02-17
+# - github_context_prompt.md: 2026-02-17
+# - markdown.md: 2026-02-17
+# - playwright_prompt.md: 2026-02-17
+# - pr_context_prompt.md: 2026-02-17
+# - temp_folder_prompt.md: 2026-02-17
+# - threat_detection.md: 2026-02-17
+# - xpia.md: 2026-02-17
+# Creator Prompt Hash: 7f2f3d05a4d30864
 
 name: "Test Workflow"
 "on":
@@ -101,6 +114,7 @@ jobs:
           cat "/opt/gh-aw/prompts/temp_folder_prompt.md" >> "$GH_AW_PROMPT"
           cat "/opt/gh-aw/prompts/markdown.md" >> "$GH_AW_PROMPT"
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
+          <!-- Version: 2026-02-17 -->
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if __GH_AW_GITHUB_ACTOR__ }}

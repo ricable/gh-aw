@@ -1,10 +1,19 @@
 package workflow
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"time"
 )
+
+// computeCreatorPromptHash computes a SHA-256 hash of the creator's prompt content
+func computeCreatorPromptHash(prompt string) string {
+	hash := sha256.Sum256([]byte(prompt))
+	// Return first 16 characters of hex hash for brevity
+	return hex.EncodeToString(hash[:])[:16]
+}
 
 // PromptVersion represents a version for a system prompt file.
 // Versions use YYYY-MM-DD format for simplicity and clarity.
@@ -85,15 +94,15 @@ func NewPromptVersionManifest() *PromptVersionManifest {
 	return &PromptVersionManifest{
 		GeneratedAt: time.Now(),
 		SystemPrompts: map[string]PromptVersion{
-			"xpia.md":                     XPIAPromptVersion,
-			"temp_folder_prompt.md":       TempFolderPromptVersion,
-			"markdown.md":                 MarkdownPromptVersion,
-			"playwright_prompt.md":        PlaywrightPromptVersion,
-			"pr_context_prompt.md":        PRContextPromptVersion,
-			"cache_memory_prompt.md":      CacheMemoryPromptVersion,
+			"xpia.md":                      XPIAPromptVersion,
+			"temp_folder_prompt.md":        TempFolderPromptVersion,
+			"markdown.md":                  MarkdownPromptVersion,
+			"playwright_prompt.md":         PlaywrightPromptVersion,
+			"pr_context_prompt.md":         PRContextPromptVersion,
+			"cache_memory_prompt.md":       CacheMemoryPromptVersion,
 			"cache_memory_prompt_multi.md": CacheMemoryPromptMultiVersion,
-			"github_context_prompt.md":    GitHubContextPromptVersion,
-			"threat_detection.md":         ThreatDetectionPromptVersion,
+			"github_context_prompt.md":     GitHubContextPromptVersion,
+			"threat_detection.md":          ThreatDetectionPromptVersion,
 		},
 	}
 }
@@ -108,24 +117,24 @@ func (m *PromptVersionManifest) GetVersion(filename string) (PromptVersion, bool
 func (m *PromptVersionManifest) ToYAMLComment() string {
 	comment := "# System Prompt Versions:\n"
 	comment += fmt.Sprintf("# Generated: %s\n", m.GeneratedAt.Format(time.RFC3339))
-	
+
 	// Sort the keys for consistent output
 	keys := make([]string, 0, len(m.SystemPrompts))
 	for key := range m.SystemPrompts {
 		keys = append(keys, key)
 	}
-	
+
 	// Use sort.Strings for alphabetical ordering
 	sort.Strings(keys)
-	
+
 	for _, key := range keys {
 		version := m.SystemPrompts[key]
 		comment += fmt.Sprintf("# - %s: %s\n", key, version)
 	}
-	
+
 	if m.CreatorPromptHash != "" {
 		comment += fmt.Sprintf("# Creator Prompt Hash: %s\n", m.CreatorPromptHash)
 	}
-	
+
 	return comment
 }

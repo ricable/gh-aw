@@ -28,6 +28,19 @@
 #     - shared/mood.md
 #
 # frontmatter-hash: 646580bd53fc97f9fedd2b71ac1a9cc10d11ad2c6d9baff423d9fff5c28a0efd
+#
+# System Prompt Versions:
+# Generated: 2026-02-17T12:29:20Z
+# - cache_memory_prompt.md: 2026-02-17
+# - cache_memory_prompt_multi.md: 2026-02-17
+# - github_context_prompt.md: 2026-02-17
+# - markdown.md: 2026-02-17
+# - playwright_prompt.md: 2026-02-17
+# - pr_context_prompt.md: 2026-02-17
+# - temp_folder_prompt.md: 2026-02-17
+# - threat_detection.md: 2026-02-17
+# - xpia.md: 2026-02-17
+# Creator Prompt Hash: e3e89bd8c031ed3d
 
 name: "Metrics Collector - Infrastructure Agent"
 "on":
@@ -131,6 +144,7 @@ jobs:
           
           Feel free to create, read, update, and organize files in this folder as needed for your tasks, using only the allowed file types.
           
+          <!-- Version: 2026-02-17 -->
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if __GH_AW_GITHUB_ACTOR__ }}

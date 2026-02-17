@@ -46,9 +46,9 @@ func (c *Compiler) buildJobsAndValidate(data *WorkflowData, markdownPath string)
 }
 
 // generateWorkflowHeader generates the YAML header section including comments
-// for description, source, imports/includes, frontmatter-hash, stop-time, and manual-approval.
+// for description, source, imports/includes, frontmatter-hash, prompt versions, stop-time, and manual-approval.
 // All ANSI escape codes are stripped from the output.
-func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowData, frontmatterHash string) {
+func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowData, frontmatterHash string, creatorPromptHash string) {
 	// Add workflow header with logo and instructions
 	sourceFile := "the corresponding .md file"
 	if data.Source != "" {
@@ -112,7 +112,7 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 	// Add system prompt version information
 	yaml.WriteString("#\n")
 	manifest := NewPromptVersionManifest()
-	// Note: CreatorPromptHash will be computed from the user's markdown content in future iterations
+	manifest.CreatorPromptHash = creatorPromptHash
 	yaml.WriteString(manifest.ToYAMLComment())
 
 	// Add stop-time comment if configured
@@ -173,6 +173,7 @@ func (c *Compiler) generateYAML(data *WorkflowData, markdownPath string) (string
 
 	// Compute frontmatter hash before generating YAML
 	var frontmatterHash string
+	var creatorPromptHash string
 	if markdownPath != "" {
 		baseDir := filepath.Dir(markdownPath)
 		cache := parser.NewImportCache(baseDir)
@@ -184,6 +185,12 @@ func (c *Compiler) generateYAML(data *WorkflowData, markdownPath string) (string
 			frontmatterHash = hash
 			compilerYamlLog.Printf("Computed frontmatter hash: %s", hash)
 		}
+
+		// Compute creator prompt hash (hash of the prompt content)
+		if data.MarkdownContent != "" {
+			creatorPromptHash = computeCreatorPromptHash(data.MarkdownContent)
+			compilerYamlLog.Printf("Computed creator prompt hash: %s", creatorPromptHash)
+		}
 	}
 
 	// Pre-allocate builder capacity based on estimated workflow size
@@ -191,8 +198,8 @@ func (c *Compiler) generateYAML(data *WorkflowData, markdownPath string) (string
 	var yaml strings.Builder
 	yaml.Grow(256 * 1024)
 
-	// Generate workflow header comments (including hash)
-	c.generateWorkflowHeader(&yaml, data, frontmatterHash)
+	// Generate workflow header comments (including hashes)
+	c.generateWorkflowHeader(&yaml, data, frontmatterHash, creatorPromptHash)
 
 	// Generate workflow body structure
 	c.generateWorkflowBody(&yaml, data)

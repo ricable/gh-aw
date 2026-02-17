@@ -30,6 +30,19 @@
 #     - shared/reporting.md
 #
 # frontmatter-hash: 3bc5d7adac1eba642348e556da6fdda43302f69b1feb09a404149133388f1b30
+#
+# System Prompt Versions:
+# Generated: 2026-02-17T12:29:22Z
+# - cache_memory_prompt.md: 2026-02-17
+# - cache_memory_prompt_multi.md: 2026-02-17
+# - github_context_prompt.md: 2026-02-17
+# - markdown.md: 2026-02-17
+# - playwright_prompt.md: 2026-02-17
+# - pr_context_prompt.md: 2026-02-17
+# - temp_folder_prompt.md: 2026-02-17
+# - threat_detection.md: 2026-02-17
+# - xpia.md: 2026-02-17
+# Creator Prompt Hash: 5a8216a09ba3c3a7
 
 name: "Basic Research Agent"
 "on":
@@ -134,6 +147,7 @@ jobs:
           **Note**: If you made no other safe output tool calls during this workflow execution, call the "noop" tool to provide a status message indicating completion or that no actions were needed.
           </instructions>
           </safe-outputs>
+          <!-- Version: 2026-02-17 -->
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if __GH_AW_GITHUB_ACTOR__ }}

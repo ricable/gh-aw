@@ -44,11 +44,11 @@ func TestPromptVersionIsValid(t *testing.T) {
 
 func TestNewPromptVersionManifest(t *testing.T) {
 	manifest := NewPromptVersionManifest()
-	
+
 	require.NotNil(t, manifest, "Manifest should not be nil")
 	assert.NotZero(t, manifest.GeneratedAt, "GeneratedAt should be set")
 	assert.NotEmpty(t, manifest.SystemPrompts, "SystemPrompts map should not be empty")
-	
+
 	// Check that all expected prompt files have versions
 	expectedPrompts := []string{
 		"xpia.md",
@@ -61,7 +61,7 @@ func TestNewPromptVersionManifest(t *testing.T) {
 		"github_context_prompt.md",
 		"threat_detection.md",
 	}
-	
+
 	for _, prompt := range expectedPrompts {
 		version, ok := manifest.GetVersion(prompt)
 		assert.True(t, ok, "Should have version for %s", prompt)
@@ -71,13 +71,13 @@ func TestNewPromptVersionManifest(t *testing.T) {
 
 func TestPromptVersionManifestGetVersion(t *testing.T) {
 	manifest := NewPromptVersionManifest()
-	
+
 	t.Run("existing prompt", func(t *testing.T) {
 		version, ok := manifest.GetVersion("xpia.md")
 		assert.True(t, ok, "Should find xpia.md")
 		assert.Equal(t, XPIAPromptVersion, version, "Should return correct version")
 	})
-	
+
 	t.Run("non-existent prompt", func(t *testing.T) {
 		version, ok := manifest.GetVersion("nonexistent.md")
 		assert.False(t, ok, "Should not find nonexistent.md")
@@ -89,16 +89,16 @@ func TestPromptVersionManifestToYAMLComment(t *testing.T) {
 	manifest := NewPromptVersionManifest()
 	manifest.GeneratedAt = time.Date(2026, 2, 17, 12, 0, 0, 0, time.UTC)
 	manifest.CreatorPromptHash = "abc123def456"
-	
+
 	comment := manifest.ToYAMLComment()
-	
+
 	// Check that comment contains expected content
 	assert.Contains(t, comment, "# System Prompt Versions:", "Should have header")
 	assert.Contains(t, comment, "# Generated: 2026-02-17T12:00:00Z", "Should have timestamp")
 	assert.Contains(t, comment, "xpia.md:", "Should include xpia.md version")
 	assert.Contains(t, comment, "temp_folder_prompt.md:", "Should include temp_folder_prompt.md version")
 	assert.Contains(t, comment, "# Creator Prompt Hash: abc123def456", "Should include creator prompt hash")
-	
+
 	// Check that it starts with # (comment character)
 	lines := strings.Split(comment, "\n")
 	for _, line := range lines {
@@ -121,7 +121,7 @@ func TestPromptVersionConstants(t *testing.T) {
 		"GitHubContextPromptVersion":    GitHubContextPromptVersion,
 		"ThreatDetectionPromptVersion":  ThreatDetectionPromptVersion,
 	}
-	
+
 	for name, version := range versions {
 		assert.True(t, version.IsValid(), "%s should be valid", name)
 		assert.NotEmpty(t, version.String(), "%s should have a non-empty string value", name)
