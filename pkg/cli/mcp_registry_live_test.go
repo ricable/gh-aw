@@ -138,6 +138,18 @@ func TestMCPRegistryClient_LiveGetServer(t *testing.T) {
 		// Now test GetServer with that name
 		server, err := client.GetServer(serverName)
 		if err != nil {
+			// Handle 503 errors gracefully - these indicate temporary registry issues
+			if strings.Contains(err.Error(), "503") || strings.Contains(err.Error(), "upstream connect error") ||
+				strings.Contains(err.Error(), "connection refused") {
+				t.Skipf("Skipping due to temporary registry unavailability for '%s': %v", serverName, err)
+				return
+			}
+			// Also handle network/firewall issues
+			if strings.Contains(err.Error(), "network") || strings.Contains(err.Error(), "firewall") ||
+				strings.Contains(err.Error(), "403") || strings.Contains(err.Error(), "connection") {
+				t.Skipf("Skipping due to network restrictions: %v", err)
+				return
+			}
 			t.Fatalf("GetServer failed for '%s': %v", serverName, err)
 		}
 
