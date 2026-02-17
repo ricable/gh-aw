@@ -876,3 +876,101 @@
 {"date": "2026-02-14", "timestamp": 1771066940, "metrics": {"size": {"total_loc": 243672, "total_files": 1478, "loc_by_language": {"Python": 829, "Shell": 504, "TypeScript": 2111, "JavaScript": 7399, "CSS": 1728, "Go": 307, "Markdown": 8216, "YAML": 190796, "JSON": 31782}}, "quality": {"large_files": 209, "avg_file_size": 287.77, "function_count": 7403, "comment_lines": 46818, "comment_ratio": 0.11}, "tests": {"test_files": 943, "test_loc": 291625, "source_loc": 133702, "test_to_source_ratio": 2.1811}, "churn": {"source": {"files_modified": 865, "commits": 490, "lines_added": 69163, "lines_deleted": 16568, "net_change": 52595}, "lock_files": {"files_modified": 152, "lines_added": 47805, "lines_deleted": 52021, "net_change": -4216}}, "workflows": {"workflow_md_files": 209, "workflow_lock_files": 150, "workflow_avg_size": 262}, "docs": {"doc_files": 200, "doc_loc": 867881, "code_to_docs_ratio": 0.49}, "quality_score": 70.45, "quality_components": {"test_coverage": 30, "code_organization": 4.1, "documentation": 20, "churn_stability": 6.35, "comment_density": 10}}}
 {"date":"2026-02-15","timestamp":1771155756,"metrics":{"size":{"total_loc":569890,"lines_of_code_total":416242,"loc_by_language":{"Go":416242,"Markdown":104979,"JSON":29533,"Shell":8417,"JavaScript":7391,"TypeScript":2168,"YAML":1029,"Python":131},"loc_by_directory":{"docs":871554,"pkg":432464,".github":266814,"scripts":5360,"cmd":2098,"internal":74},"total_files":2477,"file_distribution":{"cmd":8,"pkg":1655,"docs":201,".github":427,"internal":2,"scripts":24}},"quality":{"large_files":205,"avg_file_size":0,"comment_lines":43584,"comment_ratio":0.104},"tests":{"test_files":950,"test_lines_of_code":292422,"source_loc":416242,"test_to_source_ratio":0.702},"churn":{"source":{"files_modified":782,"commits":504,"lines_added":73171,"lines_deleted":19484,"net_change":53687},"lock_files":{"files_modified":156,"lines_added":54336,"lines_deleted":38794,"net_change":15542}},"workflows":{"total_workflows":241,"lock_files":154,"workflow_files":17},"docs":{"files":201,"loc":871554,"code_to_docs_ratio":0.47},"quality_score":{"total":77,"components":{"test_coverage":21.00,"code_organization":25,"documentation":20,"churn_stability":5,"comment_density":6.90}}}}
 {"date": "2026-02-16", "timestamp": 1771242415, "metrics": {"size": {"total_loc": 543220, "lines_of_code_total": 249750, "loc_by_language": {"Go": 418650, "JavaScript": 7391, "TypeScript": 2168, "Python": 131, "Shell": 8419, "Markdown": 105432, "YAML": 1029}, "total_files": 1545, "large_files": 207, "avg_file_size": 282.69, "function_count": 7292, "comment_lines": 48419, "comment_ratio": 8.91}, "tests": {"test_files": 945, "test_lines_of_code": 293470, "source_loc": 249750, "test_to_source_ratio": 1.175}, "churn": {"source": {"files_modified": 1733, "commits": 457, "lines_added": 73753, "lines_deleted": 21286, "net_change": 52467}, "lock_files": {"files_modified": 7423, "lines_added": 52830, "lines_deleted": 43882, "net_change": 8948}}, "workflows": {"total_workflows": 213, "lock_files": 154}, "docs": {"doc_files": 118, "doc_loc": 36028, "code_to_docs_ratio": 6.93}, "quality_score": {"total": 70.3, "components": {"test_coverage": 30.0, "code_organization": 18.3, "documentation": 13.07, "churn_stability": 0.0, "comment_density": 8.91}}}}
+{
+  "date": "2026-02-17",
+  "timestamp": 1771328787,
+  "metrics": {
+    "size": {
+      "total_loc": 818983,
+      "by_language": {
+        "Go": {
+          "loc": 422165,
+          "files": 1490
+        },
+        "JavaScript": {
+          "loc": 7693,
+          "files": 11
+        },
+        "TypeScript": {
+          "loc": 2168,
+          "files": 23
+        },
+        "Python": {
+          "loc": 829,
+          "files": 3
+        },
+        "Markdown": {
+          "loc": 178216,
+          "files": 708
+        },
+        "YAML": {
+          "loc": 199342,
+          "files": 184
+        },
+        "Shell": {
+          "loc": 8570,
+          "files": 59
+        }
+      },
+      "by_directory": {
+        "cmd": {
+          "loc": 2198,
+          "files": 9
+        },
+        "pkg": {
+          "loc": 438447,
+          "files": 1694
+        },
+        "docs": {
+          "loc": 1678182,
+          "files": 206
+        },
+        "workflows": {
+          "loc": 256769,
+          "files": 394
+        },
+        "scratchpad": {
+          "loc": 37915,
+          "files": 62
+        }
+      }
+    },
+    "quality": {
+      "large_files": 209,
+      "avg_file_size": 89,
+      "comment_lines": 44230,
+      "comment_ratio": 0.322
+    },
+    "tests": {
+      "test_files": 950,
+      "test_loc": 295556,
+      "source_loc": 137299,
+      "test_to_source_ratio": 2.153
+    },
+    "churn": {
+      "source": {
+        "files_modified": 924,
+        "commits": 452,
+        "lines_added": 87292,
+        "lines_deleted": 25432,
+        "net_change": 61860
+      },
+      "lock_files": {
+        "files_modified": 157,
+        "lines_added": 84519,
+        "lines_deleted": 71969,
+        "net_change": 12550
+      }
+    },
+    "workflows": {
+      "total_workflows": 214,
+      "lock_files": 155,
+      "total_files": 394
+    },
+    "docs": {
+      "doc_files": 206,
+      "doc_loc": 1678182
+    }
+  }
+}
+{"date": "2026-02-17", "timestamp": 1771328787, "metrics": {"size": {"total_loc": 818983, "by_language": {"Go": {"loc": 422165, "files": 1490}, "JavaScript": {"loc": 7693, "files": 11}, "TypeScript": {"loc": 2168, "files": 23}, "Python": {"loc": 829, "files": 3}, "Markdown": {"loc": 178216, "files": 708}, "YAML": {"loc": 199342, "files": 184}, "Shell": {"loc": 8570, "files": 59}}, "by_directory": {"cmd": {"loc": 2198, "files": 9}, "pkg": {"loc": 438447, "files": 1694}, "docs": {"loc": 1678182, "files": 206}, "workflows": {"loc": 256769, "files": 394}, "scratchpad": {"loc": 37915, "files": 62}}}, "quality": {"large_files": 209, "avg_file_size": 89, "comment_lines": 44230, "comment_ratio": 0.322}, "tests": {"test_files": 950, "test_loc": 295556, "source_loc": 137299, "test_to_source_ratio": 2.153}, "churn": {"source": {"files_modified": 924, "commits": 452, "lines_added": 87292, "lines_deleted": 25432, "net_change": 61860}, "lock_files": {"files_modified": 157, "lines_added": 84519, "lines_deleted": 71969, "net_change": 12550}}, "workflows": {"total_workflows": 214, "lock_files": 155, "total_files": 394}, "docs": {"doc_files": 206, "doc_loc": 1678182}}}
