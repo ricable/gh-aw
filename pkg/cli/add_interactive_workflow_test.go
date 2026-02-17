@@ -49,9 +49,11 @@ func TestGetWorkflowStatuses(t *testing.T) {
 				// Error is acceptable in test environment without gh CLI setup
 				assert.Error(t, err, "Expected error without gh CLI")
 			}
-			// If no error and statuses exist, verify they're valid
+			// If no error and statuses exist, verify they have expected structure
 			if err == nil && statuses != nil {
-				assert.GreaterOrEqual(t, len(statuses), 0, "Statuses should be a valid slice")
+				for _, status := range statuses {
+					assert.NotEmpty(t, status.Workflow, "Workflow name should not be empty")
+				}
 			}
 		})
 	}
