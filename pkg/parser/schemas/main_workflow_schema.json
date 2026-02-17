@@ -5360,6 +5360,18 @@
                   "type": "string",
                   "description": "Default agent name to assign (default: 'copilot')"
                 },
+                "model": {
+                  "type": "string",
+                  "description": "Default AI model to use for the agent (e.g., 'auto', 'claude-sonnet-4.5', 'claude-opus-4.5', 'claude-opus-4.6', 'gpt-5.1-codex-max', 'gpt-5.2-codex'). Defaults to 'auto' if not specified."
+                },
+                "custom-agent": {
+                  "type": "string",
+                  "description": "Default custom agent ID to use when assigning custom agents. This is used for specialized agent configurations beyond the standard Copilot agent."
+                },
+                "custom-instructions": {
+                  "type": "string",
+                  "description": "Default custom instructions to provide to the agent. These instructions will guide the agent's behavior when working on the task."
+                },
                 "allowed": {
                   "type": "array",
                   "items": {

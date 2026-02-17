@@ -325,20 +325,11 @@ async function assignAgentToIssue(assignableId, agentId, currentAssignees, agent
     variables = {
       assignableId: assignableId,
       actorIds,
+      ...(pullRequestRepoId && { targetRepoId: pullRequestRepoId }),
+      ...(model && { model }),
+      ...(customAgent && { customAgent }),
+      ...(customInstructions && { customInstructions }),
     };
-
-    if (pullRequestRepoId) {
-      variables.targetRepoId = pullRequestRepoId;
-    }
-    if (model) {
-      variables.model = model;
-    }
-    if (customAgent) {
-      variables.customAgent = customAgent;
-    }
-    if (customInstructions) {
-      variables.customInstructions = customInstructions;
-    }
   } else {
     // Standard mutation without agentAssignment
     mutation = `
