@@ -670,6 +670,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Check prompt pack version bump
+        run: ./scripts/check-prompt-version-bump.sh
 
       - name: Check for ANSI escape sequences in YAML files
         run: |
