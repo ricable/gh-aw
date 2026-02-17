@@ -55,20 +55,21 @@ This workflow tests the `assign_to_agent` safe output feature with the new `mode
 
 Assign the Copilot agent to the issue with the specified AI model. The workflow demonstrates:
 
-1. **Default model configuration**: Set via `safe-outputs.assign-to-agent.model` in frontmatter
-2. **Per-item model override**: Specify `model` parameter in the `assign_to_agent` call
+1. **Default model configuration**: Set via `safe-outputs.assign-to-agent.model` in frontmatter (applies to all assignments in the workflow)
 
 **For issues event:**
 Assign the Copilot agent using the default model (Claude Opus 4.6) to the triggering issue.
 
 **For workflow_dispatch:**
-Assign the Copilot agent to issue #${{ github.event.inputs.issue_number }} with model ${{ github.event.inputs.model }}.
+Assign the Copilot agent to issue #${{ github.event.inputs.issue_number }} using the default model configured in the frontmatter.
 
 Use the `assign_to_agent` tool from the `safeoutputs` MCP server:
 
 ```
-assign_to_agent(issue_number=<issue_number>, agent="copilot", model="claude-opus-4.6")
+assign_to_agent(issue_number=<issue_number>, agent="copilot")
 ```
+
+The model is configured at the workflow level in the frontmatter and applies to all assignments.
 
 Available models include:
 - `auto` - Auto-select model (default, currently Claude Sonnet 4.5)

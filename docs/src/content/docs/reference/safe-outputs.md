@@ -1313,7 +1313,7 @@ safe-outputs:
 ```
 
 **Model Selection:**
-The `model` parameter allows you to specify which AI model the Copilot agent should use. Available options include:
+The `model` parameter allows you to specify which AI model the Copilot agent should use. This is configured at the workflow level in the frontmatter and applies to all agent assignments in the workflow. Available options include:
 - `auto` - Auto-select model (default, currently Claude Sonnet 4.5)
 - `claude-sonnet-4.5` - Claude Sonnet 4.5
 - `claude-opus-4.5` - Claude Opus 4.5
@@ -1321,20 +1321,10 @@ The `model` parameter allows you to specify which AI model the Copilot agent sho
 - `gpt-5.1-codex-max` - GPT-5.1 Codex Max
 - `gpt-5.2-codex` - GPT-5.2 Codex
 
-The model can be set globally via the `model` configuration parameter, or overridden per-assignment using the `model` parameter in the `assign_to_agent` tool call:
-```python
-assign_to_agent(issue_number=123, agent="copilot", model="claude-opus-4.6")
-```
-
 **Custom Agent Configuration:**
-For advanced use cases, you can specify custom agent IDs and instructions:
+For advanced use cases, you can specify custom agent IDs and instructions in the frontmatter. These apply to all agent assignments in the workflow:
 - `custom-agent` - Custom agent identifier for specialized agent configurations
 - `custom-instructions` - Instructions to guide the agent's behavior when working on the task
-
-These can also be overridden per-assignment:
-```python
-assign_to_agent(issue_number=123, agent="copilot", custom_agent="agent-123", custom_instructions="Focus on performance optimization")
-```
 
 **Behavior:**
 - `target: "triggering"` - Auto-resolves from `github.event.issue.number` or `github.event.pull_request.number`

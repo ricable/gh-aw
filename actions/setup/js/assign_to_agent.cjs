@@ -29,6 +29,12 @@ async function main() {
 
   // Check if we're in staged mode
   if (process.env.GH_AW_SAFE_OUTPUTS_STAGED === "true") {
+    // Get defaults for preview
+    const previewDefaultAgent = process.env.GH_AW_AGENT_DEFAULT?.trim() ?? "copilot";
+    const previewDefaultModel = process.env.GH_AW_AGENT_DEFAULT_MODEL?.trim();
+    const previewDefaultCustomAgent = process.env.GH_AW_AGENT_DEFAULT_CUSTOM_AGENT?.trim();
+    const previewDefaultCustomInstructions = process.env.GH_AW_AGENT_DEFAULT_CUSTOM_INSTRUCTIONS?.trim();
+
     await generateStagedPreview({
       title: "Assign to Agent",
       description: "The following agent assignments would be made if staged mode was disabled:",
@@ -40,15 +46,15 @@ async function main() {
         } else if (item.pull_number) {
           content += `**Pull Request:** #${item.pull_number}\n`;
         }
-        content += `**Agent:** ${item.agent || "copilot"}\n`;
-        if (item.model) {
-          content += `**Model:** ${item.model}\n`;
+        content += `**Agent:** ${item.agent || previewDefaultAgent}\n`;
+        if (previewDefaultModel) {
+          content += `**Model:** ${previewDefaultModel}\n`;
         }
-        if (item.custom_agent) {
-          content += `**Custom Agent:** ${item.custom_agent}\n`;
+        if (previewDefaultCustomAgent) {
+          content += `**Custom Agent:** ${previewDefaultCustomAgent}\n`;
         }
-        if (item.custom_instructions) {
-          content += `**Custom Instructions:** ${item.custom_instructions}\n`;
+        if (previewDefaultCustomInstructions) {
+          content += `**Custom Instructions:** ${previewDefaultCustomInstructions}\n`;
         }
         content += "\n";
         return content;
@@ -202,9 +208,11 @@ async function main() {
   for (let i = 0; i < itemsToProcess.length; i++) {
     const item = itemsToProcess[i];
     const agentName = item.agent ?? defaultAgent;
-    const model = item.model ?? defaultModel;
-    const customAgent = item.custom_agent ?? defaultCustomAgent;
-    const customInstructions = item.custom_instructions ?? defaultCustomInstructions;
+    // Model, custom agent, and custom instructions are only configurable via frontmatter defaults
+    // They are NOT available as per-item overrides in the tool call
+    const model = defaultModel;
+    const customAgent = defaultCustomAgent;
+    const customInstructions = defaultCustomInstructions;
 
     // Use these variables to allow temporary IDs to override target repo per-item.
     // Default to the configured target repo.
