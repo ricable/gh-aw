@@ -105,20 +105,32 @@ func initializeBasicRepository(verbose bool) error {
 	return nil
 }
 
+// InitOptions contains all configuration options for repository initialization
+type InitOptions struct {
+	Verbose          bool
+	MCP              bool
+	CodespaceRepos   []string
+	CodespaceEnabled bool
+	Completions      bool
+	Push             bool
+	CreatePR         bool
+	RootCmd          CommandProvider
+}
+
 // InitRepository initializes the repository for agentic workflows
-func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespaceRepos []string, codespaceEnabled bool, completions bool, push bool, shouldCreatePR bool, rootCmd CommandProvider) error {
+func InitRepository(opts InitOptions) error {
 	initLog.Print("Starting repository initialization for agentic workflows")
 
 	// If --push or --create-pull-request is enabled, ensure git status is clean before starting
-	if push || shouldCreatePR {
-		if shouldCreatePR {
+	if opts.Push || opts.CreatePR {
+		if opts.CreatePR {
 			initLog.Print("Checking for clean working directory (--create-pull-request enabled)")
 		} else {
 			initLog.Print("Checking for clean working directory (--push enabled)")
 		}
-		if err := checkCleanWorkingDirectory(verbose); err != nil {
+		if err := checkCleanWorkingDirectory(opts.Verbose); err != nil {
 			initLog.Printf("Git status check failed: %v", err)
-			if shouldCreatePR {
+			if opts.CreatePR {
 				return fmt.Errorf("--create-pull-request requires a clean working directory: %w", err)
 			}
 			return fmt.Errorf("--push requires a clean working directory: %w", err)
@@ -126,7 +138,7 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 	}
 
 	// If creating a PR, check GitHub CLI is available
-	if shouldCreatePR {
+	if opts.CreatePR {
 		if !isGHCLIAvailable() {
 			return fmt.Errorf("GitHub CLI (gh) is required for PR creation but not available")
 		}
@@ -145,29 +157,29 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 		initLog.Printf("Failed to configure .gitattributes: %v", err)
 		return fmt.Errorf("failed to configure .gitattributes: %w", err)
 	}
-	if verbose {
+	if opts.Verbose {
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Configured .gitattributes"))
 	}
 
 	// Write dispatcher agent
 	initLog.Print("Writing agentic workflows dispatcher agent")
-	if err := ensureAgenticWorkflowsDispatcher(verbose, false); err != nil {
+	if err := ensureAgenticWorkflowsDispatcher(opts.Verbose, false); err != nil {
 		initLog.Printf("Failed to write dispatcher agent: %v", err)
 		return fmt.Errorf("failed to write dispatcher agent: %w", err)
 	}
-	if verbose {
+	if opts.Verbose {
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created dispatcher agent"))
 	}
 
 	// Delete existing setup agentic workflows agent if it exists
 	initLog.Print("Cleaning up setup agentic workflows agent")
-	if err := deleteSetupAgenticWorkflowsAgent(verbose); err != nil {
+	if err := deleteSetupAgenticWorkflowsAgent(opts.Verbose); err != nil {
 		initLog.Printf("Failed to delete setup agentic workflows agent: %v", err)
 		return fmt.Errorf("failed to delete setup agentic workflows agent: %w", err)
 	}
 
 	// Configure MCP if requested
-	if mcp {
+	if opts.MCP {
 		initLog.Print("Configuring GitHub Copilot Agent MCP integration")
 
 		// Detect action mode for setup steps generation
@@ -175,34 +187,34 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 		initLog.Printf("Using action mode for copilot-setup-steps.yml: %s", actionMode)
 
 		// Create copilot-setup-steps.yml
-		if err := ensureCopilotSetupSteps(verbose, actionMode, GetVersion()); err != nil {
+		if err := ensureCopilotSetupSteps(opts.Verbose, actionMode, GetVersion()); err != nil {
 			initLog.Printf("Failed to create copilot-setup-steps.yml: %v", err)
 			return fmt.Errorf("failed to create copilot-setup-steps.yml: %w", err)
 		}
-		if verbose {
+		if opts.Verbose {
 			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .github/workflows/copilot-setup-steps.yml"))
 		}
 
 		// Create .vscode/mcp.json
-		if err := ensureMCPConfig(verbose); err != nil {
+		if err := ensureMCPConfig(opts.Verbose); err != nil {
 			initLog.Printf("Failed to create MCP config: %v", err)
 			return fmt.Errorf("failed to create MCP config: %w", err)
 		}
-		if verbose {
+		if opts.Verbose {
 			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created .vscode/mcp.json"))
 		}
 	}
 
 	// Configure Codespaces if requested
-	if codespaceEnabled {
-		initLog.Printf("Configuring GitHub Codespaces devcontainer with additional repos: %v", codespaceRepos)
+	if opts.CodespaceEnabled {
+		initLog.Printf("Configuring GitHub Codespaces devcontainer with additional repos: %v", opts.CodespaceRepos)
 
 		// Create or update .devcontainer/devcontainer.json
-		if err := ensureDevcontainerConfig(verbose, codespaceRepos); err != nil {
+		if err := ensureDevcontainerConfig(opts.Verbose, opts.CodespaceRepos); err != nil {
 			initLog.Printf("Failed to configure devcontainer: %v", err)
 			return fmt.Errorf("failed to configure devcontainer: %w", err)
 		}
-		if verbose {
+		if opts.Verbose {
 			fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Configured .devcontainer/devcontainer.json"))
 		}
 	}
@@ -211,34 +223,20 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 	initLog.Print("Configuring VSCode settings")
 
 	// Update .vscode/settings.json
-	if err := ensureVSCodeSettings(verbose); err != nil {
+	if err := ensureVSCodeSettings(opts.Verbose); err != nil {
 		initLog.Printf("Failed to update VSCode settings: %v", err)
 		return fmt.Errorf("failed to update VSCode settings: %w", err)
 	}
-	if verbose {
+	if opts.Verbose {
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Updated .vscode/settings.json"))
 	}
 
-	// Validate tokens if requested
-	if tokens {
-		initLog.Print("Validating repository secrets for agentic workflows")
-		fmt.Fprintln(os.Stderr, "")
-
-		// Run token bootstrap validation
-		if err := runTokensBootstrap(engine, "", ""); err != nil {
-			initLog.Printf("Token validation failed: %v", err)
-			// Don't fail init if token validation has issues
-			fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Token validation encountered an issue: %v", err)))
-		}
-		fmt.Fprintln(os.Stderr, "")
-	}
-
 	// Install shell completions if requested
-	if completions {
+	if opts.Completions {
 		initLog.Print("Installing shell completions")
 		fmt.Fprintln(os.Stderr, "")
 
-		if err := InstallShellCompletion(verbose, rootCmd); err != nil {
+		if err := InstallShellCompletion(opts.Verbose, opts.RootCmd); err != nil {
 			initLog.Printf("Shell completion installation failed: %v", err)
 			// Don't fail init if completion installation has issues
 			fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Shell completion installation encountered an issue: %v", err)))
@@ -248,7 +246,7 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 
 	// Generate/update maintenance workflow if any workflows use expires field
 	initLog.Print("Checking for workflows with expires field to generate maintenance workflow")
-	if err := ensureMaintenanceWorkflow(verbose); err != nil {
+	if err := ensureMaintenanceWorkflow(opts.Verbose); err != nil {
 		initLog.Printf("Failed to generate maintenance workflow: %v", err)
 		// Don't fail init if maintenance workflow generation has issues
 		fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("Failed to generate maintenance workflow: %v", err)))
@@ -257,7 +255,7 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 	initLog.Print("Repository initialization completed successfully")
 
 	// If --create-pull-request is enabled, create branch, commit, push, and create PR
-	if shouldCreatePR {
+	if opts.CreatePR {
 		initLog.Print("Create PR enabled - preparing to create branch, commit, push, and create PR")
 		fmt.Fprintln(os.Stderr, "")
 
@@ -269,22 +267,22 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 
 		// Create temporary branch
 		branchName := fmt.Sprintf("init-agentic-workflows-%d", rand.Intn(9000)+1000)
-		if err := createAndSwitchBranch(branchName, verbose); err != nil {
+		if err := createAndSwitchBranch(branchName, opts.Verbose); err != nil {
 			return fmt.Errorf("failed to create branch %s: %w", branchName, err)
 		}
 
 		// Commit changes
 		commitMessage := "chore: initialize agentic workflows"
-		if err := commitChanges(commitMessage, verbose); err != nil {
+		if err := commitChanges(commitMessage, opts.Verbose); err != nil {
 			// Switch back to original branch before returning error
-			_ = switchBranch(currentBranch, verbose)
+			_ = switchBranch(currentBranch, opts.Verbose)
 			return fmt.Errorf("failed to commit changes: %w", err)
 		}
 
 		// Push branch
-		if err := pushBranch(branchName, verbose); err != nil {
+		if err := pushBranch(branchName, opts.Verbose); err != nil {
 			// Switch back to original branch before returning error
-			_ = switchBranch(currentBranch, verbose)
+			_ = switchBranch(currentBranch, opts.Verbose)
 			return fmt.Errorf("failed to push branch %s: %w", branchName, err)
 		}
 
@@ -294,32 +292,32 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 			"- Configuring .gitattributes\n" +
 			"- Creating GitHub Copilot custom instructions\n" +
 			"- Setting up workflow prompts and agents"
-		if _, _, err := createPR(branchName, prTitle, prBody, verbose); err != nil {
+		if _, _, err := createPR(branchName, prTitle, prBody, opts.Verbose); err != nil {
 			// Switch back to original branch before returning error
-			_ = switchBranch(currentBranch, verbose)
+			_ = switchBranch(currentBranch, opts.Verbose)
 			return fmt.Errorf("failed to create PR: %w", err)
 		}
 
 		// Switch back to original branch
-		if err := switchBranch(currentBranch, verbose); err != nil {
+		if err := switchBranch(currentBranch, opts.Verbose); err != nil {
 			return fmt.Errorf("failed to switch back to branch %s: %w", currentBranch, err)
 		}
 
 		fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Created PR for initialization"))
-	} else if push {
+	} else if opts.Push {
 		// If --push is enabled, commit and push changes
 		initLog.Print("Push enabled - preparing to commit and push changes")
 		fmt.Fprintln(os.Stderr, "")
 
 		// Check if we're on the default branch
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Checking current branch..."))
-		if err := checkOnDefaultBranch(verbose); err != nil {
+		if err := checkOnDefaultBranch(opts.Verbose); err != nil {
 			initLog.Printf("Default branch check failed: %v", err)
 			return fmt.Errorf("cannot push: %w", err)
 		}
 
 		// Confirm with user (skip in CI)
-		if err := confirmPushOperation(verbose); err != nil {
+		if err := confirmPushOperation(opts.Verbose); err != nil {
 			initLog.Printf("Push operation not confirmed: %v", err)
 			return fmt.Errorf("push operation cancelled: %w", err)
 		}
@@ -328,7 +326,7 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 
 		// Use the helper function to orchestrate the full workflow
 		commitMessage := "chore: initialize agentic workflows"
-		if err := commitAndPushChanges(commitMessage, verbose); err != nil {
+		if err := commitAndPushChanges(commitMessage, opts.Verbose); err != nil {
 			// Check if it's the "no changes" case
 			hasChanges, checkErr := hasChangesToCommit()
 			if checkErr == nil && !hasChanges {
@@ -352,16 +350,12 @@ func InitRepository(verbose bool, mcp bool, tokens bool, engine string, codespac
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Repository initialized for agentic workflows!"))
 	fmt.Fprintln(os.Stderr, "")
-	if mcp {
+	if opts.MCP {
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("GitHub Copilot Agent MCP integration configured"))
 		fmt.Fprintln(os.Stderr, "")
 	}
-	if len(codespaceRepos) > 0 {
+	if len(opts.CodespaceRepos) > 0 {
 		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("GitHub Codespaces devcontainer configured"))
-		fmt.Fprintln(os.Stderr, "")
-	}
-	if tokens {
-		fmt.Fprintln(os.Stderr, console.FormatInfoMessage("To configure missing secrets, use: gh aw secret set <secret-name> --owner <owner> --repo <repo>"))
 		fmt.Fprintln(os.Stderr, "")
 	}
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("To create a workflow, launch Copilot CLI: npx @github/copilot"))

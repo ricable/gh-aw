@@ -9,6 +9,7 @@ import (
 	"github.com/github/gh-aw/pkg/console"
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
+	"github.com/github/gh-aw/pkg/repoutil"
 	"github.com/github/gh-aw/pkg/stringutil"
 	"github.com/github/gh-aw/pkg/workflow"
 )
@@ -197,6 +198,11 @@ func promptForSecret(req SecretRequirement, config EngineSecretConfig) error {
 		return promptForCopilotPATUnified(req, config)
 	}
 
+	// System secrets (GH_AW_*) require PAT-specific prompting, not API key wording
+	if !req.IsEngineSecret {
+		return promptForSystemTokenUnified(req, config)
+	}
+
 	return promptForGenericAPIKeyUnified(req, config)
 }
 
@@ -241,6 +247,54 @@ func promptForCopilotPATUnified(req SecretRequirement, config EngineSecretConfig
 	// Store in environment for later use
 	_ = os.Setenv(req.Name, token)
 	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage("Valid fine-grained Copilot token received"))
+
+	// Upload to repository if we have a repo slug
+	if config.RepoSlug != "" {
+		return uploadSecretToRepo(req.Name, token, config.RepoSlug, config.Verbose)
+	}
+
+	return nil
+}
+
+// promptForSystemTokenUnified prompts the user for a system-level GitHub token (PAT)
+// This uses PAT-specific wording instead of "API key" since system secrets are GitHub tokens
+func promptForSystemTokenUnified(req SecretRequirement, config EngineSecretConfig) error {
+	engineSecretsLog.Printf("Prompting for system token: %s", req.Name)
+
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintf(os.Stderr, "%s requires a GitHub Personal Access Token (PAT).\n", req.Name)
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("When needed: %s", req.WhenNeeded)))
+	fmt.Fprintln(os.Stderr, console.FormatInfoMessage(fmt.Sprintf("Recommended scopes: %s", req.Description)))
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "Create a token at:")
+	fmt.Fprintln(os.Stderr, console.FormatCommandMessage("  https://github.com/settings/personal-access-tokens/new"))
+	fmt.Fprintln(os.Stderr, "")
+
+	var token string
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title(fmt.Sprintf("Paste your %s token:", req.Name)).
+				Description("The token will be stored securely as a repository secret").
+				EchoMode(huh.EchoModePassword).
+				Value(&token).
+				Validate(func(s string) error {
+					if len(s) < 10 {
+						return fmt.Errorf("token appears to be too short")
+					}
+					return nil
+				}),
+		),
+	).WithAccessible(console.IsAccessibleMode())
+
+	if err := form.Run(); err != nil {
+		return fmt.Errorf("failed to get %s token: %w", req.Name, err)
+	}
+
+	// Store in environment for later use
+	_ = os.Setenv(req.Name, token)
+	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("%s token received", req.Name)))
 
 	// Upload to repository if we have a repo slug
 	if config.RepoSlug != "" {
@@ -446,4 +500,15 @@ func DisplayMissingSecrets(requirements []SecretRequirement, repoSlug string, ex
 
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, console.FormatInfoMessage("For detailed token behavior and precedence, see the GitHub Tokens reference in the documentation."))
+}
+
+// splitRepoSlug splits "owner/repo" into [owner, repo]
+// Uses repoutil.SplitRepoSlug internally but provides backward-compatible array return
+func splitRepoSlug(slug string) [2]string {
+	owner, repo, err := repoutil.SplitRepoSlug(slug)
+	if err != nil {
+		// Fallback behavior for invalid format
+		return [2]string{slug, ""}
+	}
+	return [2]string{owner, repo}
 }

@@ -1,17 +1,12 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/github/gh-aw/pkg/console"
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
-	"github.com/github/gh-aw/pkg/repoutil"
-	"github.com/github/gh-aw/pkg/workflow"
 	"github.com/spf13/cobra"
 )
 
@@ -137,50 +132,4 @@ func runTokensBootstrap(engine, owner, repo string) error {
 	DisplayMissingSecrets(missing, repoSlug, existingSecrets)
 
 	return nil
-}
-
-// checkSecretExistsInRepo checks if a secret exists in a specific repository
-func checkSecretExistsInRepo(secretName, repoSlug string) (bool, error) {
-	tokensBootstrapLog.Printf("Checking if secret exists in %s: %s", repoSlug, secretName)
-
-	// Use gh CLI to list repository secrets
-	output, err := workflow.RunGH("Listing secrets...", "secret", "list", "--repo", repoSlug, "--json", "name")
-	if err != nil {
-		// Check if it's a 403 error by examining the error
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if strings.Contains(string(exitError.Stderr), "403") {
-				return false, fmt.Errorf("403 access denied")
-			}
-		}
-		return false, fmt.Errorf("failed to list secrets: %w", err)
-	}
-
-	// Parse the JSON output
-	var secrets []struct {
-		Name string `json:"name"`
-	}
-
-	if err := json.Unmarshal(output, &secrets); err != nil {
-		return false, fmt.Errorf("failed to parse secrets list: %w", err)
-	}
-
-	// Check if our secret exists
-	for _, secret := range secrets {
-		if secret.Name == secretName {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-// splitRepoSlug splits "owner/repo" into [owner, repo]
-// Uses repoutil.SplitRepoSlug internally but provides backward-compatible array return
-func splitRepoSlug(slug string) [2]string {
-	owner, repo, err := repoutil.SplitRepoSlug(slug)
-	if err != nil {
-		// Fallback behavior for invalid format
-		return [2]string{slug, ""}
-	}
-	return [2]string{owner, repo}
 }
