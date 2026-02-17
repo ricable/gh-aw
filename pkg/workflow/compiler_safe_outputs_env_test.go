@@ -518,130 +518,130 @@ func TestAddLabelsTargetRepoStagedBehavior(t *testing.T) {
 
 // TestAddLabelsPerHandlerStagedFlag tests per-handler staged flag for add_labels
 func TestAddLabelsPerHandlerStagedFlag(t *testing.T) {
-tests := []struct {
-name                 string
-globalStaged         bool
-perHandlerStaged     bool
-shouldIncludeStagedFlag bool
-}{
-{
-name:                 "per-handler staged true, global false",
-globalStaged:         false,
-perHandlerStaged:     true,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "per-handler staged false, global true",
-globalStaged:         true,
-perHandlerStaged:     false,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "both per-handler and global staged true",
-globalStaged:         true,
-perHandlerStaged:     true,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "both per-handler and global staged false",
-globalStaged:         false,
-perHandlerStaged:     false,
-shouldIncludeStagedFlag: false,
-},
-}
+	tests := []struct {
+		name                    string
+		globalStaged            bool
+		perHandlerStaged        bool
+		shouldIncludeStagedFlag bool
+	}{
+		{
+			name:                    "per-handler staged true, global false",
+			globalStaged:            false,
+			perHandlerStaged:        true,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "per-handler staged false, global true",
+			globalStaged:            true,
+			perHandlerStaged:        false,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "both per-handler and global staged true",
+			globalStaged:            true,
+			perHandlerStaged:        true,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "both per-handler and global staged false",
+			globalStaged:            false,
+			perHandlerStaged:        false,
+			shouldIncludeStagedFlag: false,
+		},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-compiler := NewCompiler()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compiler := NewCompiler()
 
-workflowData := &WorkflowData{
-Name: "Test Workflow",
-SafeOutputs: &SafeOutputsConfig{
-Staged: tt.globalStaged,
-AddLabels: &AddLabelsConfig{
-BaseSafeOutputConfig: BaseSafeOutputConfig{
-Staged: tt.perHandlerStaged,
-},
-Allowed: []string{"bug"},
-},
-},
-}
+			workflowData := &WorkflowData{
+				Name: "Test Workflow",
+				SafeOutputs: &SafeOutputsConfig{
+					Staged: tt.globalStaged,
+					AddLabels: &AddLabelsConfig{
+						BaseSafeOutputConfig: BaseSafeOutputConfig{
+							Staged: tt.perHandlerStaged,
+						},
+						Allowed: []string{"bug"},
+					},
+				},
+			}
 
-var steps []string
-compiler.addAllSafeOutputConfigEnvVars(&steps, workflowData)
+			var steps []string
+			compiler.addAllSafeOutputConfigEnvVars(&steps, workflowData)
 
-stepsContent := strings.Join(steps, "")
+			stepsContent := strings.Join(steps, "")
 
-if tt.shouldIncludeStagedFlag {
-assert.Contains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED: \"true\"", "Expected staged flag to be set")
-} else {
-assert.NotContains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED:", "Expected staged flag not to be set")
-}
-})
-}
+			if tt.shouldIncludeStagedFlag {
+				assert.Contains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED: \"true\"", "Expected staged flag to be set")
+			} else {
+				assert.NotContains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED:", "Expected staged flag not to be set")
+			}
+		})
+	}
 }
 
 // TestRemoveLabelsPerHandlerStagedFlag tests per-handler staged flag for remove_labels
 func TestRemoveLabelsPerHandlerStagedFlag(t *testing.T) {
-tests := []struct {
-name                 string
-globalStaged         bool
-perHandlerStaged     bool
-shouldIncludeStagedFlag bool
-}{
-{
-name:                 "per-handler staged true, global false",
-globalStaged:         false,
-perHandlerStaged:     true,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "per-handler staged false, global true",
-globalStaged:         true,
-perHandlerStaged:     false,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "both per-handler and global staged true",
-globalStaged:         true,
-perHandlerStaged:     true,
-shouldIncludeStagedFlag: true,
-},
-{
-name:                 "both per-handler and global staged false",
-globalStaged:         false,
-perHandlerStaged:     false,
-shouldIncludeStagedFlag: false,
-},
-}
+	tests := []struct {
+		name                    string
+		globalStaged            bool
+		perHandlerStaged        bool
+		shouldIncludeStagedFlag bool
+	}{
+		{
+			name:                    "per-handler staged true, global false",
+			globalStaged:            false,
+			perHandlerStaged:        true,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "per-handler staged false, global true",
+			globalStaged:            true,
+			perHandlerStaged:        false,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "both per-handler and global staged true",
+			globalStaged:            true,
+			perHandlerStaged:        true,
+			shouldIncludeStagedFlag: true,
+		},
+		{
+			name:                    "both per-handler and global staged false",
+			globalStaged:            false,
+			perHandlerStaged:        false,
+			shouldIncludeStagedFlag: false,
+		},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-compiler := NewCompiler()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compiler := NewCompiler()
 
-workflowData := &WorkflowData{
-Name: "Test Workflow",
-SafeOutputs: &SafeOutputsConfig{
-Staged: tt.globalStaged,
-RemoveLabels: &RemoveLabelsConfig{
-BaseSafeOutputConfig: BaseSafeOutputConfig{
-Staged: tt.perHandlerStaged,
-},
-Allowed: []string{"bug"},
-},
-},
-}
+			workflowData := &WorkflowData{
+				Name: "Test Workflow",
+				SafeOutputs: &SafeOutputsConfig{
+					Staged: tt.globalStaged,
+					RemoveLabels: &RemoveLabelsConfig{
+						BaseSafeOutputConfig: BaseSafeOutputConfig{
+							Staged: tt.perHandlerStaged,
+						},
+						Allowed: []string{"bug"},
+					},
+				},
+			}
 
-var steps []string
-compiler.addAllSafeOutputConfigEnvVars(&steps, workflowData)
+			var steps []string
+			compiler.addAllSafeOutputConfigEnvVars(&steps, workflowData)
 
-stepsContent := strings.Join(steps, "")
+			stepsContent := strings.Join(steps, "")
 
-if tt.shouldIncludeStagedFlag {
-assert.Contains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED: \"true\"", "Expected staged flag to be set")
-} else {
-assert.NotContains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED:", "Expected staged flag not to be set")
-}
-})
-}
+			if tt.shouldIncludeStagedFlag {
+				assert.Contains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED: \"true\"", "Expected staged flag to be set")
+			} else {
+				assert.NotContains(t, stepsContent, "GH_AW_SAFE_OUTPUTS_STAGED:", "Expected staged flag not to be set")
+			}
+		})
+	}
 }
