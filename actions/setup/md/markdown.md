@@ -1,3 +1,4 @@
+<!-- Version: 2026-02-17 -->
 <markdown-generation>
 <instruction>When generating markdown text, use 4 backticks instead of 3 to avoid creating unbalanced code regions where the text looks broken because the code regions are opening and closing out of sync. Use GitHub Flavored Markdown.</instruction>
 <example>

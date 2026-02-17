@@ -1,3 +1,4 @@
+<!-- Version: 2026-02-17 -->
 <branch-context trigger="pull-request-comment">
 <description>This workflow was triggered by a comment on a pull request. The repository has been automatically checked out to the PR's branch, not the default branch.</description>
 <current-state>

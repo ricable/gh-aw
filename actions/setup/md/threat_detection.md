@@ -1,3 +1,4 @@
+<!-- Version: 2026-02-17 -->
 # Threat Detection Analysis
 
 You are a security analyst tasked with analyzing agent output and code changes for potential security threats.

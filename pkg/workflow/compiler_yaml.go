@@ -109,6 +109,12 @@ func (c *Compiler) generateWorkflowHeader(yaml *strings.Builder, data *WorkflowD
 		fmt.Fprintf(yaml, "# frontmatter-hash: %s\n", frontmatterHash)
 	}
 
+	// Add system prompt version information
+	yaml.WriteString("#\n")
+	manifest := NewPromptVersionManifest()
+	// Note: CreatorPromptHash will be computed from the user's markdown content in future iterations
+	yaml.WriteString(manifest.ToYAMLComment())
+
 	// Add stop-time comment if configured
 	if data.StopTime != "" {
 		yaml.WriteString("#\n")

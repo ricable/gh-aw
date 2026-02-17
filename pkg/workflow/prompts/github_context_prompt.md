@@ -1,3 +1,4 @@
+<!-- Version: 2026-02-17 -->
 <github-context>
 The following GitHub context information is available for this workflow:
 {{#if ${{ github.actor }} }}

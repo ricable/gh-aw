@@ -1,3 +1,4 @@
+<!-- Version: 2026-02-17 -->
 <system-security-policy>
 
 # Immutable Security Policy
