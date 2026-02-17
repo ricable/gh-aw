@@ -24,6 +24,7 @@ var remoteLog = logger.New("parser:remote_fetch")
 // getGitHubHost returns the GitHub host URL from environment variables.
 // It checks GITHUB_SERVER_URL first (GitHub Actions standard),
 // then falls back to GH_HOST (gh CLI standard),
+// then derives from GITHUB_API_URL if available,
 // and finally defaults to https://github.com
 func getGitHubHost() string {
 	host := os.Getenv("GITHUB_SERVER_URL")
@@ -31,7 +32,22 @@ func getGitHubHost() string {
 		host = os.Getenv("GH_HOST")
 	}
 	if host == "" {
+		// Try to derive from GITHUB_API_URL
+		if apiURL := os.Getenv("GITHUB_API_URL"); apiURL != "" {
+			// Convert API URL to server URL
+			// https://api.github.com -> https://github.com
+			// https://github.enterprise.com/api/v3 -> https://github.enterprise.com
+			host = strings.Replace(apiURL, "://api.", "://", 1)
+			host = strings.TrimSuffix(host, "/api/v3")
+			host = strings.TrimSuffix(host, "/api")
+		}
+	}
+	if host == "" {
 		host = "https://github.com"
+	}
+	// Ensure https:// prefix if only hostname is provided (from GH_HOST)
+	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {
+		host = "https://" + host
 	}
 	// Remove trailing slash for consistency
 	return strings.TrimSuffix(host, "/")
