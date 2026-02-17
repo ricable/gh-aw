@@ -41,17 +41,12 @@ func TestGetWorkflowStatuses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// This function calls gh CLI, so it will likely error in tests
 			// We just verify it doesn't panic
-			statuses, err := getWorkflowStatuses(tt.pattern, tt.repoOverride, tt.verbose)
+			_, err := getWorkflowStatuses(tt.pattern, tt.repoOverride, tt.verbose)
 
 			// Either succeeds or fails gracefully, but shouldn't panic
-			// Note: statuses may be nil even when err is nil (no workflows found)
 			if err != nil {
 				// Error is acceptable in test environment without gh CLI setup
 				assert.Error(t, err, "Expected error without gh CLI")
-			}
-			// If no error and statuses exist, verify they're valid
-			if err == nil && statuses != nil {
-				assert.GreaterOrEqual(t, len(statuses), 0, "Statuses should be a valid slice")
 			}
 		})
 	}
