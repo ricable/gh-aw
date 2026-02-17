@@ -215,7 +215,23 @@ func parseWorkflowSpec(spec string) (*WorkflowSpec, error) {
 	// Check if this is a local path
 	if isLocalWorkflowPath(spec) {
 		specLog.Print("Detected local path format")
-		return parseLocalWorkflowSpec(spec)
+
+		ws, err := parseLocalWorkflowSpec(spec)
+		if err != nil {
+			return nil, err
+		}
+
+		// Detect local wildcard specs like "./*.md" and mark them so that
+		// downstream expansion (e.g., expandLocalWildcardWorkflows) can run.
+		if strings.ContainsAny(spec, "*?[") {
+			ws.IsWildcard = true
+			// Ensure a stable WorkflowName for wildcard specs.
+			if ws.WorkflowName == "" {
+				ws.WorkflowName = spec
+			}
+		}
+
+		return ws, nil
 	}
 
 	// Handle version first (anything after @)
