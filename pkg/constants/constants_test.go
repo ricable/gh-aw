@@ -104,9 +104,6 @@ func TestAgenticEngines(t *testing.T) {
 	if string(CopilotEngine) != "copilot" {
 		t.Errorf("CopilotEngine constant = %q, want %q", CopilotEngine, "copilot")
 	}
-	if string(CustomEngine) != "custom" {
-		t.Errorf("CustomEngine constant = %q, want %q", CustomEngine, "custom")
-	}
 }
 
 func TestDefaultGitHubTools(t *testing.T) {
@@ -490,11 +487,6 @@ func TestSemanticTypeAliases(t *testing.T) {
 		codex := CodexEngine
 		if string(codex) != "codex" {
 			t.Errorf("CodexEngine = %q, want %q", codex, "codex")
-		}
-
-		custom := CustomEngine
-		if string(custom) != "custom" {
-			t.Errorf("CustomEngine = %q, want %q", custom, "custom")
 		}
 	})
 }

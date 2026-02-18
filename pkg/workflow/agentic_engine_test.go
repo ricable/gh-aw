@@ -32,14 +32,6 @@ func TestEngineRegistry(t *testing.T) {
 		t.Errorf("Expected codex engine ID, got '%s'", codexEngine.GetID())
 	}
 
-	customEngine, err := registry.GetEngine("custom")
-	if err != nil {
-		t.Errorf("Expected to find custom engine, got error: %v", err)
-	}
-	if customEngine.GetID() != "custom" {
-		t.Errorf("Expected custom engine ID, got '%s'", customEngine.GetID())
-	}
-
 	// Test getting non-existent engine
 	_, err = registry.GetEngine("nonexistent")
 	if err == nil {
@@ -53,10 +45,6 @@ func TestEngineRegistry(t *testing.T) {
 
 	if !registry.IsValidEngine("codex") {
 		t.Error("Expected codex to be valid engine")
-	}
-
-	if !registry.IsValidEngine("custom") {
-		t.Error("Expected custom to be valid engine")
 	}
 
 	if registry.IsValidEngine("nonexistent") {

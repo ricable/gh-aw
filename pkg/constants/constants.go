@@ -680,8 +680,6 @@ const (
 	ClaudeEngine EngineName = "claude"
 	// CodexEngine is the OpenAI Codex engine identifier
 	CodexEngine EngineName = "codex"
-	// CustomEngine is the custom engine identifier
-	CustomEngine EngineName = "custom"
 )
 
 // AgenticEngines lists all supported agentic engine names
