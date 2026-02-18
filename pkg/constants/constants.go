@@ -305,7 +305,7 @@ const (
 	CopilotLLMGatewayPort = 10002
 
 	// GeminiLLMGatewayPort is the port for the Gemini LLM gateway
-	GeminiLLMGatewayPort = 1003
+	GeminiLLMGatewayPort = 10003
 )
 
 // DefaultMCPRegistryURL is the default MCP registry URL.
