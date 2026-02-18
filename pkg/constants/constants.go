@@ -303,6 +303,9 @@ const (
 
 	// CopilotLLMGatewayPort is the port for the Copilot LLM gateway
 	CopilotLLMGatewayPort = 10002
+
+	// MistralVibeLLMGatewayPort is the port for the Mistral Vibe LLM gateway
+	MistralVibeLLMGatewayPort = 10004
 )
 
 // DefaultMCPRegistryURL is the default MCP registry URL.
@@ -372,6 +375,9 @@ const (
 
 // DefaultCodexVersion is the default version of the OpenAI Codex CLI
 const DefaultCodexVersion Version = "0.104.0"
+
+// DefaultMistralVibeVersion is the default version of the Mistral Vibe CLI
+const DefaultMistralVibeVersion Version = "2.1.0"
 
 // DefaultGitHubMCPServerVersion is the default version of the GitHub MCP server Docker image
 const DefaultGitHubMCPServerVersion Version = "v0.30.3"
