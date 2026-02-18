@@ -214,7 +214,7 @@ func InjectCustomEngineSteps(
 	workflowData *WorkflowData,
 	convertStepFunc func(map[string]any) (string, error),
 ) []GitHubActionStep {
-	var steps []GitHubActionStep
+	steps := []GitHubActionStep{}
 
 	// Handle custom steps if they exist in engine config
 	if workflowData.EngineConfig != nil && len(workflowData.EngineConfig.Steps) > 0 {

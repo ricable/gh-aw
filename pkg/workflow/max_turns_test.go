@@ -273,7 +273,7 @@ engine:
 
 # Custom Engine with Max Turns
 
-This tests max-turns feature with custom engine.`
+This tests that max-turns is rejected with custom engine.`
 
 	// Create a temporary directory for the test
 	tmpDir := testutil.TempDir(t, "custom-max-turns-test")
@@ -284,34 +284,22 @@ This tests max-turns feature with custom engine.`
 		t.Fatal(err)
 	}
 
-	// Compile the workflow
+	// Compile the workflow - should fail because custom engine doesn't support max-turns
 	compiler := NewCompiler()
-	if err := compiler.CompileWorkflow(testFile); err != nil {
-		t.Fatalf("Failed to compile workflow with custom engine and max-turns: %v", err)
+	err := compiler.CompileWorkflow(testFile)
+	
+	// Expect an error about max-turns not being supported
+	if err == nil {
+		t.Fatal("Expected compilation to fail with max-turns error, but it succeeded")
 	}
-
-	// Read the generated lock file
-	lockFile := stringutil.MarkdownToLockFile(testFile)
-	lockContent, err := os.ReadFile(lockFile)
-	if err != nil {
-		t.Fatalf("Failed to read lock file: %v", err)
+	
+	// Verify the error message mentions max-turns not being supported
+	if !strings.Contains(err.Error(), "max-turns not supported") {
+		t.Errorf("Expected error about max-turns not supported, got: %v", err)
 	}
-
-	lockContentStr := string(lockContent)
-
-	// Verify GH_AW_MAX_TURNS environment variable is set
-	expectedEnvVar := "GH_AW_MAX_TURNS: \"5\""
-	if !strings.Contains(lockContentStr, expectedEnvVar) {
-		t.Errorf("Expected GH_AW_MAX_TURNS environment variable to be set. Expected: %s\nActual content:\n%s", expectedEnvVar, lockContentStr)
-	}
-
-	// Verify MCP config is generated for custom engine
-	if !strings.Contains(lockContentStr, "/tmp/gh-aw/mcp-config/mcp-servers.json") {
-		t.Error("Expected custom engine to generate MCP configuration file")
-	}
-
-	// Verify custom steps are included
-	if !strings.Contains(lockContentStr, "echo \"Testing max-turns with custom engine\"") {
-		t.Error("Expected custom steps to be included in generated workflow")
+	
+	// Verify the error message mentions the custom engine
+	if !strings.Contains(err.Error(), "custom") {
+		t.Errorf("Expected error to mention 'custom' engine, got: %v", err)
 	}
 }
