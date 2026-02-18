@@ -3,6 +3,7 @@ package workflow
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -172,6 +173,13 @@ func (c *Compiler) generateWorkflowBody(yaml *strings.Builder, data *WorkflowDat
 func (c *Compiler) generateYAML(data *WorkflowData, markdownPath string) (string, error) {
 	compilerYamlLog.Printf("Generating YAML for workflow: %s", data.Name)
 
+	// Check if inline-imports is set in frontmatter
+	// If set to true, enable inlinePrompt to embed all imports at compile time
+	if data.InlineImports {
+		compilerYamlLog.Print("inline-imports: true detected, enabling inline prompt mode")
+		c.inlinePrompt = true
+	}
+
 	// Build all jobs and validate dependencies
 	if err := c.buildJobsAndValidate(data, markdownPath); err != nil {
 		return "", fmt.Errorf("failed to build and validate jobs: %w", err)
@@ -294,16 +302,79 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 		compilerYamlLog.Printf("Inlined imported markdown with inputs in %d chunks", len(importedChunks))
 	}
 
-	// Step 1b: Generate runtime-import macros for imported markdown without inputs
-	// These imports don't need compile-time substitution, so they can be loaded at runtime
+	// Step 1b: Handle imported markdown without inputs
+	// - When inline-imports is true (or inlinePrompt for Wasm): inline the content at compile time
+	// - Otherwise: generate runtime-import macros (loaded at runtime)
 	if len(data.ImportPaths) > 0 {
-		compilerYamlLog.Printf("Generating runtime-import macros for %d imports without inputs", len(data.ImportPaths))
-		for _, importPath := range data.ImportPaths {
-			// Normalize to Unix paths (forward slashes) for cross-platform compatibility
-			importPath = filepath.ToSlash(importPath)
-			runtimeImportMacro := fmt.Sprintf("{{#runtime-import %s}}", importPath)
-			userPromptChunks = append(userPromptChunks, runtimeImportMacro)
-			compilerYamlLog.Printf("Added runtime-import macro for: %s", importPath)
+		if c.inlinePrompt {
+			// Inline mode: read and embed import files at compile time
+			compilerYamlLog.Printf("Inlining %d imports without inputs (inline-imports mode)", len(data.ImportPaths))
+			
+			// Determine base directory for resolving import paths
+			var baseDir string
+			if c.markdownPath != "" {
+				baseDir = filepath.Dir(c.markdownPath)
+			} else {
+				// Fallback to current directory if markdownPath is not set
+				var err error
+				baseDir, err = os.Getwd()
+				if err != nil {
+					compilerYamlLog.Printf("Warning: failed to get current directory: %v", err)
+					baseDir = "."
+				}
+			}
+			
+			for _, importPath := range data.ImportPaths {
+				// Resolve the full path to the import file
+				fullPath := filepath.Join(baseDir, importPath)
+				compilerYamlLog.Printf("Reading import file for inlining: %s", fullPath)
+				
+				// Read the import file
+				content, err := os.ReadFile(fullPath)
+				if err != nil {
+					compilerYamlLog.Printf("Warning: failed to read import file %s: %v", fullPath, err)
+					// Fall back to runtime-import macro on error
+					importPath = filepath.ToSlash(importPath)
+					runtimeImportMacro := fmt.Sprintf("{{#runtime-import %s}}", importPath)
+					userPromptChunks = append(userPromptChunks, runtimeImportMacro)
+					continue
+				}
+				
+				// Extract markdown body from the import file (skip frontmatter)
+				result, err := parser.ExtractFrontmatterFromContent(string(content))
+				if err != nil {
+					compilerYamlLog.Printf("Warning: failed to extract markdown from import %s: %v", importPath, err)
+					// Use full content if frontmatter extraction fails
+					result = &parser.FrontmatterResult{Markdown: string(content)}
+				}
+				
+				// Clean and process the imported markdown
+				cleanedImport := removeXMLComments(result.Markdown)
+				cleanedImport = wrapExpressionsInTemplateConditionals(cleanedImport)
+				
+				// Extract expressions and replace with env var references
+				importExtractor := NewExpressionExtractor()
+				importExprMappings, err := importExtractor.ExtractExpressions(cleanedImport)
+				if err == nil && len(importExprMappings) > 0 {
+					cleanedImport = importExtractor.ReplaceExpressionsWithEnvVars(cleanedImport)
+					expressionMappings = append(expressionMappings, importExprMappings...)
+				}
+				
+				// Split into chunks and add to user prompt
+				importChunks := splitContentIntoChunks(cleanedImport)
+				userPromptChunks = append(userPromptChunks, importChunks...)
+				compilerYamlLog.Printf("Inlined import %s in %d chunks", importPath, len(importChunks))
+			}
+		} else {
+			// Runtime mode: generate runtime-import macros (loaded at runtime)
+			compilerYamlLog.Printf("Generating runtime-import macros for %d imports without inputs", len(data.ImportPaths))
+			for _, importPath := range data.ImportPaths {
+				// Normalize to Unix paths (forward slashes) for cross-platform compatibility
+				importPath = filepath.ToSlash(importPath)
+				runtimeImportMacro := fmt.Sprintf("{{#runtime-import %s}}", importPath)
+				userPromptChunks = append(userPromptChunks, runtimeImportMacro)
+				compilerYamlLog.Printf("Added runtime-import macro for: %s", importPath)
+			}
 		}
 	}
 

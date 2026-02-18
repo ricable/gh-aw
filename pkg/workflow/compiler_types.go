@@ -455,6 +455,7 @@ type WorkflowData struct {
 	ActionCache           *ActionCache         // cache for action pin resolutions
 	ActionResolver        *ActionResolver      // resolver for action pins
 	StrictMode            bool                 // strict mode for action pinning
+	InlineImports         bool                 // if true, inline all imports at compile time instead of using runtime-import macros
 	SecretMasking         *SecretMaskingConfig // secret masking configuration
 	ParsedFrontmatter     *FrontmatterConfig   // cached parsed frontmatter configuration (for performance optimization)
 	ActionPinWarnings     map[string]bool      // cache of already-warned action pin failures (key: "repo@version")

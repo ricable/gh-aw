@@ -365,3 +365,23 @@ func extractPluginsFromFrontmatter(frontmatter map[string]any) *PluginInfo {
 
 	return nil
 }
+
+// extractInlineImports extracts the inline-imports boolean field from frontmatter
+// Returns true if inline-imports is explicitly set to true, false otherwise
+func (c *Compiler) extractInlineImports(frontmatter map[string]any) bool {
+	frontmatterMetadataLog.Print("Extracting inline-imports from frontmatter")
+	value, exists := frontmatter["inline-imports"]
+	if !exists {
+		frontmatterMetadataLog.Print("No inline-imports field found in frontmatter")
+		return false
+	}
+
+	// inline-imports should be a boolean
+	if boolValue, ok := value.(bool); ok {
+		frontmatterMetadataLog.Printf("Extracted inline-imports: %v", boolValue)
+		return boolValue
+	}
+
+	frontmatterMetadataLog.Printf("inline-imports field is not a boolean, got %T", value)
+	return false
+}

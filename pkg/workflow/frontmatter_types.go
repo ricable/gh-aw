@@ -96,7 +96,8 @@ type FrontmatterConfig struct {
 	TrackerID      string   `json:"tracker-id,omitempty"`
 	Version        string   `json:"version,omitempty"`
 	TimeoutMinutes int      `json:"timeout-minutes,omitempty"`
-	Strict         *bool    `json:"strict,omitempty"` // Pointer to distinguish unset from false
+	Strict         *bool    `json:"strict,omitempty"`         // Pointer to distinguish unset from false
+	InlineImports  *bool    `json:"inline-imports,omitempty"` // If true, inline all imports at compile time instead of using runtime-import macros
 	Labels         []string `json:"labels,omitempty"`
 
 	// Configuration sections - using strongly-typed structs

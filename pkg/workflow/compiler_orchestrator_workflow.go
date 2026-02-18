@@ -168,6 +168,7 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 	workflowData.Env = c.extractTopLevelYAMLSection(frontmatter, "env")
 	workflowData.Features = c.extractFeatures(frontmatter)
 	workflowData.If = c.extractIfCondition(frontmatter)
+	workflowData.InlineImports = c.extractInlineImports(frontmatter)
 
 	// Extract timeout-minutes (canonical form)
 	workflowData.TimeoutMinutes = c.extractTopLevelYAMLSection(frontmatter, "timeout-minutes")
