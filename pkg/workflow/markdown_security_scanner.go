@@ -78,16 +78,22 @@ func countCategories(findings []SecurityFinding) int {
 }
 
 // ScanMarkdownSecurity scans markdown content for dangerous or malicious patterns.
-// It automatically strips YAML frontmatter (delimited by ---) so that only the
-// markdown body is scanned. Line numbers in returned findings are adjusted to
-// match the original file. Returns a list of findings. If non-empty, the content
-// should be rejected.
+// It automatically strips YAML frontmatter (delimited by ---) and HTML/XML comments
+// so that only the active markdown content is scanned. Line numbers in returned findings
+// are adjusted to match the original file. Returns a list of findings. If non-empty,
+// the content should be rejected.
 func ScanMarkdownSecurity(content string) []SecurityFinding {
 	markdownSecurityLog.Printf("Scanning markdown content (%d bytes) for security issues", len(content))
 
 	// Strip frontmatter and get the line offset for correct line number reporting
 	markdownBody, lineOffset := stripFrontmatter(content)
 	markdownSecurityLog.Printf("Stripped frontmatter: %d line(s) removed, scanning %d bytes of markdown", lineOffset, len(markdownBody))
+
+	// Strip HTML/XML comments since they are removed during workflow compilation anyway
+	// (see removeXMLComments in xml_comments.go). This prevents false positives from
+	// documentation comments and avoids flagging content that won't be in the final workflow.
+	markdownBody = removeXMLComments(markdownBody)
+	markdownSecurityLog.Printf("Stripped XML comments, scanning %d bytes of markdown after comment removal", len(markdownBody))
 
 	var findings []SecurityFinding
 
@@ -263,24 +269,6 @@ var (
 func scanHiddenContent(content string) []SecurityFinding {
 	var findings []SecurityFinding
 	lines := strings.Split(content, "\n")
-
-	// Check for HTML comments containing suspicious content
-	matches := htmlCommentPattern.FindAllStringSubmatchIndex(content, -1)
-	for _, match := range matches {
-		commentBody := content[match[2]:match[3]]
-		commentLine := lineNumberAt(content, match[0])
-
-		// Flag comments that contain code-like content, URLs, or suspicious keywords
-		lowerComment := strings.ToLower(commentBody)
-		if containsSuspiciousCommentContent(lowerComment) {
-			findings = append(findings, SecurityFinding{
-				Category:    CategoryHiddenContent,
-				Description: "HTML comment contains suspicious content (code, URLs, or executable instructions)",
-				Line:        commentLine,
-				Snippet:     truncateSnippet(strings.TrimSpace(commentBody), 80),
-			})
-		}
-	}
 
 	// Check for CSS-hidden elements
 	for lineNum, line := range lines {
