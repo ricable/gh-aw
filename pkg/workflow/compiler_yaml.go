@@ -310,23 +310,27 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 			// Inline mode: read and embed import files at compile time
 			compilerYamlLog.Printf("Inlining %d imports without inputs (inline-imports mode)", len(data.ImportPaths))
 
-			// Determine base directory for resolving import paths
-			var baseDir string
-			if c.markdownPath != "" {
-				baseDir = filepath.Dir(c.markdownPath)
-			} else {
-				// Fallback to current directory if markdownPath is not set
-				var err error
-				baseDir, err = os.Getwd()
-				if err != nil {
-					compilerYamlLog.Printf("Warning: failed to get current directory: %v", err)
-					baseDir = "."
-				}
-			}
-
 			for _, importPath := range data.ImportPaths {
-				// Resolve the full path to the import file
-				fullPath := filepath.Join(baseDir, importPath)
+				// Import paths can be:
+				// 1. Repository-relative starting with ".github/" (production workflows)
+				// 2. File-relative like "shared/file.md" (tests or local imports)
+				
+				var fullPath string
+				if strings.HasPrefix(importPath, ".github/") && c.gitRoot != "" {
+					// Production workflow with repository-relative import - use git root
+					fullPath = filepath.Join(c.gitRoot, importPath)
+					compilerYamlLog.Printf("Resolving repository-relative import from git root: %s", fullPath)
+				} else if c.markdownPath != "" {
+					// Test or file-relative import - use markdown file's directory
+					baseDir := filepath.Dir(c.markdownPath)
+					fullPath = filepath.Join(baseDir, importPath)
+					compilerYamlLog.Printf("Resolving file-relative import from markdown directory: %s", fullPath)
+				} else {
+					// Fallback - try current directory
+					fullPath = importPath
+					compilerYamlLog.Printf("Using import path as-is: %s", fullPath)
+				}
+				
 				compilerYamlLog.Printf("Reading import file for inlining: %s", fullPath)
 
 				// Read the import file
