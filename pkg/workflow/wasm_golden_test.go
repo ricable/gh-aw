@@ -84,7 +84,7 @@ func TestWasmGolden_CompileFixtures(t *testing.T) {
 			}
 			expected, err := os.ReadFile(goldenPath)
 			require.NoError(t, err, "golden file not found for %s (run with -update to create)", fixture)
-			require.Equal(t, string(expected), yamlOutput, "output differs from golden for %s", fixture)
+			require.Equal(t, string(expected), yamlOutput, "output differs from golden for %s", fixture) //nolint:testifylint // golden test requires exact string comparison, not semantic YAML equality
 		})
 	}
 }
@@ -238,13 +238,6 @@ func TestWasmGolden_NativeVsStringAPI(t *testing.T) {
 			}
 		})
 	}
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
 
 // TestWasmGolden_AllEngines verifies that all three engine types compile correctly

@@ -82,6 +82,28 @@ async function instantiateWasm() {
   return globalThis.compileWorkflow;
 }
 
+// ── Load virtual files for import resolution ────────────────────────
+function loadVirtualFiles(fixtureFilename) {
+  // Read the fixture to check for imports
+  const content = readFileSync(join(FIXTURES_DIR, fixtureFilename), "utf8");
+  const importMatch = content.match(/^imports:\s*\n((?:\s+-\s+.+\n?)+)/m);
+  if (!importMatch) return null;
+
+  const files = {};
+  const imports = importMatch[1].match(/^\s+-\s+(.+)$/gm);
+  if (!imports) return null;
+
+  for (const imp of imports) {
+    const path = imp.replace(/^\s+-\s+/, "").trim();
+    const fullPath = join(FIXTURES_DIR, path);
+    if (existsSync(fullPath)) {
+      files[path] = readFileSync(fullPath, "utf8");
+    }
+  }
+
+  return Object.keys(files).length > 0 ? files : null;
+}
+
 // ── Load fixtures ────────────────────────────────────────────────────
 function loadFixtures() {
   const files = readdirSync(FIXTURES_DIR).filter((f) => f.endsWith(".md"));
@@ -89,6 +111,7 @@ function loadFixtures() {
     name: f.replace(/\.md$/, ""),
     filename: f,
     content: readFileSync(join(FIXTURES_DIR, f), "utf8"),
+    virtualFiles: loadVirtualFiles(f),
   }));
 }
 
@@ -135,7 +158,7 @@ async function main() {
     process.stdout.write(`  ${fixture.name} ... `);
 
     try {
-      const result = await compileWorkflow(fixture.content);
+      const result = await compileWorkflow(fixture.content, fixture.virtualFiles, fixture.filename);
 
       if (result.error) {
         console.log("FAIL (compilation error)");
