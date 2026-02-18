@@ -313,8 +313,10 @@ describe("remove_labels", () => {
         {}
       );
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("No labels provided");
+      // Remove labels returns success=true with empty list when all labels are blocked (graceful handling)
+      expect(result.success).toBe(true);
+      expect(result.labelsRemoved).toEqual([]);
+      expect(result.message).toContain("No valid labels");
       // Verify blocked labels are logged individually
       expect(mockCore.infos.some(msg => msg.includes('Label "~triage" matched blocked pattern'))).toBe(true);
       expect(mockCore.infos.some(msg => msg.includes('Label "*admin" matched blocked pattern'))).toBe(true);

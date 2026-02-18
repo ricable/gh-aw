@@ -81,6 +81,14 @@ function validateBody(body, fieldName = "body", required = false) {
 
 /**
  * Validate and sanitize an array of labels
+ *
+ * Processing pipeline (in order):
+ * 1. Check for invalid removal attempts (labels starting with '-')
+ * 2. Filter by allowed list (if configured)
+ * 3. Sanitize and deduplicate labels
+ * 4. Filter by blocked patterns (if configured) - TAKES PRECEDENCE over allowed list
+ * 5. Apply max count limit
+ *
  * @param {any} labels - The labels to validate
  * @param {string[]|undefined} allowedLabels - Optional list of allowed labels
  * @param {string[]|undefined} blockedPatterns - Optional list of blocked label patterns (supports glob patterns)
@@ -119,14 +127,27 @@ function validateLabels(labels, allowedLabels = undefined, blockedPatterns = und
   let filteredLabels = uniqueLabels;
   if (blockedPatterns && blockedPatterns.length > 0) {
     const { globPatternToRegex } = require("./glob_pattern_helpers.cjs");
-    const blockedRegexes = blockedPatterns.map(pattern => globPatternToRegex(pattern));
+
+    // Compile patterns once for performance (outside the filter loop)
+    /** @type {Array<{pattern: string, regex: RegExp}>} */
+    const blockedRegexes = [];
+    for (const pattern of blockedPatterns) {
+      try {
+        // Use simple mode (pathMode: false) for label matching - labels don't contain paths
+        blockedRegexes.push({ pattern, regex: globPatternToRegex(pattern, { pathMode: false }) });
+      } catch (/** @type {any} */ error) {
+        core.warning(`Invalid blocked pattern "${pattern}": ${error.message}`);
+      }
+    }
 
     filteredLabels = uniqueLabels.filter(label => {
-      const isBlocked = blockedRegexes.some(regex => regex.test(label));
-      if (isBlocked) {
-        core.info(`Label "${label}" matched blocked pattern, filtering out`);
+      // Check if label matches any blocked pattern
+      const matchedPattern = blockedRegexes.find(({ regex }) => regex.test(label));
+      if (matchedPattern) {
+        core.info(`Label "${label}" matched blocked pattern "${matchedPattern.pattern}", filtering out`);
+        return false;
       }
-      return !isBlocked;
+      return true;
     });
   }
 

@@ -276,6 +276,13 @@ describe("safe_output_validator.cjs", () => {
       expect(result.valid).toBe(false);
       expect(result.error).toContain("No valid labels found");
     });
+
+    it("should log which pattern matched when blocking labels", () => {
+      validator.validateLabels(["bug", "~triage"], undefined, ["~*"], 10);
+
+      // Verify the pattern is mentioned in the log
+      expect(mockCore.info).toHaveBeenCalledWith(expect.stringContaining('matched blocked pattern "~*"'));
+    });
   });
 
   describe("validateMaxCount", () => {
