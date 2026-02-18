@@ -353,10 +353,6 @@ features:
   action-mode: "script"
 ```
 
-> [!NOTE]
-> Firewall Configuration
-> The `features.firewall` field has been removed. The agent sandbox is now mandatory and defaults to AWF (Agent Workflow Firewall). See [Sandbox Configuration](/gh-aw/reference/sandbox/) for details.
-
 #### Action Mode (`features.action-mode`)
 
 Controls how the workflow compiler generates custom action references in compiled workflows. Can be set to `"dev"`, `"release"`, or `"script"`.

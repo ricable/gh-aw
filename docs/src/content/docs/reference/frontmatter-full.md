@@ -859,7 +859,7 @@ network:
     # '*.example.com' (matches sub.example.com, deep.nested.example.com, and
     # example.com itself) and ecosystem names like 'python', 'node'.
 
-# Sandbox configuration for AI engines. Controls agent sandbox (AWF or Sandbox
+# Sandbox configuration for AI engines. Controls coding agent sandbox (AWF or Sandbox
 # Runtime) and MCP gateway. The MCP gateway is always enabled and cannot be
 # disabled.
 # (optional)
@@ -869,13 +869,13 @@ network:
 # options
 sandbox:
   # Agent sandbox type: 'awf' uses AWF (Agent Workflow Firewall), 'srt' uses
-  # Anthropic Sandbox Runtime, or false to disable agent sandbox. Defaults to 'awf'
-  # if not specified. Note: Disabling the agent sandbox (false) removes firewall
+  # Anthropic Sandbox Runtime, or false to disable coding agent sandbox. Defaults to 'awf'
+  # if not specified. Note: Disabling the coding agent sandbox (false) removes firewall
   # protection but keeps the MCP gateway enabled.
   # (optional)
   # This field supports multiple formats (oneOf):
 
-  # Option 1: Set to false to disable the agent sandbox (firewall). Warning: This
+  # Option 1: Set to false to disable the coding agent sandbox (firewall). Warning: This
   # removes firewall protection but keeps the MCP gateway enabled. Not allowed in
   # strict mode.
   agent: true

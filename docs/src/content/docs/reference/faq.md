@@ -146,7 +146,7 @@ All safe outputs from the AI agent are sanitized before being applied to your re
 
 Additionally, safe outputs enforce permission separation - write operations happen in separate jobs with scoped permissions, never in the agentic job itself.
 
-See [Safe Outputs - Sanitization](/gh-aw/reference/safe-outputs/#security-and-sanitization) for configuration options.
+See [Safe Outputs - Text Sanitization](/gh-aw/reference/safe-outputs/#text-sanitization) for configuration options.
 
 ### Tell me more about guardrails
 

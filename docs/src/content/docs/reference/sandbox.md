@@ -15,14 +15,14 @@ The `sandbox` field configures sandbox environments for AI engines (coding agent
 
 ### Coding Agent Sandbox
 
-Configure the agent sandbox type to control how the AI engine is isolated:
+Configure the coding agent sandbox type to control how the AI engine is isolated:
 
 ```yaml wrap
 # Use AWF (Agent Workflow Firewall) - default
 sandbox:
   agent: awf
 
-# Disable agent sandbox (firewall only) - use with caution
+# Disable coding agent sandbox (firewall only) - use with caution
 sandbox:
   agent: false
 
@@ -31,7 +31,7 @@ sandbox:
 
 **Default Behavior**
 
-If `sandbox` is not specified in your workflow, it defaults to `sandbox.agent: awf`. The agent sandbox is recommended for all workflows.
+If `sandbox` is not specified in your workflow, it defaults to `sandbox.agent: awf`. The coding agent sandbox is recommended for all workflows.
 
 **Disabling Coding Agent Sandbox**
 
@@ -53,7 +53,7 @@ sandbox:
 
 ### Combined Configuration
 
-Use both agent sandbox and MCP gateway together:
+Use both coding agent sandbox and MCP gateway together:
 
 ```yaml wrap
 features:
@@ -69,7 +69,7 @@ sandbox:
 
 ### AWF (Agent Workflow Firewall)
 
-AWF is the default agent sandbox that provides network egress control through domain-based access controls. Network permissions are configured through the top-level [`network`](/gh-aw/reference/network/) field.
+AWF is the default coding agent sandbox that provides network egress control through domain-based access controls. Network permissions are configured through the top-level [`network`](/gh-aw/reference/network/) field.
 
 ```yaml wrap
 sandbox:
