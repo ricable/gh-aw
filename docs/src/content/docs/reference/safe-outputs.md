@@ -66,7 +66,7 @@ The agent requests issue creation; a separate job with `issues: write` creates i
 
 ### Security & Agent Tasks
 
-- [**Dispatch Workflow**](#workflow-dispatch-dispatch-workflow) (`dispatch-workflow`) - Trigger other workflows with inputs (max: 3, same-repo only)
+- [**Dispatch Workflow**](#workflow-dispatch-dispatch-workflow) (`dispatch-workflow`) - Trigger workflows with inputs (max: 50, supports cross-repo with allowlist)
 - [**Code Scanning Alerts**](#code-scanning-alerts-create-code-scanning-alert) (`create-code-scanning-alert`) - Generate SARIF security advisories (max: unlimited, same-repo only)
 - [**Autofix Code Scanning Alerts**](#autofix-code-scanning-alerts-autofix-code-scanning-alert) (`autofix-code-scanning-alert`) - Create automated fixes for code scanning alerts (max: 10, same-repo only)
 - [**Create Agent Session**](#agent-session-creation-create-agent-session) (`create-agent-session`) - Create Copilot coding agent sessions (max: 1)
@@ -992,15 +992,15 @@ When using `target: "*"`, the agent must provide `discussion_number` in the outp
 
 ### Workflow Dispatch (`dispatch-workflow:`)
 
-Triggers other workflows in the same repository using GitHub's `workflow_dispatch` event. This enables orchestration patterns, such as orchestrator workflows that coordinate multiple worker workflows.
+Triggers other workflows using GitHub's `workflow_dispatch` event. Supports both same-repository and cross-repository orchestration patterns, enabling orchestrator workflows to coordinate multiple worker workflows across repositories.
 
-**Shorthand Syntax:**
+**Shorthand Syntax (Same-Repository):**
 ```yaml wrap
 safe-outputs:
   dispatch-workflow: [worker-workflow, scanner-workflow]
 ```
 
-**Detailed Syntax:**
+**Detailed Syntax (Same-Repository):**
 ```yaml wrap
 safe-outputs:
   dispatch-workflow:
@@ -1008,10 +1008,66 @@ safe-outputs:
     max: 3  # maximum dispatches (default: 1, max: 50)
 ```
 
+**Cross-Repository Syntax:**
+```yaml wrap
+safe-outputs:
+  dispatch-workflow:
+    workflows: [worker-workflow, scanner-workflow]
+    max: 3
+    target-repo: github/main-repo  # default target repository
+    allowed-repos:  # additional allowed repositories (deny-by-default)
+      - github/test-repo
+      - octocat/hello-world
+```
+
 #### Configuration
 
-- **`workflows`** (required) - List of workflow names (without `.md` extension) that the agent is allowed to dispatch. Each workflow must exist in the same repository and support the `workflow_dispatch` trigger.
+- **`workflows`** (required) - List of workflow names (without `.md` extension) that the agent is allowed to dispatch. Each workflow must exist in the target repository and support the `workflow_dispatch` trigger.
 - **`max`** (optional) - Maximum number of workflow dispatches allowed (default: 1, maximum: 50). This prevents excessive workflow triggering.
+- **`target-repo`** (optional) - Default target repository in format `owner/repo`. If omitted, defaults to the current repository.
+- **`allowed-repos`** (optional) - List of additional repositories (format: `owner/repo`) where workflows can be dispatched. The current repository is always allowed. **Cross-repository dispatch requires explicit allowlist for security (deny-by-default)**.
+
+#### Cross-Repository Dispatch
+
+To dispatch workflows to different repositories:
+
+1. **Configure allowed repositories** in the frontmatter:
+   ```yaml wrap
+   safe-outputs:
+     dispatch-workflow:
+       workflows: [deploy]
+       target-repo: github/main-repo
+       allowed-repos:
+         - github/staging-repo
+         - github/prod-repo
+   ```
+
+2. **Specify target repository** in agent output (optional):
+   ```json
+   {
+     "type": "dispatch_workflow",
+     "workflow_name": "deploy",
+     "repo": "github/staging-repo",
+     "inputs": {
+       "environment": "staging"
+     }
+   }
+   ```
+
+3. **Bare repository names** are auto-qualified using the target-repo's organization:
+   ```json
+   {
+     "type": "dispatch_workflow",
+     "workflow_name": "deploy",
+     "repo": "staging-repo",  // becomes "github/staging-repo"
+     "inputs": {}
+   }
+   ```
+
+**Security Model:**
+- **Deny-by-default**: Cross-repository dispatch requires explicit `allowed-repos` configuration
+- **Same-repo always allowed**: The workflow's repository is implicitly allowed without configuration
+- **Validation before dispatch**: Repository is validated against allowed list before API call
 
 #### Validation Rules
 
