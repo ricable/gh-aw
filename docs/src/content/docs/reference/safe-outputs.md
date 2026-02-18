@@ -321,7 +321,7 @@ safe-outputs:
 
 **Target**: `"triggering"` (requires PR event), `"*"` (any PR), or number (specific PR).
 
-Use `reviewers: [copilot]` to assign the Copilot PR reviewer bot. This uses the same token resolution as Copilot agent assignment: `github-token:`, `GH_AW_AGENT_TOKEN` (or `GH_AW_GITHUB_TOKEN`, falling back to `GITHUB_TOKEN`).
+Use `reviewers: [copilot]` to assign the Copilot PR reviewer bot. This uses the same token resolution as Copilot agent assignment: `github-token:`, [`GH_AW_AGENT_TOKEN`](/gh-aw/reference/auth/#gh_aw_agent_token) (or [`GH_AW_GITHUB_TOKEN`](/gh-aw/reference/auth/#gh_aw_github_token), falling back to `GITHUB_TOKEN`).
 
 ### Assign Milestone (`assign-milestone:`)
 
@@ -1063,11 +1063,11 @@ To respect GitHub API rate limits, the handler automatically enforces a 5-second
 
 ### Agent Session Creation (`create-agent-session:`)
 
-Creates Copilot coding agent sessions. Requires `COPILOT_GITHUB_TOKEN` or `GH_AW_GITHUB_TOKEN` PAT-default `GITHUB_TOKEN` lacks permissions.
+Creates Copilot coding agent sessions. Requires [`COPILOT_GITHUB_TOKEN`](/gh-aw/reference/auth/#copilot_github_token) or [`GH_AW_GITHUB_TOKEN`](/gh-aw/reference/auth/#gh_aw_github_token) PAT-default `GITHUB_TOKEN` lacks permissions.
 
 ### Assign to Agent (`assign-to-agent:`)
 
-Programmatically assigns GitHub Copilot coding agent to **existing** issues or pull requests through workflow automation. This safe output automates the [standard GitHub workflow for assigning issues to Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-a-pr#assigning-an-issue-to-copilot). Requires fine-grained PAT with actions, contents, issues, pull requests write access stored as `GH_AW_AGENT_TOKEN`, or GitHub App token. Supported agents: `copilot` (`copilot-swe-agent`).
+Programmatically assigns GitHub Copilot coding agent to **existing** issues or pull requests through workflow automation. This safe output automates the [standard GitHub workflow for assigning issues to Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-a-pr#assigning-an-issue-to-copilot). Requires fine-grained PAT with actions, contents, issues, pull requests write access stored as [`GH_AW_AGENT_TOKEN`](/gh-aw/reference/auth/#gh_aw_agent_token), or GitHub App token. Supported agents: `copilot` (`copilot-swe-agent`).
 
 Auto-resolves target from workflow context (issue/PR events) when `issue_number` or `pull_number` not explicitly provided. Restrict with `allowed` list. Target: `"triggering"` (default), `"*"` (any), or number.
 
@@ -1165,30 +1165,9 @@ safe-outputs:
 
 ### GitHub App Token (`app:`)
 
-Use GitHub App tokens for enhanced security: on-demand minting, auto-revocation, fine-grained permissions, better attribution. Supports config import from shared workflows.
+Use GitHub App tokens for enhanced security: on-demand token minting, automatic revocation, fine-grained permissions, and better attribution.
 
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-    owner: "my-org"                    # optional: installation owner
-    repositories: ["repo1", "repo2"]   # optional: scope to specific repos
-  create-issue:
-```
-
-When you configure `app:` for safe outputs, tokens are **automatically managed per-job** for enhanced security:
-
-1. **Per-job token minting**: Each safe output job automatically mints its own token via `actions/create-github-app-token` with permissions explicitly scoped to that job's needs
-2. **Permission narrowing**: Token permissions are narrowed to match the job's `permissions:` block - only the permissions required for the safe outputs in that job are granted
-3. **Automatic revocation**: Tokens are explicitly revoked at job end via `DELETE /installation/token`, even if the job fails
-4. **Safe shared configuration**: A broadly-permissioned GitHub App can be safely shared across workflows because tokens are narrowed per-job
-
-**Repository scoping options**:
-
-- `repositories: ["*"]` - Org-wide access (all repos in the installation)
-- `repositories: ["repo1", "repo2"]` - Specific repositories only
-- Omit `repositories` field - Current repository only (default)
+See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for configuration details and security benefits.
 
 ### Text Sanitization (`allowed-domains:`, `allowed-github-references:`)
 

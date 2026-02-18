@@ -365,24 +365,7 @@ safe-outputs:
     target-repo: "my-org/main-repo"
 ```
 
-This prevents GitHub from auto-linking issue numbers and creating timeline entries. See [Controlling GitHub References](#controlling-github-references) for details.
-
-## Controlling GitHub References
-
-When workflows create issues or comments in the main repository, GitHub automatically converts text like `#123` or `owner/repo#456` into clickable links. While useful for organic development, these automatic links can clutter the main repository's timeline with unwanted cross-references from automation - a particular concern for SideRepoOps where automation runs from a separate repository.
-
-Use the `allowed-github-references` field to control which repository references are allowed in workflow output. For SideRepoOps, we recommend setting this to an empty array to prevent all timeline clutter:
-
-```yaml wrap
-safe-outputs:
-  allowed-github-references: []  # Escape all references
-  create-issue:
-    target-repo: "my-org/main-repo"
-```
-
-This escapes references like `#123` to `` `#123` ``, preventing timeline entries while preserving the information. You can also configure it to allow only specific repositories.
-
-See the [Safe Outputs Reference](/gh-aw/reference/safe-outputs/#security-and-sanitization) for complete configuration options and examples.
+This prevents GitHub from auto-linking issue numbers and creating timeline entries. See [Text Sanitization](/gh-aw/reference/safe-outputs/#text-sanitization-allowed-domains-allowed-github-references) for details.
 
 ## Advanced Topics
 
@@ -415,18 +398,9 @@ Work on user-specified repository: {{inputs.target_repo}}
 
 ### Using GitHub Apps
 
-For enhanced security, use GitHub Apps instead of PATs. GitHub Apps provide automatic token expiration after job completion, more granular permission control, better audit trails, and can be installed at organization level:
+For enhanced security, use GitHub Apps instead of PATs. GitHub Apps provide automatic token expiration after job completion, more granular permission control, better audit trails, and can be installed at organization level.
 
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.AUTOMATION_APP_ID }}
-    private-key: ${{ secrets.AUTOMATION_APP_KEY }}
-    owner: "my-org"
-    repositories: ["main-repo"]
-  create-issue:
-    target-repo: "my-org/main-repo"
-```
+See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for complete configuration including repository scoping options.
 
 ### Bidirectional Sync
 

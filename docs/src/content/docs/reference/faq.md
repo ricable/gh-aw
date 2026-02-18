@@ -146,7 +146,7 @@ All safe outputs from the AI agent are sanitized before being applied to your re
 
 Additionally, safe outputs enforce permission separation - write operations happen in separate jobs with scoped permissions, never in the agentic job itself.
 
-See [Safe Outputs - Text Sanitization](/gh-aw/reference/safe-outputs/#text-sanitization) for configuration options.
+See [Safe Outputs - Text Sanitization](/gh-aw/reference/safe-outputs/#text-sanitization-allowed-domains-allowed-github-references) for configuration options.
 
 ### Tell me more about guardrails
 
@@ -336,9 +336,9 @@ Yes, for the purpose of this technology. An **"agent"** is an agentic workflow i
 
 This depends on the AI engine (coding agent) you use:
 
-- **GitHub Copilot CLI** (default): Usage is currently associated with the individual GitHub account of the user supplying the COPILOT_GITHUB_TOKEN, and is drawn from the monthly quota of premium requests for that account. See [GitHub Copilot billing](https://docs.github.com/en/copilot/about-github-copilot/subscription-plans-for-github-copilot).
-- **Claude**: Usage is billed to the Anthropic account associated with ANTHROPIC_API_KEY Actions secret in the repository.
-- **Codex**: Usage is billed to your OpenAI account associated with OPENAI_API_KEY Actions secret in the repository.
+- **GitHub Copilot CLI** (default): Usage is currently associated with the individual GitHub account of the user supplying the [`COPILOT_GITHUB_TOKEN`](/gh-aw/reference/auth/#copilot_github_token), and is drawn from the monthly quota of premium requests for that account. See [GitHub Copilot billing](https://docs.github.com/en/copilot/about-github-copilot/subscription-plans-for-github-copilot).
+- **Claude**: Usage is billed to the Anthropic account associated with [`ANTHROPIC_API_KEY`](/gh-aw/reference/auth/#anthropic_api_key) Actions secret in the repository.
+- **Codex**: Usage is billed to your OpenAI account associated with [`OPENAI_API_KEY`](/gh-aw/reference/auth/#openai_api_key) Actions secret in the repository.
 
 ### What's the approximate cost per workflow run?
 

@@ -115,7 +115,7 @@ plugins:
 
 1. Custom `plugins.github-token` from object format
 2. `${{ secrets.GH_AW_PLUGINS_TOKEN }}`
-3. `${{ secrets.GH_AW_GITHUB_TOKEN }}`
+3. [`${{ secrets.GH_AW_GITHUB_TOKEN }}`](/gh-aw/reference/auth/#gh_aw_github_token)
 4. `${{ secrets.GITHUB_TOKEN }}` (default)
 
 Each plugin repository must be specified in `org/repo` format. The compiler generates installation steps that run after the engine CLI is installed but before workflow execution begins.
