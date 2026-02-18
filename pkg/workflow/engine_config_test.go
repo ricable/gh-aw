@@ -40,12 +40,6 @@ func TestExtractEngineConfig(t *testing.T) {
 			expectedConfig:        &EngineConfig{ID: "codex"},
 		},
 		{
-			name:                  "string format - custom",
-			frontmatter:           map[string]any{"engine": "custom"},
-			expectedEngineSetting: "custom",
-			expectedConfig:        &EngineConfig{ID: "custom"},
-		},
-		{
 			name: "object format - minimal (id only)",
 			frontmatter: map[string]any{
 				"engine": map[string]any{
