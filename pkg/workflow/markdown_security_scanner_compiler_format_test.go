@@ -40,12 +40,12 @@ func TestFormatSecurityFindingsWithFile_CompilerStyle(t *testing.T) {
 	assert.Contains(t, output, "<script> tag can execute arbitrary JavaScript", "should contain description")
 
 	// Should contain context lines with line numbers
-	// Context is centered around line 10, with 2 lines before and after
-	// So we expect lines 8, 9, 10, 11, 12
-	assert.Contains(t, output, "   8 | Line before", "should show context before")
-	assert.Contains(t, output, "   9 | <script>", "should show script opening")
-	assert.Contains(t, output, "  10 |   alert('xss')", "should show error line")
-	assert.Contains(t, output, "     |", "should show pointer line")
+	// console.FormatError formats line numbers with minimal padding
+	assert.Contains(t, output, " 8 | Line before", "should show context before")
+	assert.Contains(t, output, " 9 | <script>", "should show script opening")
+	assert.Contains(t, output, "10 |   alert('xss')", "should show error line")
+	// The pointer uses ^ characters, not just |
+	assert.Contains(t, output, "^^", "should show pointer with carets")
 }
 
 // TestFormatSecurityFindingsWithFile_HTMLCommentNoContext tests that HTML comments don't expose content
