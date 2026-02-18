@@ -89,7 +89,15 @@ func (c *Compiler) generateRateLimitCheck(data *WorkflowData, steps []string) []
 
 // extractRoles extracts the 'roles' field from frontmatter to determine permission requirements
 func (c *Compiler) extractRoles(frontmatter map[string]any) []string {
-	// Check on.roles
+	// Check top-level roles first
+	if rolesValue, exists := frontmatter["roles"]; exists {
+		roles := parseRolesValue(rolesValue, "roles")
+		if roles != nil {
+			return roles
+		}
+	}
+
+	// Check on.roles (legacy location)
 	if onValue, exists := frontmatter["on"]; exists {
 		if onMap, ok := onValue.(map[string]any); ok {
 			if rolesValue, hasRoles := onMap["roles"]; hasRoles {
