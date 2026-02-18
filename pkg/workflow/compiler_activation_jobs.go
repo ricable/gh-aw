@@ -920,7 +920,7 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 	// 2. In development/script mode when local actions need to be checked out
 	permissions := data.Permissions
 	needsContentsRead := (c.actionMode.IsDev() || c.actionMode.IsScript()) && len(c.generateCheckoutActionsFolder(data)) > 0
-	
+
 	if needsContentsRead {
 		if permissions == "" {
 			// No permissions specified, add contents: read for local actions
