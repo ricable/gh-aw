@@ -314,7 +314,7 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 				// Import paths can be:
 				// 1. Repository-relative starting with ".github/" (production workflows)
 				// 2. File-relative like "shared/file.md" (tests or local imports)
-				
+
 				var fullPath string
 				if strings.HasPrefix(importPath, ".github/") && c.gitRoot != "" {
 					// Production workflow with repository-relative import - use git root
@@ -330,7 +330,7 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 					fullPath = importPath
 					compilerYamlLog.Printf("Using import path as-is: %s", fullPath)
 				}
-				
+
 				compilerYamlLog.Printf("Reading import file for inlining: %s", fullPath)
 
 				// Read the import file
