@@ -2,6 +2,7 @@
 description: Generates creative poems on specified themes when invoked with /poem-bot command
 # Custom triggers: command with events filter, workflow_dispatch
 on:
+  roles:
   # Command trigger - responds to /poem-bot mentions
   slash_command:
     name: poem-bot
@@ -16,7 +17,6 @@ on:
         default: 'technology and automation'
 
 # Restrict to admin/maintainer roles only
-roles:
   - admin
   - maintainer
 

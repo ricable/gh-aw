@@ -2,6 +2,7 @@
 name: Release
 description: Build, test, and release gh-aw extension, then generate and prepend release highlights
 on:
+  roles:
   workflow_dispatch:
     inputs:
       release_type:
@@ -17,7 +18,6 @@ permissions:
   pull-requests: read
   actions: read
   issues: read
-roles:
   - admin
   - maintainer
 engine: copilot
