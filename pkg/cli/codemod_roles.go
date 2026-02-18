@@ -40,9 +40,9 @@ func getRolesToOnRolesCodemod() Codemod {
 			}
 
 			// Find roles line and on: block
-			var rolesLineIdx int = -1
+			var rolesLineIdx = -1
 			var rolesLineValue string
-			var onBlockIdx int = -1
+			var onBlockIdx = -1
 			var onIndent string
 
 			// First pass: find the roles line and on: block

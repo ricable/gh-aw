@@ -59,7 +59,7 @@ roles: [admin, maintainer, write]
 		if foundOn && strings.Contains(line, "roles:") {
 			foundRoles = true
 			// Check that roles line has indentation (nested under on:)
-			assert.True(t, len(line) > len(strings.TrimSpace(line)), "roles should be indented under on:")
+			assert.Greater(t, len(line), len(strings.TrimSpace(line)), "roles should be indented under on:")
 			break
 		}
 	}
@@ -138,7 +138,7 @@ roles: all
 		if foundOn && strings.Contains(line, "roles:") {
 			foundRoles = true
 			// Check that roles line has indentation
-			assert.True(t, len(line) > len(strings.TrimSpace(line)), "roles should be indented under on:")
+			assert.Greater(t, len(line), len(strings.TrimSpace(line)), "roles should be indented under on:")
 			break
 		}
 	}
