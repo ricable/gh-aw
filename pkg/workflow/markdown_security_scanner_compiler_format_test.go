@@ -163,8 +163,8 @@ More content after the comment.
 
 	finding := findings[0]
 	assert.Equal(t, CategoryHiddenContent, finding.Category, "should be hidden content category")
-	assert.Greater(t, finding.Line, 0, "should have line number")
-	assert.Greater(t, finding.Column, 0, "should have column number")
+	assert.Positive(t, finding.Line, "should have line number")
+	assert.Positive(t, finding.Column, "should have column number")
 	assert.NotEmpty(t, finding.Trigger, "should identify trigger")
 	assert.NotEmpty(t, finding.Context, "should provide context lines")
 

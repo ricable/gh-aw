@@ -370,7 +370,7 @@ func scanHiddenContent(content string) []SecurityFinding {
 			contextLines := extractContextLines(lines, commentLine, 2)
 
 			// Build detailed description
-			description := fmt.Sprintf("HTML comment contains suspicious content (code, URLs, or executable instructions)")
+			description := "HTML comment contains suspicious content (code, URLs, or executable instructions)"
 
 			findings = append(findings, SecurityFinding{
 				Category:    CategoryHiddenContent,
@@ -478,13 +478,6 @@ func detectSuspiciousCommentContent(lowerComment string) (string, bool) {
 	}
 
 	return "", false
-}
-
-// containsSuspiciousCommentContent checks if an HTML comment body contains suspicious content
-// (legacy function for backward compatibility)
-func containsSuspiciousCommentContent(lowerComment string) bool {
-	_, isSuspicious := detectSuspiciousCommentContent(lowerComment)
-	return isSuspicious
 }
 
 // --- Obfuscated Links Detection ---
