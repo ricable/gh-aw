@@ -547,9 +547,9 @@ network:
 - The proxy enforces network allowlist policies while managing credentials
 
 **NI-16**: The API proxy MUST be deployed as a sidecar container when using engines with API proxy support:
-- Copilot engine: API proxy enabled (LLM gateway port 10003)
-- Claude engine: API proxy enabled (LLM gateway port 10001)
-- Codex engine: API proxy enabled (LLM gateway port 10002)
+- Copilot engine: API proxy enabled (LLM gateway port 10002)
+- Claude engine: API proxy enabled (LLM gateway port 10000)
+- Codex engine: API proxy enabled (LLM gateway port 10001)
 
 **NI-17**: Engines without API proxy support SHOULD use alternative credential protection mechanisms:
 - Environment variable scoping and isolation
