@@ -42,9 +42,10 @@ func TestExtractRoles_OnRolesString(t *testing.T) {
 	assert.Equal(t, []string{"all"}, roles)
 }
 
-func TestExtractRoles_TopLevelRoles_Deprecated(t *testing.T) {
+func TestExtractRoles_TopLevelRoles_NotSupported(t *testing.T) {
 	compiler := &Compiler{}
 
+	// Top-level roles is no longer supported - should return defaults
 	frontmatter := map[string]any{
 		"on": map[string]any{
 			"issues": map[string]any{
@@ -56,12 +57,14 @@ func TestExtractRoles_TopLevelRoles_Deprecated(t *testing.T) {
 
 	roles := compiler.extractRoles(frontmatter)
 
+	// Should return defaults since top-level roles is not recognized
 	assert.Equal(t, []string{"admin", "maintainer", "write"}, roles)
 }
 
-func TestExtractRoles_TopLevelRoles_StringArray(t *testing.T) {
+func TestExtractRoles_TopLevelRoles_StringArray_NotSupported(t *testing.T) {
 	compiler := &Compiler{}
 
+	// Top-level roles is no longer supported - should return defaults
 	frontmatter := map[string]any{
 		"on": map[string]any{
 			"issues": map[string]any{
@@ -73,13 +76,14 @@ func TestExtractRoles_TopLevelRoles_StringArray(t *testing.T) {
 
 	roles := compiler.extractRoles(frontmatter)
 
-	assert.Equal(t, []string{"admin", "write"}, roles)
+	// Should return defaults since top-level roles is not recognized
+	assert.Equal(t, []string{"admin", "maintainer", "write"}, roles)
 }
 
-func TestExtractRoles_OnRolesPriority(t *testing.T) {
+func TestExtractRoles_OnlyOnRolesSupported(t *testing.T) {
 	compiler := &Compiler{}
 
-	// When both on.roles and top-level roles exist, on.roles should take priority
+	// Only on.roles is supported now
 	frontmatter := map[string]any{
 		"on": map[string]any{
 			"issues": map[string]any{
@@ -92,6 +96,7 @@ func TestExtractRoles_OnRolesPriority(t *testing.T) {
 
 	roles := compiler.extractRoles(frontmatter)
 
+	// Should use on.roles, ignoring top-level
 	assert.Equal(t, []string{"admin"}, roles)
 }
 

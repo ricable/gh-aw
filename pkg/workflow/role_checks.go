@@ -88,9 +88,8 @@ func (c *Compiler) generateRateLimitCheck(data *WorkflowData, steps []string) []
 }
 
 // extractRoles extracts the 'roles' field from frontmatter to determine permission requirements
-// Checks on.roles first (new location), then falls back to top-level roles (deprecated) for backward compatibility
 func (c *Compiler) extractRoles(frontmatter map[string]any) []string {
-	// Check on.roles first (new location)
+	// Check on.roles
 	if onValue, exists := frontmatter["on"]; exists {
 		if onMap, ok := onValue.(map[string]any); ok {
 			if rolesValue, hasRoles := onMap["roles"]; hasRoles {
@@ -99,15 +98,6 @@ func (c *Compiler) extractRoles(frontmatter map[string]any) []string {
 					return roles
 				}
 			}
-		}
-	}
-
-	// Fall back to top-level roles (deprecated but still supported)
-	if rolesValue, exists := frontmatter["roles"]; exists {
-		roleLog.Print("WARNING: Using deprecated top-level 'roles' field. Please move to 'on.roles' instead.")
-		roles := parseRolesValue(rolesValue, "roles")
-		if roles != nil {
-			return roles
 		}
 	}
 

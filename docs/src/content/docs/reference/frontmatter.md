@@ -233,7 +233,7 @@ on:
 Available roles: `admin`, `maintainer`, `write`, `read`, `all`. Workflows with unsafe triggers (`push`, `issues`, `pull_request`) automatically enforce permission checks. Failed checks cancel the workflow with a warning.
 
 :::note[Migration from top-level roles]
-The `roles` field was previously a top-level frontmatter field. It has been moved to `on.roles` for better organization. Top-level `roles` is still supported for backward compatibility but is deprecated. Use `gh aw fix` to automatically migrate existing workflows.
+The `roles` field was previously a top-level frontmatter field. It has been moved to `on.roles` and top-level `roles` is no longer supported. Use `gh aw fix` to automatically migrate existing workflows.
 :::
 
 ### Bot Filtering (`bots:`)
