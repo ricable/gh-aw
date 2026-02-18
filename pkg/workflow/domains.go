@@ -109,7 +109,6 @@ var GeminiDefaultDomains = []string{
 	"raw.githubusercontent.com",
 	"registry.npmjs.org",
 }
-}
 
 // init loads the ecosystem domains from the embedded JSON
 func init() {

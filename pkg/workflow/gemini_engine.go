@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
@@ -23,7 +22,6 @@ func NewGeminiEngine() *GeminiEngine {
 			description:            "Google Gemini CLI with headless mode and LLM gateway support",
 			experimental:           true, // Marked as experimental as requested
 			supportsToolsAllowlist: true,
-			supportsHTTPTransport:  true,
 			supportsMaxTurns:       false,
 			supportsWebFetch:       false,
 			supportsWebSearch:      false,
@@ -264,19 +262,6 @@ func (e *GeminiEngine) GetExecutionSteps(workflowData *WorkflowData, logFile str
 }
 
 // convertStepToYAML converts a single step to YAML format
-func (e *GeminiEngine) convertStepToYAML(step any) []string {
-	yamlBytes, err := marshalYAML(step)
-	if err != nil {
-		geminiLog.Printf("Error converting step to YAML: %v", err)
-		return []string{}
-	}
-
-	lines := strings.Split(string(yamlBytes), "\n")
-	result := make([]string, 0, len(lines))
-	for _, line := range lines {
-		if line != "" && line != "---" {
-			result = append(result, "      "+line)
-		}
-	}
-	return result
+func (e *GeminiEngine) convertStepToYAML(stepMap map[string]any) (string, error) {
+	return ConvertStepToYAML(stepMap)
 }

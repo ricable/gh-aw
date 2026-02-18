@@ -20,13 +20,9 @@ func (e *GeminiEngine) ParseLogMetrics(logContent string, verbose bool) LogMetri
 	geminiLogsLog.Printf("Parsing Gemini log metrics: log_size=%d bytes, verbose=%v", len(logContent), verbose)
 
 	metrics := LogMetrics{
-		Turns:             0,
-		InputTokens:       0,
-		OutputTokens:      0,
-		TotalTokens:       0,
-		ToolCallCount:     0,
-		Errors:            []string{},
-		AgentOutputExists: false,
+		Turns:      0,
+		TokenUsage: 0,
+		ToolCalls:  []ToolCallInfo{},
 	}
 
 	// Try to parse the JSON response from Gemini
@@ -42,7 +38,6 @@ func (e *GeminiEngine) ParseLogMetrics(logContent string, verbose bool) LogMetri
 		if err := json.Unmarshal([]byte(line), &response); err == nil {
 			// Successfully parsed JSON response
 			if response.Response != "" {
-				metrics.AgentOutputExists = true
 				metrics.Turns = 1 // At least one turn if we got a response
 			}
 
@@ -52,10 +47,10 @@ func (e *GeminiEngine) ParseLogMetrics(logContent string, verbose bool) LogMetri
 					for _, modelStats := range models {
 						if stats, ok := modelStats.(map[string]interface{}); ok {
 							if inputTokens, ok := stats["input_tokens"].(float64); ok {
-								metrics.InputTokens += int(inputTokens)
+								metrics.TokenUsage += int(inputTokens)
 							}
 							if outputTokens, ok := stats["output_tokens"].(float64); ok {
-								metrics.OutputTokens += int(outputTokens)
+								metrics.TokenUsage += int(outputTokens)
 							}
 						}
 					}
@@ -63,25 +58,21 @@ func (e *GeminiEngine) ParseLogMetrics(logContent string, verbose bool) LogMetri
 
 				// Count tool calls if available
 				if tools, ok := response.Stats["tools"].(map[string]interface{}); ok {
-					metrics.ToolCallCount = len(tools)
+					for toolName := range tools {
+						metrics.ToolCalls = append(metrics.ToolCalls, ToolCallInfo{
+							Name:      toolName,
+							CallCount: 1,
+						})
+					}
 				}
 			}
 
 			geminiLogsLog.Printf("Parsed JSON response: response_len=%d, stats_present=%v", len(response.Response), response.Stats != nil)
 		}
-
-		// Check for error patterns
-		lowerLine := strings.ToLower(line)
-		if strings.Contains(lowerLine, "error") || strings.Contains(lowerLine, "failed") {
-			metrics.Errors = append(metrics.Errors, line)
-			geminiLogsLog.Printf("Found error in log: %s", line)
-		}
 	}
 
-	metrics.TotalTokens = metrics.InputTokens + metrics.OutputTokens
-
-	geminiLogsLog.Printf("Parsed metrics: turns=%d, input_tokens=%d, output_tokens=%d, tool_calls=%d, errors=%d",
-		metrics.Turns, metrics.InputTokens, metrics.OutputTokens, metrics.ToolCallCount, len(metrics.Errors))
+	geminiLogsLog.Printf("Parsed metrics: turns=%d, token_usage=%d, tool_calls=%d",
+		metrics.Turns, metrics.TokenUsage, len(metrics.ToolCalls))
 
 	return metrics
 }

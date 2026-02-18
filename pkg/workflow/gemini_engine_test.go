@@ -22,7 +22,6 @@ func TestGeminiEngine(t *testing.T) {
 
 	t.Run("capabilities", func(t *testing.T) {
 		assert.True(t, engine.SupportsToolsAllowlist(), "Should support tools allowlist")
-		assert.True(t, engine.SupportsHTTPTransport(), "Should support HTTP transport")
 		assert.False(t, engine.SupportsMaxTurns(), "Should not support max turns")
 		assert.False(t, engine.SupportsWebFetch(), "Should not support built-in web fetch")
 		assert.False(t, engine.SupportsWebSearch(), "Should not support built-in web search")
@@ -112,8 +111,11 @@ func TestGeminiEngineInstallation(t *testing.T) {
 	t.Run("with firewall", func(t *testing.T) {
 		workflowData := &WorkflowData{
 			Name: "test-workflow",
-			Firewall: &FirewallConfig{
-				Enabled: boolPtr(true),
+			NetworkPermissions: &NetworkPermissions{
+				Allowed: []string{"defaults"},
+				Firewall: &FirewallConfig{
+					Enabled: true,
+				},
 			},
 		}
 
@@ -253,11 +255,11 @@ func TestGeminiEngineFirewallIntegration(t *testing.T) {
 	t.Run("firewall enabled", func(t *testing.T) {
 		workflowData := &WorkflowData{
 			Name: "test-workflow",
-			Firewall: &FirewallConfig{
-				Enabled: boolPtr(true),
-			},
 			NetworkPermissions: &NetworkPermissions{
 				Allowed: []string{"defaults"},
+				Firewall: &FirewallConfig{
+					Enabled: true,
+				},
 			},
 		}
 
@@ -274,8 +276,10 @@ func TestGeminiEngineFirewallIntegration(t *testing.T) {
 	t.Run("firewall disabled", func(t *testing.T) {
 		workflowData := &WorkflowData{
 			Name: "test-workflow",
-			Firewall: &FirewallConfig{
-				Enabled: boolPtr(false),
+			NetworkPermissions: &NetworkPermissions{
+				Firewall: &FirewallConfig{
+					Enabled: false,
+				},
 			},
 		}
 
@@ -288,9 +292,4 @@ func TestGeminiEngineFirewallIntegration(t *testing.T) {
 		assert.Contains(t, stepContent, "set -o pipefail", "Should use simple command with pipefail")
 		assert.NotContains(t, stepContent, "awf", "Should not use AWF when firewall is disabled")
 	})
-}
-
-// Helper function to create bool pointer
-func boolPtr(b bool) *bool {
-	return &b
 }
