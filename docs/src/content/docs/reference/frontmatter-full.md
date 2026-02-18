@@ -3727,10 +3727,11 @@ secret-masking:
   # (optional)
   steps: []
 
+# DEPRECATED: Use 'on.roles' instead.
 # Repository access roles required to trigger agentic workflows. Defaults to
 # ['admin', 'maintainer', 'write'] for security. Use 'all' to allow any
 # authenticated user (⚠️ security consideration).
-# (optional)
+# (optional, deprecated - use on.roles instead)
 # This field supports multiple formats (oneOf):
 
 # Option 1: Allow any authenticated user to trigger the workflow (⚠️ disables
@@ -3743,6 +3744,12 @@ roles: []
   # Array items: Repository permission level: 'admin' (full access),
   # 'maintainer'/'maintain' (repository management), 'write' (push access), 'triage'
   # (issue management)
+
+# New location: Use on.roles instead
+# on:
+#   issues:
+#     types: [opened]
+#   roles: [admin, maintainer, write]
 
 # Allow list of bot identifiers that can trigger the workflow even if they don't
 # meet the required role permissions. When the actor is in this list, the bot must
