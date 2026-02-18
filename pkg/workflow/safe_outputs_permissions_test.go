@@ -115,10 +115,40 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 			},
 		},
 		{
-			name: "hide-comment only - no discussions permission",
+			name: "hide-comment only - includes discussions permission (default)",
 			safeOutputs: &SafeOutputsConfig{
 				HideComment: &HideCommentConfig{
 					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+				},
+			},
+			expected: map[PermissionScope]PermissionLevel{
+				PermissionContents:     PermissionRead,
+				PermissionIssues:       PermissionWrite,
+				PermissionPullRequests: PermissionWrite,
+				PermissionDiscussions:  PermissionWrite,
+			},
+		},
+		{
+			name: "hide-comment with discussion: true - includes discussions permission",
+			safeOutputs: &SafeOutputsConfig{
+				HideComment: &HideCommentConfig{
+					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+					Discussion:           ptrBool(true),
+				},
+			},
+			expected: map[PermissionScope]PermissionLevel{
+				PermissionContents:     PermissionRead,
+				PermissionIssues:       PermissionWrite,
+				PermissionPullRequests: PermissionWrite,
+				PermissionDiscussions:  PermissionWrite,
+			},
+		},
+		{
+			name: "hide-comment with discussion: false - no discussions permission",
+			safeOutputs: &SafeOutputsConfig{
+				HideComment: &HideCommentConfig{
+					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+					Discussion:           ptrBool(false),
 				},
 			},
 			expected: map[PermissionScope]PermissionLevel{

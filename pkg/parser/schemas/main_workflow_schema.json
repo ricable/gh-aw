@@ -5728,6 +5728,11 @@
                   "type": "string",
                   "description": "Target repository in format 'owner/repo' for cross-repository comment hiding. Takes precedence over trial target repo settings."
                 },
+                "discussion": {
+                  "type": "boolean",
+                  "description": "Enable discussion comment support (default: true). Set to false to disable discussions permission and restrict comment hiding to issues and pull requests only.",
+                  "default": true
+                },
                 "allowed-reasons": {
                   "type": "array",
                   "description": "List of allowed reasons for hiding comments. Default: all reasons allowed (spam, abuse, off_topic, outdated, resolved).",

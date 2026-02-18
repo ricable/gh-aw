@@ -10,48 +10,36 @@ var hideCommentLog = logger.New("workflow:hide_comment")
 type HideCommentConfig struct {
 	BaseSafeOutputConfig   `yaml:",inline"`
 	SafeOutputTargetConfig `yaml:",inline"`
+	Discussion             *bool    `yaml:"discussion,omitempty"` // Enable discussion comment support (default: true). Set to false to disable.
 	AllowedReasons         []string `yaml:"allowed-reasons,omitempty"` // List of allowed reasons for hiding comments (default: all reasons allowed)
 }
 
 // parseHideCommentConfig handles hide-comment configuration
 func (c *Compiler) parseHideCommentConfig(outputMap map[string]any) *HideCommentConfig {
-	hideCommentLog.Print("Parsing hide-comment configuration")
-	if configData, exists := outputMap["hide-comment"]; exists {
-		hideCommentConfig := &HideCommentConfig{}
-
-		if configMap, ok := configData.(map[string]any); ok {
-			hideCommentLog.Print("Found hide-comment config map")
-
-			// Parse target config (target-repo) with validation
-			targetConfig, isInvalid := ParseTargetConfig(configMap)
-			if isInvalid {
-				return nil // Invalid configuration (e.g., wildcard target-repo), return nil to cause validation error
-			}
-			hideCommentConfig.SafeOutputTargetConfig = targetConfig
-
-			// Parse allowed-reasons
-			if allowedReasons, exists := configMap["allowed-reasons"]; exists {
-				if reasonsArray, ok := allowedReasons.([]any); ok {
-					for _, reason := range reasonsArray {
-						if reasonStr, ok := reason.(string); ok {
-							hideCommentConfig.AllowedReasons = append(hideCommentConfig.AllowedReasons, reasonStr)
-						}
-					}
-				}
-			}
-
-			// Parse common base fields with default max of 5
-			c.parseBaseSafeOutputConfig(configMap, &hideCommentConfig.BaseSafeOutputConfig, 5)
-
-			hideCommentLog.Printf("Parsed hide-comment config: max=%d, target_repo=%s",
-				hideCommentConfig.Max, hideCommentConfig.TargetRepoSlug)
-		} else {
-			// If configData is nil or not a map, still set the default max
-			hideCommentConfig.Max = 5
-		}
-
-		return hideCommentConfig
+	// Check if the key exists
+	if _, exists := outputMap["hide-comment"]; !exists {
+		return nil
 	}
 
-	return nil
+	hideCommentLog.Print("Parsing hide-comment configuration")
+
+	// Unmarshal into typed config struct
+	var config HideCommentConfig
+	if err := unmarshalConfig(outputMap, "hide-comment", &config, hideCommentLog); err != nil {
+		hideCommentLog.Printf("Failed to unmarshal config: %v", err)
+		// For backward compatibility, handle nil/empty config
+		config = HideCommentConfig{}
+	}
+
+	// Set default max if not specified
+	if config.Max == 0 {
+		config.Max = 5
+	}
+
+	// Validate target-repo (wildcard "*" is not allowed)
+	if validateTargetRepoSlug(config.TargetRepoSlug, hideCommentLog) {
+		return nil // Invalid configuration, return nil to cause validation error
+	}
+
+	return &config
 }

@@ -103,16 +103,14 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 		permissions.Merge(NewPermissionsContentsReadPRWrite())
 	}
 	if safeOutputs.HideComment != nil {
-		safeOutputsPermissionsLog.Print("Adding permissions for hide-comment")
-		// hide-comment needs discussions permission only if discussion-related safe outputs are configured
-		// (since it can only hide discussion comments if the agent can interact with discussions)
-		if safeOutputs.CreateDiscussions != nil || safeOutputs.CloseDiscussions != nil || 
-			safeOutputs.UpdateDiscussions != nil || (safeOutputs.AddComments != nil && 
-			safeOutputs.AddComments.Discussion != nil && *safeOutputs.AddComments.Discussion) {
-			safeOutputsPermissionsLog.Print("Adding discussions permission for hide-comment (discussion safe outputs configured)")
-			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
-		} else {
+		// Check if hide-comment is configured to support discussions
+		// Default is true (discussion support enabled) unless explicitly set to false
+		if safeOutputs.HideComment.Discussion != nil && !*safeOutputs.HideComment.Discussion {
+			safeOutputsPermissionsLog.Print("Adding permissions for hide-comment (discussions disabled)")
 			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		} else {
+			safeOutputsPermissionsLog.Print("Adding permissions for hide-comment (with discussions support)")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
 		}
 	}
 	if safeOutputs.DispatchWorkflow != nil {
