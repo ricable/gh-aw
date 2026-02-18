@@ -92,7 +92,7 @@ func TestGeminiEngineInstallation(t *testing.T) {
 		if len(steps) > 2 && len(steps[2]) > 0 {
 			stepContent := strings.Join(steps[2], "\n")
 			assert.Contains(t, stepContent, "Install Gemini CLI", "Third step should install Gemini CLI")
-			assert.Contains(t, stepContent, "gemini-cli", "Should install gemini-cli package")
+			assert.Contains(t, stepContent, "@google/gemini-cli", "Should install @google/gemini-cli package")
 		}
 	})
 

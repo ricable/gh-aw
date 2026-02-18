@@ -93,7 +93,7 @@ func (e *GeminiEngine) GetInstallationSteps(workflowData *WorkflowData) []GitHub
 	config := EngineInstallConfig{
 		Secrets:         []string{"GEMINI_API_KEY"},
 		DocsURL:         "https://geminicli.com/docs/get-started/authentication/",
-		NpmPackage:      "gemini-cli",
+		NpmPackage:      "@google/gemini-cli",
 		Version:         string(constants.DefaultGeminiVersion),
 		Name:            "Gemini CLI",
 		CliName:         "gemini",

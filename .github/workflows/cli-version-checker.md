@@ -1,5 +1,5 @@
 ---
-description: Monitors and updates agentic CLI tools (Claude Code, GitHub Copilot CLI, OpenAI Codex, GitHub MCP Server, Playwright MCP, Playwright Browser, MCP Gateway) for new versions
+description: Monitors and updates agentic CLI tools (Claude Code, GitHub Copilot CLI, OpenAI Codex, Google Gemini CLI, GitHub MCP Server, Playwright MCP, Playwright Browser, MCP Gateway) for new versions
 on:
   schedule: daily
   workflow_dispatch:
@@ -31,7 +31,7 @@ timeout-minutes: 45
 
 # CLI Version Checker
 
-Monitor and update agentic CLI tools: Claude Code, GitHub Copilot CLI, OpenAI Codex, GitHub MCP Server, Playwright MCP, Playwright Browser, and MCP Gateway.
+Monitor and update agentic CLI tools: Claude Code, GitHub Copilot CLI, OpenAI Codex, Google Gemini CLI, GitHub MCP Server, Playwright MCP, Playwright Browser, and MCP Gateway.
 
 **Repository**: ${{ github.repository }} | **Run**: ${{ github.run_id }}
 
@@ -125,6 +125,9 @@ For each CLI/MCP server:
 - **Codex**: Use `npm view @openai/codex version`
   - Repository: https://github.com/openai/codex
   - Release Notes: https://github.com/openai/codex/releases
+- **Gemini CLI**: Use `npm view @google/gemini-cli version`
+  - Package: https://www.npmjs.com/package/@google/gemini-cli
+  - Documentation: https://geminicli.com/
 - **GitHub MCP Server**: `https://api.github.com/repos/github/github-mcp-server/releases/latest`
   - Release Notes: https://github.com/github/github-mcp-server/releases
 - **Playwright MCP**: Use `npm view @playwright/mcp version`
@@ -201,11 +204,13 @@ For each CLI tool update:
    - Claude Code: `npm install -g @anthropic-ai/claude-code@<version>`
    - Copilot CLI: `npm install -g @github/copilot@<version>`
    - Codex: `npm install -g @openai/codex@<version>`
+   - Gemini CLI: `npm install -g @google/gemini-cli@<version>`
    - Playwright MCP: `npm install -g @playwright/mcp@<version>`
 2. Invoke help to discover commands and flags (compare with cached output if available):
    - Run `claude-code --help`
    - Run `copilot --help` or `copilot help copilot`
    - Run `codex --help`
+   - Run `gemini --help`
    - Run `npx @playwright/mcp@<version> --help` (if available)
 3. **Explore subcommand help** for each tool (especially Copilot CLI):
    - Identify all available subcommands from main help output

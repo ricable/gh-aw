@@ -381,7 +381,7 @@ const (
 const DefaultCodexVersion Version = "0.104.0"
 
 // DefaultGeminiVersion is the default version of the Google Gemini CLI
-const DefaultGeminiVersion Version = "1.0.0"
+const DefaultGeminiVersion Version = "0.29.0"
 
 // DefaultGitHubMCPServerVersion is the default version of the GitHub MCP server Docker image
 const DefaultGitHubMCPServerVersion Version = "v0.30.3"
