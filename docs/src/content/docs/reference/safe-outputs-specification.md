@@ -7,7 +7,7 @@ sidebar:
 
 # Safe Outputs MCP Gateway Specification
 
-**Version**: 1.13.0  
+**Version**: 1.14.0  
 **Status**: Working Draft  
 **Publication Date**: 2026-02-18  
 **Editor**: GitHub Agentic Workflows Team  
@@ -1412,6 +1412,21 @@ create-issue:
   allowed-labels: [bug, feature] # Agent label restrictions
 ```
 
+**Label Management Extensions**:
+```yaml
+add-labels:
+  allowed: [bug, enhancement, documentation]  # Label allowlist
+  blocked: ["~*", "\\**"]        # Block patterns: ~* and *prefix
+  max: 5                         # Maximum labels per run
+  target-repo: owner/repo        # Cross-repository target
+  allowed-repos: [owner/repo1]   # Cross-repo allowlist
+
+remove-labels:
+  allowed: [stale, wontfix]      # Removable label allowlist
+  blocked: ["~*"]                # Block workflow trigger labels
+  max: 3                         # Maximum removals per run
+```
+
 **Comment Extensions**:
 ```yaml
 add-comment:
@@ -2385,6 +2400,72 @@ This section provides complete definitions for all remaining safe output types. 
 **Cross-Repository Support**: Yes  
 **Mandatory**: No
 
+**MCP Tool Schema**:
+
+```json
+{
+  "name": "add_labels",
+  "description": "Add labels to an issue or pull request.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["labels"],
+    "properties": {
+      "labels": {
+        "type": "array",
+        "items": {"type": "string"},
+        "description": "Array of label names to add"
+      },
+      "item_number": {
+        "type": "number",
+        "description": "Issue/PR number (auto-resolved from context if omitted)"
+      }
+    },
+    "additionalProperties": false
+  }
+}
+```
+
+**Operational Semantics**:
+
+1. **Label Filtering Pipeline**: Labels undergo multi-stage filtering:
+   - **Stage 1 - Allowlist**: If `allowed` configured, filter to allowed labels only
+   - **Stage 2 - Blocklist**: If `blocked` configured, remove labels matching any blocked pattern
+   - **Stage 3 - Sanitization**: Trim, deduplicate, truncate to 64 characters
+   - **Stage 4 - Max Limit**: Enforce maximum label count
+2. **Pattern Matching**: The `blocked` field supports glob-style patterns:
+   - Wildcards: `~*` matches labels starting with `~`
+   - Escaped asterisks: `\\**` matches labels starting with literal `*`
+   - Multiple patterns: All patterns are evaluated; matching ANY pattern blocks the label
+3. **Context Resolution**: When `item_number` omitted, resolves from workflow trigger context
+4. **Label Creation**: Labels are created if they don't exist in the repository
+5. **Idempotency**: Adding already-present labels is a no-op (no error)
+
+**Configuration Parameters**:
+- `max`: Operation limit (default: 3)
+- `allowed`: Array of allowed label names (optional allowlist)
+- `blocked`: Array of blocked label patterns supporting glob syntax (optional denylist)
+- `target`: Target entity (`"triggering"`, `"*"`, or explicit number)
+- `target-repo`: Cross-repository target in `owner/repo` format
+- `allowed-repos`: Cross-repository allowlist
+- `staged`: Staged mode override
+
+**Security Requirements**:
+- **SR-AL1**: Implementations MUST apply allowlist filtering before blocklist filtering
+- **SR-AL2**: Implementations MUST reject labels matching ANY blocked pattern
+- **SR-AL3**: Blocked pattern matching MUST be case-sensitive
+- **SR-AL4**: Pattern syntax errors MUST cause compilation failure, not runtime errors
+- **SR-AL5**: When both `allowed` and `blocked` are configured, a label MUST pass both filters
+- **SR-AL6**: Filtering MUST log blocked labels at info level for audit trails
+
+**Rationale for Blocked Patterns**:
+
+In large repositories with hundreds of labels, maintaining exhaustive allowlists is impractical. However, certain label classes pose security risks:
+- Labels prefixed with `~` may trigger workflow cascades (e.g., `~stale` activates triage workflows)
+- Labels prefixed with `*` may have administrative significance
+- Without infrastructure-level enforcement, agents processing untrusted input (e.g., public issues) can bypass prompt-level restrictions through injection attacks
+
+The `blocked` field provides defense-in-depth: it's the "you literally can't" enforcement layer, complementing the "please don't" prompt guidance.
+
 **Required Permissions**:
 
 *GitHub Actions Token*:
@@ -2399,7 +2480,31 @@ This section provides complete definitions for all remaining safe output types. 
 
 **Notes**:
 - Requires both `issues: write` and `pull-requests: write` to support labeling both entity types
-- Labels must exist in repository; non-existent labels generate warnings
+- Labels are created if they don't already exist in the repository; blocked patterns still apply to newly created labels
+
+**Example Configuration**:
+
+```yaml
+# Block workflow trigger labels and admin labels
+safe-outputs:
+  add-labels:
+    blocked: ["~*", "\\**"]  # Deny ~prefix and *prefix
+    max: 5
+
+# Combine allowlist and blocklist
+safe-outputs:
+  add-labels:
+    allowed: ["bug", "enhancement", "~triage", "documentation"]
+    blocked: ["~*"]  # Blocks ~triage despite being in allowed list
+    max: 5
+```
+
+**Conformance Tests**:
+
+- **T-AL-001**: With `blocked: ["~*"]`, agent attempts `["bug", "~triage"]` → Only `["bug"]` applied
+- **T-AL-002**: With `allowed: ["bug", "~test"]` and `blocked: ["~*"]`, agent attempts `["~test"]` → No labels applied
+- **T-AL-003**: With `blocked: ["\\**"]`, agent attempts `["*admin", "urgent"]` → Only `["urgent"]` applied
+- **T-AL-004**: Invalid pattern syntax causes compilation error, not runtime failure
 
 ---
 
@@ -2410,6 +2515,53 @@ This section provides complete definitions for all remaining safe output types. 
 **Default Max**: 3  
 **Cross-Repository Support**: Yes  
 **Mandatory**: No
+
+**MCP Tool Schema**:
+
+```json
+{
+  "name": "remove_labels",
+  "description": "Remove labels from an issue or pull request.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["labels"],
+    "properties": {
+      "labels": {
+        "type": "array",
+        "items": {"type": "string"},
+        "description": "Array of label names to remove"
+      },
+      "item_number": {
+        "type": "number",
+        "description": "Issue/PR number (auto-resolved from context if omitted)"
+      }
+    },
+    "additionalProperties": false
+  }
+}
+```
+
+**Operational Semantics**:
+
+1. **Label Filtering Pipeline**: Same as `add_labels` (allowlist → blocklist → sanitization → max limit)
+2. **Pattern Matching**: Identical glob-style pattern support as `add_labels`
+3. **Context Resolution**: When `item_number` omitted, resolves from workflow trigger context
+4. **Missing Labels**: Attempting to remove non-present labels is silently ignored (no error)
+5. **Partial Failure**: If some labels are blocked or missing, remaining valid labels are still removed
+
+**Configuration Parameters**:
+- `max`: Operation limit (default: 3)
+- `allowed`: Array of allowed label names (optional allowlist for removable labels)
+- `blocked`: Array of blocked label patterns supporting glob syntax (prevents removal of critical labels)
+- `target`: Target entity (`"triggering"`, `"*"`, or explicit number)
+- `target-repo`: Cross-repository target in `owner/repo` format
+- `allowed-repos`: Cross-repository allowlist
+- `staged`: Staged mode override
+
+**Security Requirements**:
+- Same security requirements as `add_labels` (SR-AL1 through SR-AL6)
+- **SR-RL1**: Missing labels MUST NOT cause operation failure
+- **SR-RL2**: Partial success MUST be logged clearly (which labels removed, which blocked/missing)
 
 **Required Permissions**:
 
@@ -2426,6 +2578,29 @@ This section provides complete definitions for all remaining safe output types. 
 **Notes**:
 - Same permissions as `add_labels`
 - Missing labels are silently ignored (no error)
+- Blocked patterns prevent removal of protected labels (e.g., blocking `~*` prevents agents from removing workflow trigger labels)
+
+**Example Configuration**:
+
+```yaml
+# Prevent removal of workflow trigger labels
+safe-outputs:
+  remove-labels:
+    blocked: ["~*"]  # Protect workflow trigger labels
+    max: 3
+
+# Allow removal of specific stale labels only
+safe-outputs:
+  remove-labels:
+    allowed: ["stale", "needs-info", "waiting"]
+    max: 5
+```
+
+**Conformance Tests**:
+
+- **T-RL-001**: With `blocked: ["~*"]`, agent attempts to remove `["~triage", "wontfix"]` → Only `wontfix` removed
+- **T-RL-002**: Removing non-existent label succeeds without error
+- **T-RL-003**: Blocked pattern prevents removal even if label exists on issue
 
 ---
 
@@ -3703,6 +3878,16 @@ safe-outputs:
 ---
 
 ## Appendix F: Document History
+
+**Version 1.14.0** (2026-02-18):
+- **Added**: `blocked` configuration parameter for `add_labels` and `remove_labels` types enabling glob-style pattern matching to deny specific label patterns
+- **Added**: Glob pattern matching support with wildcards (`~*` for prefix matching) and escaped literal asterisks (`\\**` for literal `*` prefix)
+- **Enhanced**: Label filtering pipeline documentation specifying allowlist → blocklist → sanitization → max count enforcement order
+- **Enhanced**: Complete operational semantics, MCP tool schemas, and security requirements for `add_labels` and `remove_labels` types
+- **Security**: Infrastructure-level pattern enforcement prevents prompt injection attacks from bypassing label restrictions in workflows processing untrusted input
+- **Added**: Security requirements SR-AL1 through SR-AL6 and SR-RL1 through SR-RL2 for label management operations
+- **Added**: Conformance tests T-AL-001 through T-AL-004 and T-RL-001 through T-RL-003 for blocked pattern validation
+- **Rationale**: Documented motivation for blocked patterns in large repositories (600+ labels) where exhaustive allowlists are impractical
 
 **Version 1.13.0** (2026-02-18):
 - **Added**: Optional `discussions` field for `add-comment` and `hide-comment` safe output types to control `discussions:write` permission
