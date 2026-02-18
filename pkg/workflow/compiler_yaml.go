@@ -309,7 +309,7 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 		if c.inlinePrompt {
 			// Inline mode: read and embed import files at compile time
 			compilerYamlLog.Printf("Inlining %d imports without inputs (inline-imports mode)", len(data.ImportPaths))
-			
+
 			// Determine base directory for resolving import paths
 			var baseDir string
 			if c.markdownPath != "" {
@@ -323,12 +323,12 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 					baseDir = "."
 				}
 			}
-			
+
 			for _, importPath := range data.ImportPaths {
 				// Resolve the full path to the import file
 				fullPath := filepath.Join(baseDir, importPath)
 				compilerYamlLog.Printf("Reading import file for inlining: %s", fullPath)
-				
+
 				// Read the import file
 				content, err := os.ReadFile(fullPath)
 				if err != nil {
@@ -339,7 +339,7 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 					userPromptChunks = append(userPromptChunks, runtimeImportMacro)
 					continue
 				}
-				
+
 				// Extract markdown body from the import file (skip frontmatter)
 				result, err := parser.ExtractFrontmatterFromContent(string(content))
 				if err != nil {
@@ -347,11 +347,11 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 					// Use full content if frontmatter extraction fails
 					result = &parser.FrontmatterResult{Markdown: string(content)}
 				}
-				
+
 				// Clean and process the imported markdown
 				cleanedImport := removeXMLComments(result.Markdown)
 				cleanedImport = wrapExpressionsInTemplateConditionals(cleanedImport)
-				
+
 				// Extract expressions and replace with env var references
 				importExtractor := NewExpressionExtractor()
 				importExprMappings, err := importExtractor.ExtractExpressions(cleanedImport)
@@ -359,7 +359,7 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 					cleanedImport = importExtractor.ReplaceExpressionsWithEnvVars(cleanedImport)
 					expressionMappings = append(expressionMappings, importExprMappings...)
 				}
-				
+
 				// Split into chunks and add to user prompt
 				importChunks := splitContentIntoChunks(cleanedImport)
 				userPromptChunks = append(userPromptChunks, importChunks...)
