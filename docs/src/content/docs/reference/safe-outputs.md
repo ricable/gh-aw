@@ -1177,12 +1177,6 @@ safe-outputs:
   create-issue:
 ```
 
-**Repository scoping options**:
-
-- `repositories: ["*"]` - Org-wide access (all repos in the installation)
-- `repositories: ["repo1", "repo2"]` - Specific repositories only
-- Omit `repositories` field - Current repository only (default)
-
 When you configure `app:` for safe outputs, tokens are **automatically managed per-job** for enhanced security:
 
 1. **Per-job token minting**: Each safe output job automatically mints its own token via `actions/create-github-app-token` with permissions explicitly scoped to that job's needs
@@ -1190,11 +1184,15 @@ When you configure `app:` for safe outputs, tokens are **automatically managed p
 3. **Automatic revocation**: Tokens are explicitly revoked at job end via `DELETE /installation/token`, even if the job fails
 4. **Safe shared configuration**: A broadly-permissioned GitHub App can be safely shared across workflows because tokens are narrowed per-job
 
-### Security and Sanitization (`allowed-domains:`, `allowed-github-references:`)
+**Repository scoping options**:
 
-The text output by AI agents is automatically sanitized to prevent injection of malicious content and ensure safe rendering on GitHub.
+- `repositories: ["*"]` - Org-wide access (all repos in the installation)
+- `repositories: ["repo1", "repo2"]` - Specific repositories only
+- Omit `repositories` field - Current repository only (default)
 
-The auto-sanitization applied is: XML escaped, HTTPS only, domain allowlist (GitHub by default), 0.5MB/65k line limits, control char stripping.
+### Text Sanitization (`allowed-domains:`, `allowed-github-references:`)
+
+The text output by AI agents is automatically sanitized to prevent injection of malicious content and ensure safe rendering on GitHub. The auto-sanitization applied is: XML escaped, HTTPS only, domain allowlist (GitHub by default), 0.5MB/65k line limits, control char stripping.
 
 You can configure sanitization options:
 
@@ -1207,8 +1205,6 @@ safe-outputs:
 **Domain Filtering** (`allowed-domains`): Controls which domains are allowed in URLs. URLs from other domains are replaced with `(redacted)`.
 
 **Reference Escaping** (`allowed-github-references`): Controls which GitHub repository references (`#123`, `owner/repo#456`) are allowed in workflow output. When configured, references to unlisted repositories are escaped with backticks to prevent GitHub from creating timeline items. This is particularly useful for [SideRepoOps](/gh-aw/patterns/siderepoops/) workflows to prevent automation from cluttering your main repository's timeline.
-
-Configuration options:
 
 - `[]` - Escape all references (prevents all timeline items)
 - `["repo"]` - Allow only the target repository's references
