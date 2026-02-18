@@ -245,6 +245,74 @@ describe("add_labels", () => {
       expect(result.labelsAdded).toEqual(["bug", "enhancement"]);
     });
 
+    it("should filter labels based on blocked patterns", async () => {
+      const handler = await main({
+        blocked: ["~*", "*\\**"],
+        max: 10,
+      });
+
+      const addLabelsCalls = [];
+      mockGithub.rest.issues.addLabels = async params => {
+        addLabelsCalls.push(params);
+        return {};
+      };
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["bug", "~triage", "*admin", "enhancement"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.labelsAdded).toEqual(["bug", "enhancement"]);
+    });
+
+    it("should work with both allowed and blocked patterns", async () => {
+      const handler = await main({
+        allowed: ["bug", "~triage", "enhancement"],
+        blocked: ["~*"],
+        max: 10,
+      });
+
+      const addLabelsCalls = [];
+      mockGithub.rest.issues.addLabels = async params => {
+        addLabelsCalls.push(params);
+        return {};
+      };
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["bug", "~triage", "custom", "enhancement"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.labelsAdded).toEqual(["bug", "enhancement"]);
+    });
+
+    it("should handle all labels being blocked", async () => {
+      const handler = await main({
+        blocked: ["~*"],
+        max: 10,
+      });
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["~triage", "~workflow"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.labelsAdded).toEqual([]);
+      expect(result.message).toContain("No valid labels found");
+    });
+
     it("should handle empty labels array", async () => {
       const handler = await main({ max: 10 });
 

@@ -83,10 +83,11 @@ function validateBody(body, fieldName = "body", required = false) {
  * Validate and sanitize an array of labels
  * @param {any} labels - The labels to validate
  * @param {string[]|undefined} allowedLabels - Optional list of allowed labels
+ * @param {string[]|undefined} blockedPatterns - Optional list of blocked label patterns (supports glob patterns)
  * @param {number} maxCount - Maximum number of labels allowed
  * @returns {{valid: boolean, value?: string[], error?: string}} Validation result
  */
-function validateLabels(labels, allowedLabels = undefined, maxCount = 3) {
+function validateLabels(labels, allowedLabels = undefined, blockedPatterns = undefined, maxCount = 3) {
   if (!labels || !Array.isArray(labels)) {
     return { valid: false, error: "labels must be an array" };
   }
@@ -114,17 +115,32 @@ function validateLabels(labels, allowedLabels = undefined, maxCount = 3) {
     .map(label => (label.length > 64 ? label.substring(0, 64) : label))
     .filter((label, index, arr) => arr.indexOf(label) === index);
 
-  // Apply max count limit
-  if (uniqueLabels.length > maxCount) {
-    core.info(`Too many labels (${uniqueLabels.length}), limiting to ${maxCount}`);
-    return { valid: true, value: uniqueLabels.slice(0, maxCount) };
+  // Filter out blocked labels if blocked patterns are provided
+  let filteredLabels = uniqueLabels;
+  if (blockedPatterns && blockedPatterns.length > 0) {
+    const { globPatternToRegex } = require("./glob_pattern_helpers.cjs");
+    const blockedRegexes = blockedPatterns.map(pattern => globPatternToRegex(pattern));
+
+    filteredLabels = uniqueLabels.filter(label => {
+      const isBlocked = blockedRegexes.some(regex => regex.test(label));
+      if (isBlocked) {
+        core.info(`Label "${label}" matched blocked pattern, filtering out`);
+      }
+      return !isBlocked;
+    });
   }
 
-  if (uniqueLabels.length === 0) {
+  // Apply max count limit
+  if (filteredLabels.length > maxCount) {
+    core.info(`Too many labels (${filteredLabels.length}), limiting to ${maxCount}`);
+    return { valid: true, value: filteredLabels.slice(0, maxCount) };
+  }
+
+  if (filteredLabels.length === 0) {
     return { valid: false, error: "No valid labels found after sanitization" };
   }
 
-  return { valid: true, value: uniqueLabels };
+  return { valid: true, value: filteredLabels };
 }
 
 /**

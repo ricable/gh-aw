@@ -167,7 +167,7 @@ describe("safe_output_validator.cjs", () => {
 
   describe("validateLabels", () => {
     it("should validate and sanitize valid labels", () => {
-      const result = validator.validateLabels(["bug", "  enhancement  ", "documentation"], undefined, 10);
+      const result = validator.validateLabels(["bug", "  enhancement  ", "documentation"], undefined, undefined, 10);
 
       expect(result.valid).toBe(true);
       expect(result.value).toContain("bug");
@@ -176,14 +176,14 @@ describe("safe_output_validator.cjs", () => {
     });
 
     it("should reject labels array with removal attempts", () => {
-      const result = validator.validateLabels(["-bug", "enhancement"], undefined, 10);
+      const result = validator.validateLabels(["-bug", "enhancement"], undefined, undefined, 10);
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("Label removal is not permitted");
     });
 
     it("should filter labels based on allowed list", () => {
-      const result = validator.validateLabels(["bug", "custom", "enhancement"], ["bug", "enhancement"], 10);
+      const result = validator.validateLabels(["bug", "custom", "enhancement"], ["bug", "enhancement"], undefined, 10);
 
       expect(result.valid).toBe(true);
       expect(result.value).toHaveLength(2);
@@ -193,7 +193,7 @@ describe("safe_output_validator.cjs", () => {
     });
 
     it("should limit labels to max count", () => {
-      const result = validator.validateLabels(["a", "b", "c", "d", "e"], undefined, 3);
+      const result = validator.validateLabels(["a", "b", "c", "d", "e"], undefined, undefined, 3);
 
       expect(result.valid).toBe(true);
       expect(result.value).toHaveLength(3);
@@ -201,7 +201,7 @@ describe("safe_output_validator.cjs", () => {
     });
 
     it("should deduplicate labels", () => {
-      const result = validator.validateLabels(["bug", "bug", "enhancement"], undefined, 10);
+      const result = validator.validateLabels(["bug", "bug", "enhancement"], undefined, undefined, 10);
 
       expect(result.valid).toBe(true);
       expect(result.value).toHaveLength(2);
@@ -209,21 +209,69 @@ describe("safe_output_validator.cjs", () => {
 
     it("should truncate labels longer than 64 characters", () => {
       const longLabel = "a".repeat(100);
-      const result = validator.validateLabels([longLabel], undefined, 10);
+      const result = validator.validateLabels([longLabel], undefined, undefined, 10);
 
       expect(result.valid).toBe(true);
       expect(result.value[0]).toHaveLength(64);
     });
 
     it("should reject non-array labels", () => {
-      const result = validator.validateLabels("bug", undefined, 10);
+      const result = validator.validateLabels("bug", undefined, undefined, 10);
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("must be an array");
     });
 
     it("should reject when no valid labels remain", () => {
-      const result = validator.validateLabels([null, undefined, false, 0], undefined, 10);
+      const result = validator.validateLabels([null, undefined, false, 0], undefined, undefined, 10);
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("No valid labels found");
+    });
+
+    it("should filter labels matching blocked patterns", () => {
+      const result = validator.validateLabels(["bug", "~triage", "enhancement", "~workflow"], undefined, ["~*"], 10);
+
+      expect(result.valid).toBe(true);
+      expect(result.value).toHaveLength(2);
+      expect(result.value).toContain("bug");
+      expect(result.value).toContain("enhancement");
+      expect(result.value).not.toContain("~triage");
+      expect(result.value).not.toContain("~workflow");
+    });
+
+    it("should filter labels matching multiple blocked patterns", () => {
+      const result = validator.validateLabels(["bug", "~triage", "*admin", "enhancement"], undefined, ["~*", "\\**"], 10);
+
+      expect(result.valid).toBe(true);
+      expect(result.value).toHaveLength(2);
+      expect(result.value).toContain("bug");
+      expect(result.value).toContain("enhancement");
+      expect(result.value).not.toContain("~triage");
+      expect(result.value).not.toContain("*admin");
+    });
+
+    it("should allow labels when blocked patterns is empty", () => {
+      const result = validator.validateLabels(["bug", "~triage", "enhancement"], undefined, [], 10);
+
+      expect(result.valid).toBe(true);
+      expect(result.value).toHaveLength(3);
+      expect(result.value).toContain("~triage");
+    });
+
+    it("should work with both allowed and blocked patterns", () => {
+      const result = validator.validateLabels(["bug", "~triage", "custom", "enhancement"], ["bug", "~triage", "enhancement"], ["~*"], 10);
+
+      expect(result.valid).toBe(true);
+      expect(result.value).toHaveLength(2);
+      expect(result.value).toContain("bug");
+      expect(result.value).toContain("enhancement");
+      expect(result.value).not.toContain("~triage"); // Filtered by blocked pattern
+      expect(result.value).not.toContain("custom"); // Filtered by allowed list
+    });
+
+    it("should reject when all labels are blocked", () => {
+      const result = validator.validateLabels(["~triage", "~workflow"], undefined, ["~*"], 10);
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("No valid labels found");

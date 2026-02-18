@@ -164,6 +164,13 @@ func BuildAllowedListEnvVar(envVarName string, allowed []string) []string {
 	return []string{fmt.Sprintf("          %s: %q\n", envVarName, allowedStr)}
 }
 
+// BuildBlockedListEnvVar creates environment variable lines for blocked patterns.
+// If blocked is empty, returns empty slice.
+func BuildBlockedListEnvVar(envVarName string, blocked []string) []string {
+	blockedStr := strings.Join(blocked, ",")
+	return []string{fmt.Sprintf("          %s: %q\n", envVarName, blockedStr)}
+}
+
 // ======================================
 // Close Job Config Helpers
 // ======================================
@@ -218,6 +225,7 @@ func BuildCloseJobEnvVars(prefix string, config CloseJobConfig) []string {
 type ListJobConfig struct {
 	SafeOutputTargetConfig `yaml:",inline"`
 	Allowed                []string `yaml:"allowed,omitempty"` // Optional list of allowed values
+	Blocked                []string `yaml:"blocked,omitempty"` // Optional list of blocked patterns (supports glob-style patterns)
 }
 
 // ParseListJobConfig parses common list job fields from a config map.
@@ -247,6 +255,21 @@ func ParseListJobConfig(configMap map[string]any, allowedKey string) (ListJobCon
 		}
 	}
 
+	// Parse blocked list (always uses "blocked" key)
+	if blocked, exists := configMap["blocked"]; exists {
+		// Handle single string format
+		if blockedStr, ok := blocked.(string); ok {
+			config.Blocked = []string{blockedStr}
+		} else if blockedArray, ok := blocked.([]any); ok {
+			// Handle array format
+			for _, item := range blockedArray {
+				if itemStr, ok := item.(string); ok {
+					config.Blocked = append(config.Blocked, itemStr)
+				}
+			}
+		}
+	}
+
 	return config, false
 }
 
@@ -258,6 +281,9 @@ func BuildListJobEnvVars(prefix string, config ListJobConfig, maxCount int) []st
 
 	// Add allowed list
 	envVars = append(envVars, BuildAllowedListEnvVar(prefix+"_ALLOWED", config.Allowed)...)
+
+	// Add blocked list
+	envVars = append(envVars, BuildBlockedListEnvVar(prefix+"_BLOCKED", config.Blocked)...)
 
 	// Add max count
 	envVars = append(envVars, BuildMaxCountEnvVar(prefix+"_MAX_COUNT", maxCount)...)

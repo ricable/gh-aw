@@ -25,12 +25,20 @@ function globPatternToRegex(pattern) {
   // Convert glob pattern to regex that supports directory wildcards
   // ** matches any path segment (including /)
   // * matches any characters except /
+  // \* matches literal asterisk
+  // \\ matches literal backslash
+
   let regexPattern = pattern
-    .replace(/\\/g, "\\\\") // Escape backslashes
-    .replace(/\./g, "\\.") // Escape dots
+    // First, handle escaped characters (\* becomes literal *, \\ becomes literal \)
+    .replace(/\\\*/g, "<!ESCAPED_STAR>") // Temporarily mark escaped asterisks
+    .replace(/\\\\/g, "<!ESCAPED_BACKSLASH>") // Temporarily mark escaped backslashes
+    .replace(/\./g, "\\.") // Escape dots for regex
     .replace(/\*\*/g, "<!DOUBLESTAR>") // Temporarily replace **
     .replace(/\*/g, "[^/]*") // Single * matches non-slash chars
-    .replace(/<!DOUBLESTAR>/g, ".*"); // ** matches everything including /
+    .replace(/<!DOUBLESTAR>/g, ".*") // ** matches everything including /
+    .replace(/<!ESCAPED_STAR>/g, "\\*") // Restore escaped asterisks as literal *
+    .replace(/<!ESCAPED_BACKSLASH>/g, "\\\\"); // Restore escaped backslashes as literal \
+
   return new RegExp(`^${regexPattern}$`);
 }
 

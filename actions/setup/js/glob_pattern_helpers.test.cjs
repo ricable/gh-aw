@@ -68,6 +68,32 @@ describe("glob_pattern_helpers.cjs", () => {
         expect(regex.test("file.min.js")).toBe(true);
         expect(regex.test("filexminxjs")).toBe(false);
       });
+
+      it("should handle escaped asterisks for literal matching", () => {
+        // Test pattern with escaped asterisk (for label names like "*admin", "~workflow")
+        const regex = globPatternToRegex("\\**");
+
+        expect(regex.test("*admin")).toBe(true);
+        expect(regex.test("*special")).toBe(true);
+        expect(regex.test("admin")).toBe(false); // Should not match without leading *
+        expect(regex.test("~admin")).toBe(false);
+      });
+
+      it("should handle multiple escaped characters in combination", () => {
+        // Test pattern combining escaped asterisk with wildcard
+        const tildePattern = globPatternToRegex("~*");
+        const starPattern = globPatternToRegex("\\**");
+
+        // Tilde pattern: ~<anything>
+        expect(tildePattern.test("~triage")).toBe(true);
+        expect(tildePattern.test("~workflow")).toBe(true);
+        expect(tildePattern.test("triage")).toBe(false);
+
+        // Star pattern: *<anything>
+        expect(starPattern.test("*admin")).toBe(true);
+        expect(starPattern.test("*special")).toBe(true);
+        expect(starPattern.test("admin")).toBe(false);
+      });
     });
 
     describe("real-world patterns", () => {

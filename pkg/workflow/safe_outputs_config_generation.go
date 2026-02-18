@@ -184,6 +184,9 @@ func generateSafeOutputsConfig(data *WorkflowData) string {
 			if len(data.SafeOutputs.AddLabels.Allowed) > 0 {
 				additionalFields["allowed"] = data.SafeOutputs.AddLabels.Allowed
 			}
+			if len(data.SafeOutputs.AddLabels.Blocked) > 0 {
+				additionalFields["blocked"] = data.SafeOutputs.AddLabels.Blocked
+			}
 			safeOutputsConfig["add_labels"] = generateTargetConfigWithRepos(
 				data.SafeOutputs.AddLabels.SafeOutputTargetConfig,
 				data.SafeOutputs.AddLabels.Max,
@@ -192,10 +195,11 @@ func generateSafeOutputsConfig(data *WorkflowData) string {
 			)
 		}
 		if data.SafeOutputs.RemoveLabels != nil {
-			safeOutputsConfig["remove_labels"] = generateMaxWithAllowedConfig(
+			safeOutputsConfig["remove_labels"] = generateMaxWithAllowedAndBlockedConfig(
 				data.SafeOutputs.RemoveLabels.Max,
 				3, // default max
 				data.SafeOutputs.RemoveLabels.Allowed,
+				data.SafeOutputs.RemoveLabels.Blocked,
 			)
 		}
 		if data.SafeOutputs.AddReviewer != nil {
