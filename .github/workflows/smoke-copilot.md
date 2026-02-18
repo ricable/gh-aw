@@ -1,7 +1,7 @@
 ---
 description: Smoke Copilot
 on: 
-  schedule: every 12h
+  schedule: daily on weekdays
   workflow_dispatch:
   pull_request:
     types: [labeled]

@@ -29,7 +29,7 @@
 #     - shared/github-queries-safe-input.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"964ca265ed2b756b22be1ba2360d29daf0132df7a3617b7bb0868a88009e123a"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"873002dc4ba1a9e3b15751d0c8456ad1a78171d821c0dd5fd55d7086b3f78582"}
 
 name: "Smoke Copilot"
 "on":
@@ -39,7 +39,7 @@ name: "Smoke Copilot"
     types:
     - labeled
   schedule:
-  - cron: "47 */12 * * *"
+  - cron: "47 20 * * 1-5"
   workflow_dispatch: null
 
 permissions: {}

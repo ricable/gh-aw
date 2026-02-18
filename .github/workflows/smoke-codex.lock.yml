@@ -21,14 +21,14 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Smoke test workflow that validates Codex engine functionality by reviewing recent PRs twice daily
+# Smoke test workflow that validates Codex engine functionality by reviewing recent PRs daily on weekdays
 #
 # Resolved workflow manifest:
 #   Imports:
 #     - shared/gh.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c7ab5b4cc3b6c39a8af11ce223fd48afce3b7abce2985adb52dc59a7a47e256b"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6eda9f840c70d9ba6f0e9304170d0605f49d95d391e3ed5e96844bcf04cde63a"}
 
 name: "Smoke Codex"
 "on":
@@ -38,7 +38,7 @@ name: "Smoke Codex"
     types:
     - labeled
   schedule:
-  - cron: "30 */12 * * *"
+  - cron: "30 2 * * 1-5"
   workflow_dispatch: null
 
 permissions: {}
@@ -1427,7 +1427,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           WORKFLOW_NAME: "Smoke Codex"
-          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates Codex engine functionality by reviewing recent PRs twice daily"
+          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates Codex engine functionality by reviewing recent PRs daily on weekdays"
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |

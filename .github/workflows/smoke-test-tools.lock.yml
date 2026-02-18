@@ -23,7 +23,7 @@
 #
 # Smoke test to validate common development tools are available in the agent container
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"798e01a94a89407a4b4102b0551de2d8376a5c3b5ef4a3622ab601229694cf78"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"71d3277c0c3dd220e11f99ae962a0b461163c9b1a36146c7fa887e0bdb6509cf"}
 
 name: "Agent Container Smoke Test"
 "on":
@@ -33,8 +33,8 @@ name: "Agent Container Smoke Test"
     types:
     - labeled
   schedule:
-  - cron: "29 */12 * * *"
-    # Friendly format: every 12h (scattered)
+  - cron: "29 7 * * 1-5"
+    # Friendly format: daily on weekdays (scattered)
   workflow_dispatch:
 
 permissions: {}

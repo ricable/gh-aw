@@ -21,7 +21,7 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Smoke test workflow that validates OpenCode custom engine functionality daily
+# Smoke test workflow that validates OpenCode custom engine functionality daily on weekdays
 #
 # Resolved workflow manifest:
 #   Imports:
@@ -29,7 +29,7 @@
 #     - shared/github-queries-safe-input.md
 #     - shared/opencode.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"28e9c4039471e8b2fe3bf4891f7597efb7b97942685b566faa9cd57656009e5c"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"2262a67a8f88eba10af5f1615af05450fe5c78b092d9f3d84184a6c255b0d2a5"}
 
 name: "Smoke OpenCode"
 "on":
@@ -39,7 +39,7 @@ name: "Smoke OpenCode"
     types:
     - labeled
   schedule:
-  - cron: "48 1 * * *"
+  - cron: "48 1 * * 1-5"
   workflow_dispatch: null
 
 permissions: {}
@@ -1649,7 +1649,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           WORKFLOW_NAME: "Smoke OpenCode"
-          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates OpenCode custom engine functionality daily"
+          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates OpenCode custom engine functionality daily on weekdays"
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |

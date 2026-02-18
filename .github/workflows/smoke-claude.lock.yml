@@ -21,7 +21,7 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Smoke test workflow that validates Claude engine functionality by reviewing recent PRs twice daily
+# Smoke test workflow that validates Claude engine functionality by reviewing recent PRs daily on weekdays
 #
 # Resolved workflow manifest:
 #   Imports:
@@ -33,7 +33,7 @@
 #     - shared/mcp/tavily.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"22441496741c536b8d9d809d2e0e13589a1cf6874aa01ae130f90aabfaa11d11"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"580d3aaea9d75d3422082ace4b24c8a01bbd0e297c3b6dcb1fb7f71489ac3e0b"}
 
 name: "Smoke Claude"
 "on":
@@ -43,7 +43,7 @@ name: "Smoke Claude"
     types:
     - labeled
   schedule:
-  - cron: "25 */12 * * *"
+  - cron: "25 8 * * 1-5"
   workflow_dispatch: null
 
 permissions: {}
@@ -2243,7 +2243,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           WORKFLOW_NAME: "Smoke Claude"
-          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates Claude engine functionality by reviewing recent PRs twice daily"
+          WORKFLOW_DESCRIPTION: "Smoke test workflow that validates Claude engine functionality by reviewing recent PRs daily on weekdays"
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |

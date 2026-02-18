@@ -1,7 +1,7 @@
 ---
-description: Smoke test workflow that validates Codex engine functionality by reviewing recent PRs twice daily
+description: Smoke test workflow that validates Codex engine functionality by reviewing recent PRs daily on weekdays
 on: 
-  schedule: every 12h
+  schedule: daily on weekdays
   workflow_dispatch:
   pull_request:
     types: [labeled]
