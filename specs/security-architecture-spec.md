@@ -7,8 +7,8 @@ sidebar:
 
 # GitHub Agentic Workflows Security Architecture Specification
 
-**Version**: 1.0.0  
-**Status**: Candidate Recommendation  
+**Version**: 1.0.1  
+**Status**: Candidate Recommendation Update  
 **Latest Version**: https://github.com/github/gh-aw/blob/main/specs/security-architecture-spec.md  
 **Editors**: GitHub Next (GitHub, Inc.)
 
@@ -22,9 +22,9 @@ The security architecture employs defense-in-depth principles including input sa
 
 ## Status of This Document
 
-This is a Candidate Recommendation specification and represents the current state of the GitHub Agentic Workflows security architecture as implemented in version 1.0.0. This specification is subject to updates based on security research, community feedback, and operational experience. Future versions may introduce additional security controls or refine existing requirements.
+This is a Candidate Recommendation Update specification representing version 1.0.1 of the GitHub Agentic Workflows security architecture. This update clarifies authentication token protection mechanisms via API proxy for AI engines (Copilot, Claude, Codex). This specification is subject to updates based on security research, community feedback, and operational experience. Future versions may introduce additional security controls or refine existing requirements.
 
-**Publication Date**: January 29, 2026  
+**Publication Date**: February 18, 2026  
 **Governance**: This specification is maintained by GitHub Next and governed by GitHub's security and research processes.
 
 ## Table of Contents
@@ -538,6 +538,24 @@ network:
 - URIs from non-allowed domains MUST be replaced with `(redacted)`
 - GitHub domains SHOULD be allowed by default
 
+### 6.8 Authentication Token Protection
+
+**NI-15**: For AI engines that communicate with external APIs (Copilot, Claude, Codex), the implementation MUST protect authentication tokens using an API proxy sidecar:
+- The API proxy intercepts and validates all HTTP/HTTPS requests from the AI engine
+- Authentication tokens (e.g., `COPILOT_GITHUB_TOKEN`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are injected by the proxy at request time
+- AI engine processes never have direct access to authentication tokens in their environment
+- The proxy enforces network allowlist policies while managing credentials
+
+**NI-16**: The API proxy MUST be deployed as a sidecar container when using engines with API proxy support:
+- Copilot engine: API proxy enabled (LLM gateway port 10003)
+- Claude engine: API proxy enabled (LLM gateway port 10001)
+- Codex engine: API proxy enabled (LLM gateway port 10002)
+
+**NI-17**: Engines without API proxy support SHOULD use alternative credential protection mechanisms:
+- Environment variable scoping and isolation
+- Process-level permission restrictions
+- Container-level security policies
+
 ---
 
 ## 7. Permission Management Layer
@@ -1023,6 +1041,9 @@ A conforming implementation MUST provide a compliance test suite covering all MU
 - **T-NI-007**: Verify AWF firewall enforcement
 - **T-NI-008**: Verify MCP server network isolation
 - **T-NI-009**: Verify content sanitization integration
+- **T-NI-010**: Verify API proxy authentication token protection for Copilot
+- **T-NI-011**: Verify API proxy authentication token protection for Claude
+- **T-NI-012**: Verify API proxy authentication token protection for Codex
 
 #### 12.2.4 Permission Management Tests
 
@@ -1085,7 +1106,7 @@ A conforming implementation MUST provide a compliance test suite covering all MU
 | Output Isolation | T-OI-001 to T-OI-007 | 1 | Required |
 | Permission Management | T-PM-001 to T-PM-007 | 1 | Required |
 | Compilation-Time Checks | T-CS-001 to T-CS-006 | 1 | Required |
-| Network Isolation | T-NI-001 to T-NI-009 | 2 | Required |
+| Network Isolation | T-NI-001 to T-NI-012 | 2 | Required |
 | Sandbox Isolation | T-SI-001 to T-SI-007 | 2 | Required |
 | Runtime Enforcement | T-RS-001 to T-RS-011 | 2 | Required |
 | Threat Detection | T-TD-001 to T-TD-007 | 3 | Optional |
@@ -1168,7 +1189,10 @@ The following diagram illustrates the complete security architecture with all la
 │                    │      │  │    allowlist │  │
 │  Outputs:          │      │  │  - Process   │  │
 │   text: sanitized  │      │  │    isolation │  │
-└─────────┬──────────┘      │  └──────────────┘  │
+└─────────┬──────────┘      │  │  - API proxy │  │
+          │                 │  │    (token    │  │
+          │                 │  │    protect)  │  │
+          │                 │  └──────────────┘  │
           │                 │                    │
           │                 │  Layer 3:          │
           └────────────────►│  Network Isolation │
@@ -1177,6 +1201,8 @@ The following diagram illustrates the complete security architecture with all la
                             │  - Ecosystem IDs   │
                             │  - Protocol filter │
                             │  - Blocked domains │
+                            │  - Auth token      │
+                            │    protection      │
                             │                    │
                             │  Layer 4:          │
                             │  Permission Mgmt   │
@@ -1716,6 +1742,18 @@ roles: [admin, maintainer]  # Restrict to trusted roles
 ---
 
 ## Change Log
+
+### Version 1.0.1 (Candidate Recommendation Update)
+
+**Published**: February 18, 2026  
+**Status**: Candidate Recommendation Update
+
+**Updates**:
+- Added section 6.8: Authentication Token Protection via API Proxy
+- Clarified that Copilot, Claude, and Codex engines use API proxy sidecar for token protection
+- Added test cases T-NI-010, T-NI-011, T-NI-012 for API proxy token protection verification
+- Updated Security Architecture Diagram to reflect API proxy token protection
+- Enhanced Network Isolation Layer specification with authentication security requirements
 
 ### Version 1.0.0 (Candidate Recommendation)
 
