@@ -4802,8 +4802,8 @@
                 },
                 "discussion": {
                   "type": "boolean",
-                  "description": "Enable discussion comment support (default: true). Set to false to disable discussions permission and restrict comments to issues and pull requests only.",
-                  "default": true
+                  "description": "Enable discussion comment support. Set to true to enable discussions permission for commenting on discussions.",
+                  "default": false
                 },
                 "hide-older-comments": {
                   "type": "boolean",
@@ -5730,8 +5730,8 @@
                 },
                 "discussion": {
                   "type": "boolean",
-                  "description": "Enable discussion comment support (default: true). Set to false to disable discussions permission and restrict comment hiding to issues and pull requests only.",
-                  "default": true
+                  "description": "Enable discussion comment support. Set to true to enable discussions permission for hiding discussion comments.",
+                  "default": false
                 },
                 "allowed-reasons": {
                   "type": "array",

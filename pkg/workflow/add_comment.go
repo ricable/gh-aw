@@ -20,7 +20,7 @@ type AddCommentsConfig struct {
 	Target               string   `yaml:"target,omitempty"`              // Target for comments: "triggering" (default), "*" (any issue), or explicit issue number
 	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`         // Target repository in format "owner/repo" for cross-repository comments
 	AllowedRepos         []string `yaml:"allowed-repos,omitempty"`       // List of additional repositories that comments can be added to (additionally to the target-repo)
-	Discussion           *bool    `yaml:"discussion,omitempty"`          // Enable discussion comment support (default: true). Set to false to disable.
+	Discussion           *bool    `yaml:"discussion,omitempty"`          // Enable discussion comment support. Set to true to enable discussions permission.
 	HideOlderComments    bool     `yaml:"hide-older-comments,omitempty"` // When true, minimizes/hides all previous comments from the same workflow before creating the new comment
 	AllowedReasons       []string `yaml:"allowed-reasons,omitempty"`     // List of allowed reasons for hiding older comments (default: all reasons allowed)
 }
@@ -114,12 +114,12 @@ func (c *Compiler) buildCreateOutputAddCommentJob(data *WorkflowData, mainJobNam
 	}
 
 	// Determine permissions based on whether discussions are enabled
-	// Default is true (discussion support enabled) unless explicitly set to false
+	// Default is false (no discussion permission) unless explicitly set to true
 	var permissions *Permissions
-	if data.SafeOutputs.AddComments.Discussion != nil && !*data.SafeOutputs.AddComments.Discussion {
-		permissions = NewPermissionsContentsReadIssuesWritePRWrite()
-	} else {
+	if data.SafeOutputs.AddComments.Discussion != nil && *data.SafeOutputs.AddComments.Discussion {
 		permissions = NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite()
+	} else {
+		permissions = NewPermissionsContentsReadIssuesWritePRWrite()
 	}
 
 	// Use the shared builder function to create the job

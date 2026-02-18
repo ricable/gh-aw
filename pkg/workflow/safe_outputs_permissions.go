@@ -30,13 +30,13 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 	}
 	if safeOutputs.AddComments != nil {
 		// Check if add-comment is configured to target discussions
-		// Default is true (discussion support enabled) unless explicitly set to false
-		if safeOutputs.AddComments.Discussion != nil && !*safeOutputs.AddComments.Discussion {
-			safeOutputsPermissionsLog.Print("Adding permissions for add-comment (discussions disabled)")
-			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
-		} else {
+		// Default is false (no discussion permission) unless explicitly set to true
+		if safeOutputs.AddComments.Discussion != nil && *safeOutputs.AddComments.Discussion {
 			safeOutputsPermissionsLog.Print("Adding permissions for add-comment (with discussions support)")
 			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
+		} else {
+			safeOutputsPermissionsLog.Print("Adding permissions for add-comment")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
 		}
 	}
 	if safeOutputs.CloseIssues != nil {
@@ -104,13 +104,13 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 	}
 	if safeOutputs.HideComment != nil {
 		// Check if hide-comment is configured to support discussions
-		// Default is true (discussion support enabled) unless explicitly set to false
-		if safeOutputs.HideComment.Discussion != nil && !*safeOutputs.HideComment.Discussion {
-			safeOutputsPermissionsLog.Print("Adding permissions for hide-comment (discussions disabled)")
-			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
-		} else {
+		// Default is false (no discussion permission) unless explicitly set to true
+		if safeOutputs.HideComment.Discussion != nil && *safeOutputs.HideComment.Discussion {
 			safeOutputsPermissionsLog.Print("Adding permissions for hide-comment (with discussions support)")
 			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
+		} else {
+			safeOutputsPermissionsLog.Print("Adding permissions for hide-comment")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
 		}
 	}
 	if safeOutputs.DispatchWorkflow != nil {
