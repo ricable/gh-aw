@@ -5796,10 +5796,7 @@
                     "type": "string",
                     "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
                   },
-                  "examples": [
-                    ["org/repo-a", "org/repo-b"],
-                    ["github/gh-aw"]
-                  ]
+                  "examples": [["org/repo-a", "org/repo-b"], ["github/gh-aw"]]
                 },
                 "github-token": {
                   "$ref": "#/$defs/github_token",
