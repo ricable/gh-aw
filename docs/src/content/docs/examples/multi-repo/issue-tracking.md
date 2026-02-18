@@ -294,15 +294,7 @@ gh aw secrets set CROSS_REPO_PAT --value "ghp_your_token_here"
 
 ### GitHub App Configuration
 
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.TRACKER_APP_ID }}
-    private-key: ${{ secrets.TRACKER_APP_PRIVATE_KEY }}
-    repositories: ["central-tracker", "security-tracker", "feature-tracker"]
-  create-issue:
-    target-repo: "myorg/central-tracker"
-```
+For enhanced security, use GitHub App installation tokens. See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for complete configuration including repository scoping options.
 
 ## Best Practices
 
