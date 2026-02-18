@@ -56,8 +56,11 @@ const (
 type SecurityFinding struct {
 	Category    SecurityFindingCategory
 	Description string
-	Line        int    // 1-based line number where the issue was found, 0 if unknown
-	Snippet     string // Short excerpt of the problematic content
+	Line        int      // 1-based line number where the issue was found, 0 if unknown
+	Column      int      // 1-based column number where the issue starts, 0 if unknown
+	Snippet     string   // Short excerpt of the problematic content
+	Trigger     string   // What specifically triggered the detection (e.g., "bash ", "curl ")
+	Context     []string // Source code lines for context (for compiler-style rendering)
 }
 
 // String returns a human-readable description of the finding
@@ -145,18 +148,96 @@ func stripFrontmatter(content string) (string, int) {
 }
 
 // FormatSecurityFindings formats a list of findings into a human-readable error message
+// using compiler-style error formatting when filename is provided
 func FormatSecurityFindings(findings []SecurityFinding) string {
+	return FormatSecurityFindingsWithFile(findings, "")
+}
+
+// FormatSecurityFindingsWithFile formats security findings with optional filename for
+// compiler-style error formatting (filename:line:column: error: message)
+func FormatSecurityFindingsWithFile(findings []SecurityFinding, filename string) string {
 	if len(findings) == 0 {
 		return ""
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "Security scan found %d issue(s) in workflow markdown:\n", len(findings))
-	for i, f := range findings {
-		fmt.Fprintf(&sb, "  %d. %s\n", i+1, f.String())
+
+	// If we have a filename and findings with line numbers, use compiler-style formatting
+	if filename != "" && hasLineNumbers(findings) {
+		for _, f := range findings {
+			sb.WriteString(formatCompilerStyleFinding(f, filename))
+			sb.WriteString("\n")
+		}
+	} else {
+		// Fall back to simple list format
+		fmt.Fprintf(&sb, "Security scan found %d issue(s) in workflow markdown:\n", len(findings))
+		for i, f := range findings {
+			fmt.Fprintf(&sb, "  %d. %s\n", i+1, f.String())
+		}
 	}
+
 	sb.WriteString("\nThis workflow contains potentially malicious content and cannot be added.")
 	return sb.String()
+}
+
+// hasLineNumbers checks if any findings have line number information
+func hasLineNumbers(findings []SecurityFinding) bool {
+	for _, f := range findings {
+		if f.Line > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// formatCompilerStyleFinding formats a single finding in compiler-style format:
+// filename:line:column: error: message
+func formatCompilerStyleFinding(f SecurityFinding, filename string) string {
+	var output strings.Builder
+
+	// Format: filename:line:column: error: message
+	if f.Line > 0 {
+		col := f.Column
+		if col == 0 {
+			col = 1
+		}
+		fmt.Fprintf(&output, "%s:%d:%d: error: ", filename, f.Line, col)
+	} else {
+		fmt.Fprintf(&output, "%s: error: ", filename)
+	}
+
+	// Add the main description
+	output.WriteString(f.Description)
+
+	// Add what triggered the detection if available
+	if f.Trigger != "" {
+		fmt.Fprintf(&output, " (triggered by: %q)", f.Trigger)
+	}
+
+	// Add context lines if available
+	if len(f.Context) > 0 {
+		output.WriteString("\n")
+		for i, line := range f.Context {
+			lineNum := f.Line - len(f.Context)/2 + i
+			if lineNum < 1 {
+				continue
+			}
+			fmt.Fprintf(&output, "%4d | %s\n", lineNum, line)
+
+			// Add pointer for the error line
+			if lineNum == f.Line && f.Column > 0 {
+				padding := strings.Repeat(" ", f.Column-1)
+				fmt.Fprintf(&output, "     | %s^\n", padding)
+			}
+		}
+	}
+
+	// Add suggestion for HTML comment issues
+	if f.Category == CategoryHiddenContent && strings.Contains(f.Description, "HTML comment") {
+		output.WriteString("     = help: the proper fix is to delete the HTML comment section\n")
+	}
+
+	return output.String()
 }
 
 // --- Unicode Abuse Detection ---
@@ -267,17 +348,38 @@ func scanHiddenContent(content string) []SecurityFinding {
 	// Check for HTML comments containing suspicious content
 	matches := htmlCommentPattern.FindAllStringSubmatchIndex(content, -1)
 	for _, match := range matches {
+		commentStart := match[0]
 		commentBody := content[match[2]:match[3]]
-		commentLine := lineNumberAt(content, match[0])
+		commentLine := lineNumberAt(content, commentStart)
+
+		// Calculate column position (1-based)
+		lineStart := strings.LastIndex(content[:commentStart], "\n")
+		if lineStart == -1 {
+			lineStart = 0
+		} else {
+			lineStart++ // Move past the newline
+		}
+		commentColumn := commentStart - lineStart + 1
 
 		// Flag comments that contain code-like content, URLs, or suspicious keywords
 		lowerComment := strings.ToLower(commentBody)
-		if containsSuspiciousCommentContent(lowerComment) {
+		trigger, isSuspicious := detectSuspiciousCommentContent(lowerComment)
+
+		if isSuspicious {
+			// Extract context lines around the comment
+			contextLines := extractContextLines(lines, commentLine, 2)
+
+			// Build detailed description
+			description := fmt.Sprintf("HTML comment contains suspicious content (code, URLs, or executable instructions)")
+
 			findings = append(findings, SecurityFinding{
 				Category:    CategoryHiddenContent,
-				Description: "HTML comment contains suspicious content (code, URLs, or executable instructions)",
+				Description: description,
 				Line:        commentLine,
+				Column:      commentColumn,
 				Snippet:     truncateSnippet(strings.TrimSpace(commentBody), 80),
+				Trigger:     trigger,
+				Context:     contextLines,
 			})
 		}
 	}
@@ -287,21 +389,29 @@ func scanHiddenContent(content string) []SecurityFinding {
 		lineNo := lineNum + 1
 
 		if cssHiddenPattern.MatchString(line) {
+			contextLines := extractContextLines(lines, lineNo, 1)
+
 			findings = append(findings, SecurityFinding{
 				Category:    CategoryHiddenContent,
 				Description: "HTML element uses CSS to hide content (display:none, visibility:hidden, opacity:0, etc.)",
 				Line:        lineNo,
+				Column:      1,
 				Snippet:     truncateSnippet(line, 80),
+				Context:     contextLines,
 			})
 		}
 
 		// Check for HTML entity obfuscation
 		if htmlEntitySequencePattern.MatchString(line) {
+			contextLines := extractContextLines(lines, lineNo, 1)
+
 			findings = append(findings, SecurityFinding{
 				Category:    CategoryHiddenContent,
 				Description: "contains sequence of HTML entities that may be obfuscating text",
 				Line:        lineNo,
+				Column:      1,
 				Snippet:     truncateSnippet(line, 80),
+				Context:     contextLines,
 			})
 		}
 	}
@@ -309,15 +419,40 @@ func scanHiddenContent(content string) []SecurityFinding {
 	return findings
 }
 
+// extractContextLines extracts lines around a target line for error context
+// Returns up to contextSize lines before and after the target line
+func extractContextLines(lines []string, targetLine int, contextSize int) []string {
+	if len(lines) == 0 || targetLine < 1 || targetLine > len(lines) {
+		return nil
+	}
+
+	startLine := targetLine - contextSize - 1 // Convert to 0-based
+	if startLine < 0 {
+		startLine = 0
+	}
+
+	endLine := targetLine + contextSize // Convert to 0-based
+	if endLine > len(lines) {
+		endLine = len(lines)
+	}
+
+	return lines[startLine:endLine]
+}
+
 // suspiciousCommentWordPatterns matches short shell keywords as whole words
 // to avoid false positives (e.g. "sh " matching inside "fresh data")
 var suspiciousCommentWordPatterns = regexp.MustCompile(`(?i)(?:^|\s)(?:sh|bash)\s`)
 
-// containsSuspiciousCommentContent checks if an HTML comment body contains suspicious content
-func containsSuspiciousCommentContent(lowerComment string) bool {
+// detectSuspiciousCommentContent checks if an HTML comment body contains suspicious content
+// Returns the trigger pattern and whether the content is suspicious
+func detectSuspiciousCommentContent(lowerComment string) (string, bool) {
 	// Check short keywords that need word-boundary matching
 	if suspiciousCommentWordPatterns.MatchString(lowerComment) {
-		return true
+		matches := suspiciousCommentWordPatterns.FindStringSubmatch(lowerComment)
+		if len(matches) > 0 {
+			return strings.TrimSpace(matches[0]), true
+		}
+		return "sh/bash", true
 	}
 
 	// Exact substring patterns (specific enough to avoid false positives)
@@ -338,11 +473,18 @@ func containsSuspiciousCommentContent(lowerComment string) bool {
 
 	for _, pattern := range suspiciousPatterns {
 		if strings.Contains(lowerComment, pattern) {
-			return true
+			return pattern, true
 		}
 	}
 
-	return false
+	return "", false
+}
+
+// containsSuspiciousCommentContent checks if an HTML comment body contains suspicious content
+// (legacy function for backward compatibility)
+func containsSuspiciousCommentContent(lowerComment string) bool {
+	_, isSuspicious := detectSuspiciousCommentContent(lowerComment)
+	return isSuspicious
 }
 
 // --- Obfuscated Links Detection ---

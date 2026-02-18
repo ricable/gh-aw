@@ -126,7 +126,7 @@ func (c *Compiler) setupEngineAndImports(result *parser.FrontmatterResult, clean
 		}
 		if findings := ScanMarkdownSecurity(string(importContent)); len(findings) > 0 {
 			orchestratorEngineLog.Printf("Security scan failed for imported file: %s (%d findings)", importedFile, len(findings))
-			return nil, fmt.Errorf("imported workflow '%s' failed security scan: %s", importedFile, FormatSecurityFindings(findings))
+			return nil, fmt.Errorf("imported workflow '%s' failed security scan:\n%s", importedFile, FormatSecurityFindingsWithFile(findings, importedFile))
 		}
 	}
 
