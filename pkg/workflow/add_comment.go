@@ -113,6 +113,14 @@ func (c *Compiler) buildCreateOutputAddCommentJob(data *WorkflowData, mainJobNam
 		needs = append(needs, createPullRequestJobName)
 	}
 
+	// Determine permissions based on whether discussions are enabled
+	var permissions *Permissions
+	if data.SafeOutputs.AddComments.Discussion != nil && *data.SafeOutputs.AddComments.Discussion {
+		permissions = NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite()
+	} else {
+		permissions = NewPermissionsContentsReadIssuesWritePRWrite()
+	}
+
 	// Use the shared builder function to create the job
 	return c.buildSafeOutputJob(data, SafeOutputJobConfig{
 		JobName:        "add_comment",
@@ -121,7 +129,7 @@ func (c *Compiler) buildCreateOutputAddCommentJob(data *WorkflowData, mainJobNam
 		MainJobName:    mainJobName,
 		CustomEnvVars:  customEnvVars,
 		Script:         getAddCommentScript(),
-		Permissions:    NewPermissionsContentsReadIssuesWritePRWrite(),
+		Permissions:    permissions,
 		Outputs:        outputs,
 		Condition:      jobCondition,
 		Needs:          needs,

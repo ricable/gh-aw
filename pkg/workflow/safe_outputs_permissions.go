@@ -29,8 +29,14 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 		permissions.Merge(NewPermissionsContentsReadIssuesWriteDiscussionsWrite())
 	}
 	if safeOutputs.AddComments != nil {
-		safeOutputsPermissionsLog.Print("Adding permissions for add-comment")
-		permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		// Check if add-comment is configured to target discussions
+		if safeOutputs.AddComments.Discussion != nil && *safeOutputs.AddComments.Discussion {
+			safeOutputsPermissionsLog.Print("Adding permissions for add-comment (with discussions support)")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
+		} else {
+			safeOutputsPermissionsLog.Print("Adding permissions for add-comment")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		}
 	}
 	if safeOutputs.CloseIssues != nil {
 		safeOutputsPermissionsLog.Print("Adding permissions for close-issue")
@@ -97,7 +103,16 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 	}
 	if safeOutputs.HideComment != nil {
 		safeOutputsPermissionsLog.Print("Adding permissions for hide-comment")
-		permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		// hide-comment needs discussions permission only if discussion-related safe outputs are configured
+		// (since it can only hide discussion comments if the agent can interact with discussions)
+		if safeOutputs.CreateDiscussions != nil || safeOutputs.CloseDiscussions != nil || 
+			safeOutputs.UpdateDiscussions != nil || (safeOutputs.AddComments != nil && 
+			safeOutputs.AddComments.Discussion != nil && *safeOutputs.AddComments.Discussion) {
+			safeOutputsPermissionsLog.Print("Adding discussions permission for hide-comment (discussion safe outputs configured)")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
+		} else {
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		}
 	}
 	if safeOutputs.DispatchWorkflow != nil {
 		safeOutputsPermissionsLog.Print("Adding permissions for dispatch-workflow")
