@@ -247,7 +247,7 @@ describe("add_labels", () => {
 
     it("should filter labels based on blocked patterns", async () => {
       const handler = await main({
-        blocked: ["~*", "*\\**"],
+        blocked: ["~*", "\\**"],
         max: 10,
       });
 

@@ -165,7 +165,7 @@ func BuildAllowedListEnvVar(envVarName string, allowed []string) []string {
 }
 
 // BuildBlockedListEnvVar creates environment variable lines for blocked patterns.
-// If blocked is empty, returns empty slice.
+// Always outputs the env var, even when empty (empty string means "block none").
 func BuildBlockedListEnvVar(envVarName string, blocked []string) []string {
 	blockedStr := strings.Join(blocked, ",")
 	return []string{fmt.Sprintf("          %s: %q\n", envVarName, blockedStr)}

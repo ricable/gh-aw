@@ -246,6 +246,81 @@ describe("remove_labels", () => {
       expect(result.labelsRemoved).toEqual(["bug", "enhancement"]);
     });
 
+    it("should filter labels based on blocked patterns", async () => {
+      const handler = await main({
+        blocked: ["~*", "\\**"],
+        max: 10,
+      });
+
+      const removeLabelCalls = [];
+      mockGithub.rest.issues.removeLabel = async params => {
+        removeLabelCalls.push(params);
+        return {};
+      };
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["bug", "~triage", "*admin", "enhancement"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.labelsRemoved).toEqual(["bug", "enhancement"]);
+      // Verify individual blocked labels are logged
+      expect(mockCore.infos.some(msg => msg.includes('Label "~triage" matched blocked pattern'))).toBe(true);
+      expect(mockCore.infos.some(msg => msg.includes('Label "*admin" matched blocked pattern'))).toBe(true);
+    });
+
+    it("should apply both allowed and blocked filters", async () => {
+      const handler = await main({
+        allowed: ["bug", "~triage", "enhancement"],
+        blocked: ["~*"],
+        max: 10,
+      });
+
+      const removeLabelCalls = [];
+      mockGithub.rest.issues.removeLabel = async params => {
+        removeLabelCalls.push(params);
+        return {};
+      };
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["bug", "~triage", "invalid-label", "enhancement"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(true);
+      // "~triage" is in allowed list but blocked by pattern
+      expect(result.labelsRemoved).toEqual(["bug", "enhancement"]);
+    });
+
+    it("should handle no labels remaining after blocked filtering", async () => {
+      const handler = await main({
+        blocked: ["~*", "\\**"],
+        max: 10,
+      });
+
+      const result = await handler(
+        {
+          item_number: 100,
+          labels: ["~triage", "*admin", "~stale"],
+        },
+        {}
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("No labels provided");
+      // Verify blocked labels are logged individually
+      expect(mockCore.infos.some(msg => msg.includes('Label "~triage" matched blocked pattern'))).toBe(true);
+      expect(mockCore.infos.some(msg => msg.includes('Label "*admin" matched blocked pattern'))).toBe(true);
+      expect(mockCore.infos.some(msg => msg.includes('Label "~stale" matched blocked pattern'))).toBe(true);
+    });
+
     it("should handle empty labels array", async () => {
       const handler = await main({ max: 10 });
 
