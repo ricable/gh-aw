@@ -366,20 +366,19 @@ func scanHiddenContent(content string) []SecurityFinding {
 		trigger, isSuspicious := detectSuspiciousCommentContent(lowerComment)
 
 		if isSuspicious {
-			// Extract context lines around the comment
-			contextLines := extractContextLines(lines, commentLine, 2)
-
 			// Build detailed description
 			description := "HTML comment contains suspicious content (code, URLs, or executable instructions)"
 
+			// Note: We intentionally do NOT include context lines for HTML comment findings
+			// to avoid exposing potentially malicious content in error messages
 			findings = append(findings, SecurityFinding{
 				Category:    CategoryHiddenContent,
 				Description: description,
 				Line:        commentLine,
 				Column:      commentColumn,
-				Snippet:     truncateSnippet(strings.TrimSpace(commentBody), 80),
+				Snippet:     "", // Do not expose comment content
 				Trigger:     trigger,
-				Context:     contextLines,
+				Context:     nil, // Do not expose context containing malicious content
 			})
 		}
 	}
