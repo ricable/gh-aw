@@ -442,3 +442,201 @@ describe("dispatch_workflow handler factory", () => {
     });
   });
 });
+
+describe("dispatch_workflow cross-repository support", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.GITHUB_REF = "refs/heads/main";
+    delete process.env.GITHUB_HEAD_REF;
+  });
+
+  it("should dispatch to same repository by default", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(true);
+    expect(result.repo).toBe("test-owner/test-repo");
+    expect(github.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+      owner: "test-owner",
+      repo: "test-repo",
+      workflow_id: "test-workflow.lock.yml",
+      ref: expect.any(String),
+      inputs: {},
+    });
+  });
+
+  it("should allow dispatching to target-repo", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      "target-repo": "other-owner/other-repo",
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(true);
+    expect(result.repo).toBe("other-owner/other-repo");
+    expect(github.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+      owner: "other-owner",
+      repo: "other-repo",
+      workflow_id: "test-workflow.lock.yml",
+      ref: expect.any(String),
+      inputs: {},
+    });
+  });
+
+  it("should allow dispatching to allowed-repos", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      allowed_repos: ["org/repo-a", "org/repo-b"],
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      repo: "org/repo-a",
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(true);
+    expect(result.repo).toBe("org/repo-a");
+    expect(github.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+      owner: "org",
+      repo: "repo-a",
+      workflow_id: "test-workflow.lock.yml",
+      ref: expect.any(String),
+      inputs: {},
+    });
+  });
+
+  it("should reject non-allowlisted repositories", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      allowed_repos: ["org/repo-a"],
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      repo: "org/unauthorized-repo",
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("not in the allowed-repos list");
+    expect(result.error).toContain("org/unauthorized-repo");
+    expect(github.rest.actions.createWorkflowDispatch).not.toHaveBeenCalled();
+  });
+
+  it("should reject malformed repository references", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      allowed_repos: ["org/repo-a"],
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      repo: "invalid-repo-format",
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("not in the allowed-repos list");
+    expect(github.rest.actions.createWorkflowDispatch).not.toHaveBeenCalled();
+  });
+
+  it("should auto-qualify bare repository names with default org", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      "target-repo": "test-owner/test-repo",
+      allowed_repos: ["test-owner/other-repo"],
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      repo: "other-repo", // Bare name should be qualified
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(true);
+    expect(result.repo).toBe("test-owner/other-repo");
+    expect(github.rest.actions.createWorkflowDispatch).toHaveBeenCalledWith({
+      owner: "test-owner",
+      repo: "other-repo",
+      workflow_id: "test-workflow.lock.yml",
+      ref: expect.any(String),
+      inputs: {},
+    });
+  });
+
+  it("should always allow same repository without explicit allowlist", async () => {
+    const config = {
+      workflows: ["test-workflow"],
+      workflow_files: {
+        "test-workflow": ".lock.yml",
+      },
+      // No allowed_repos configured
+    };
+    const handler = await main(config);
+
+    const message = {
+      type: "dispatch_workflow",
+      workflow_name: "test-workflow",
+      repo: "test-owner/test-repo", // Same as default repo
+      inputs: {},
+    };
+
+    const result = await handler(message, {});
+
+    expect(result.success).toBe(true);
+    expect(github.rest.actions.createWorkflowDispatch).toHaveBeenCalled();
+  });
+});

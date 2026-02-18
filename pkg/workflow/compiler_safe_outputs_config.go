@@ -457,7 +457,9 @@ var handlerRegistry = map[string]handlerBuilder{
 		c := cfg.DispatchWorkflow
 		builder := newHandlerConfigBuilder().
 			AddIfPositive("max", c.Max).
-			AddStringSlice("workflows", c.Workflows)
+			AddStringSlice("workflows", c.Workflows).
+			AddIfNotEmpty("target-repo", c.TargetRepoSlug).
+			AddStringSlice("allowed_repos", c.AllowedRepos)
 
 		// Add workflow_files map if it has entries
 		if len(c.WorkflowFiles) > 0 {

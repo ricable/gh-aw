@@ -590,3 +590,93 @@ safe-outputs:
 	assert.Contains(t, errStr, "self-reference", "Should contain first error")
 	assert.NotContains(t, errStr, "Found 2", "Should not have multiple error header in fail-fast mode")
 }
+
+// TestDispatchWorkflowCrossRepoConfig tests parsing of target-repo and allowed-repos configuration
+func TestDispatchWorkflowCrossRepoConfig(t *testing.T) {
+	tests := []struct {
+		name                 string
+		frontmatter          string
+		expectedTargetRepo   string
+		expectedAllowedRepos []string
+	}{
+		{
+			name: "no cross-repo config",
+			frontmatter: `---
+on: issues
+engine: copilot
+safe-outputs:
+  dispatch-workflow:
+    workflows: [test]
+---`,
+			expectedTargetRepo:   "",
+			expectedAllowedRepos: nil,
+		},
+		{
+			name: "with target-repo only",
+			frontmatter: `---
+on: issues
+engine: copilot
+safe-outputs:
+  dispatch-workflow:
+    workflows: [test]
+    target-repo: owner/repo
+---`,
+			expectedTargetRepo:   "owner/repo",
+			expectedAllowedRepos: nil,
+		},
+		{
+			name: "with allowed-repos only",
+			frontmatter: `---
+on: issues
+engine: copilot
+safe-outputs:
+  dispatch-workflow:
+    workflows: [test]
+    allowed-repos:
+      - org/repo-a
+      - org/repo-b
+---`,
+			expectedTargetRepo:   "",
+			expectedAllowedRepos: []string{"org/repo-a", "org/repo-b"},
+		},
+		{
+			name: "with both target-repo and allowed-repos",
+			frontmatter: `---
+on: issues
+engine: copilot
+safe-outputs:
+  dispatch-workflow:
+    workflows: [test]
+    target-repo: owner/main-repo
+    allowed-repos:
+      - org/repo-a
+      - org/repo-b
+---`,
+			expectedTargetRepo:   "owner/main-repo",
+			expectedAllowedRepos: []string{"org/repo-a", "org/repo-b"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compiler := NewCompilerWithVersion("1.0.0")
+
+			// Create temp workflow file
+			tmpDir := t.TempDir()
+			workflowFile := filepath.Join(tmpDir, "test.md")
+			err := os.WriteFile(workflowFile, []byte(tt.frontmatter+"\n# Test\n"), 0644)
+			require.NoError(t, err, "Failed to write test workflow")
+
+			// Parse the workflow
+			workflowData, err := compiler.ParseWorkflowFile(workflowFile)
+			require.NoError(t, err, "Failed to parse workflow")
+			require.NotNil(t, workflowData.SafeOutputs, "SafeOutputs should not be nil")
+			require.NotNil(t, workflowData.SafeOutputs.DispatchWorkflow, "DispatchWorkflow should not be nil")
+
+			// Verify parsed configuration
+			config := workflowData.SafeOutputs.DispatchWorkflow
+			assert.Equal(t, tt.expectedTargetRepo, config.TargetRepoSlug, "TargetRepoSlug should match")
+			assert.Equal(t, tt.expectedAllowedRepos, config.AllowedRepos, "AllowedRepos should match")
+		})
+	}
+}

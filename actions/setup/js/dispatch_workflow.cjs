@@ -9,6 +9,7 @@
 const HANDLER_TYPE = "dispatch_workflow";
 
 const { getErrorMessage } = require("./error_helpers.cjs");
+const { resolveTargetRepoConfig, validateRepo, parseRepoSlug } = require("./repo_helpers.cjs");
 
 /**
  * Main handler factory for dispatch_workflow
@@ -21,12 +22,19 @@ async function main(config = {}) {
   const maxCount = config.max || 1;
   const workflowFiles = config.workflow_files || {}; // Map of workflow name to file extension
 
+  // Extract cross-repo configuration
+  const { defaultTargetRepo, allowedRepos } = resolveTargetRepoConfig(config);
+
   core.info(`Dispatch workflow configuration: max=${maxCount}`);
   if (allowedWorkflows.length > 0) {
     core.info(`Allowed workflows: ${allowedWorkflows.join(", ")}`);
   }
   if (Object.keys(workflowFiles).length > 0) {
     core.info(`Workflow files: ${JSON.stringify(workflowFiles)}`);
+  }
+  core.info(`Default target repository: ${defaultTargetRepo}`);
+  if (allowedRepos.size > 0) {
+    core.info(`Allowed repositories: ${Array.from(allowedRepos).join(", ")}`);
   }
 
   // Track how many items we've processed for max limit
@@ -112,6 +120,34 @@ async function main(config = {}) {
       };
     }
 
+    // Determine target repository for this dispatch (default to current repo)
+    const itemRepo = item.repo ? String(item.repo).trim() : defaultTargetRepo;
+
+    // Validate the repository is allowed
+    const repoValidation = validateRepo(itemRepo, defaultTargetRepo, allowedRepos);
+    if (!repoValidation.valid) {
+      const errorMessage = repoValidation.error || `Repository '${itemRepo}' validation failed`;
+      core.warning(errorMessage);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+
+    // Use the qualified repo from validation (handles bare names)
+    const qualifiedItemRepo = repoValidation.qualifiedRepo;
+
+    // Parse the repository slug
+    const repoParts = parseRepoSlug(qualifiedItemRepo);
+    if (!repoParts) {
+      const error = `Invalid repository format '${itemRepo}'. Expected 'owner/repo'.`;
+      core.warning(error);
+      return {
+        success: false,
+        error: error,
+      };
+    }
+
     try {
       // Add 5 second delay between dispatches (except for the first one)
       if (lastDispatchTime > 0) {
@@ -151,18 +187,18 @@ async function main(config = {}) {
       }
 
       const workflowFile = `${workflowName}${extension}`;
-      core.info(`Dispatching workflow: ${workflowFile}`);
+      core.info(`Dispatching workflow: ${workflowFile} in repository: ${qualifiedItemRepo}`);
 
-      // Dispatch the workflow using the resolved file
+      // Dispatch the workflow using the resolved file and target repository
       await github.rest.actions.createWorkflowDispatch({
-        owner: repo.owner,
-        repo: repo.repo,
+        owner: repoParts.owner,
+        repo: repoParts.repo,
         workflow_id: workflowFile,
         ref: ref,
         inputs: inputs,
       });
 
-      core.info(`✓ Successfully dispatched workflow: ${workflowFile}`);
+      core.info(`✓ Successfully dispatched workflow: ${workflowFile} in ${qualifiedItemRepo}`);
 
       // Record the time of this dispatch for rate limiting
       lastDispatchTime = Date.now();
@@ -170,6 +206,7 @@ async function main(config = {}) {
       return {
         success: true,
         workflow_name: workflowName,
+        repo: qualifiedItemRepo,
         inputs: inputs,
       };
     } catch (error) {

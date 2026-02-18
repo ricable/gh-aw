@@ -5783,6 +5783,24 @@
                   "maximum": 50,
                   "default": 1
                 },
+                "target-repo": {
+                  "type": "string",
+                  "description": "Target repository in format 'owner/repo' for cross-repository workflow dispatch. If omitted, defaults to the current repository.",
+                  "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$",
+                  "examples": ["github/gh-aw", "octocat/hello-world"]
+                },
+                "allowed-repos": {
+                  "type": "array",
+                  "description": "List of additional repositories (in format 'owner/repo') where workflows can be dispatched. The default repository is always allowed. Cross-repository dispatch requires explicit allowlist for security.",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+                  },
+                  "examples": [
+                    ["org/repo-a", "org/repo-b"],
+                    ["github/gh-aw"]
+                  ]
+                },
                 "github-token": {
                   "$ref": "#/$defs/github_token",
                   "description": "GitHub token to use for dispatching workflows. Overrides global github-token if specified."

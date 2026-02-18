@@ -11,6 +11,8 @@ type DispatchWorkflowConfig struct {
 	BaseSafeOutputConfig `yaml:",inline"`
 	Workflows            []string          `yaml:"workflows,omitempty"`      // List of workflow names (without .md extension) to allow dispatching
 	WorkflowFiles        map[string]string `yaml:"workflow_files,omitempty"` // Map of workflow name to file extension (.lock.yml or .yml) - populated at compile time
+	TargetRepoSlug       string            `yaml:"target-repo,omitempty"`    // Target repository in format "owner/repo" for cross-repository dispatch
+	AllowedRepos         []string          `yaml:"allowed-repos,omitempty"`  // List of additional repositories that workflows can be dispatched in
 }
 
 // parseDispatchWorkflowConfig handles dispatch-workflow configuration
@@ -44,6 +46,26 @@ func (c *Compiler) parseDispatchWorkflowConfig(outputMap map[string]any) *Dispat
 							dispatchWorkflowConfig.Workflows = append(dispatchWorkflowConfig.Workflows, workflowStr)
 						}
 					}
+				}
+			}
+
+			// Parse target-repo
+			if targetRepo, exists := configMap["target-repo"]; exists {
+				if targetRepoStr, ok := targetRepo.(string); ok {
+					dispatchWorkflowConfig.TargetRepoSlug = targetRepoStr
+					dispatchWorkflowLog.Printf("Parsed target-repo: %s", targetRepoStr)
+				}
+			}
+
+			// Parse allowed-repos
+			if allowedRepos, exists := configMap["allowed-repos"]; exists {
+				if allowedReposArray, ok := allowedRepos.([]any); ok {
+					for _, repo := range allowedReposArray {
+						if repoStr, ok := repo.(string); ok {
+							dispatchWorkflowConfig.AllowedRepos = append(dispatchWorkflowConfig.AllowedRepos, repoStr)
+						}
+					}
+					dispatchWorkflowLog.Printf("Parsed allowed-repos: %v", dispatchWorkflowConfig.AllowedRepos)
 				}
 			}
 
