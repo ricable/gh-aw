@@ -915,21 +915,27 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 	agentConcurrency := GenerateJobConcurrencyConfig(data)
 
 	// Set up permissions for the agent job
-	// Agent job ALWAYS needs contents: read to access .github and .actions folders
+	// Only add contents: read if:
+	// 1. User explicitly specified contents: read in permissions, OR
+	// 2. In development/script mode when local actions need to be checked out
 	permissions := data.Permissions
-	if permissions == "" {
-		// No permissions specified, just add contents: read
-		perms := NewPermissionsContentsRead()
-		permissions = perms.RenderToYAML()
-	} else {
-		// Parse existing permissions and add contents: read
-		parser := NewPermissionsParser(permissions)
-		perms := parser.ToPermissions()
-
-		// Only add contents: read if not already present
-		if level, exists := perms.Get(PermissionContents); !exists || level == PermissionNone {
-			perms.Set(PermissionContents, PermissionRead)
+	needsContentsRead := (c.actionMode.IsDev() || c.actionMode.IsScript()) && len(c.generateCheckoutActionsFolder(data)) > 0
+	
+	if needsContentsRead {
+		if permissions == "" {
+			// No permissions specified, add contents: read for local actions
+			perms := NewPermissionsContentsRead()
 			permissions = perms.RenderToYAML()
+		} else {
+			// Parse existing permissions and add contents: read if needed
+			parser := NewPermissionsParser(permissions)
+			perms := parser.ToPermissions()
+
+			// Only add contents: read if not already present
+			if level, exists := perms.Get(PermissionContents); !exists || level == PermissionNone {
+				perms.Set(PermissionContents, PermissionRead)
+				permissions = perms.RenderToYAML()
+			}
 		}
 	}
 

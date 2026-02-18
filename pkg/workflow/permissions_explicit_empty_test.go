@@ -46,9 +46,9 @@ permissions: {}
 # Test workflow
 Test content`,
 			actionMode:            ActionModeRelease,
-			expectedAgentPerms:    "permissions:\n      contents: read", // Agent job always gets contents: read
+			expectedAgentPerms:    "permissions: {}", // Release mode doesn't need contents: read (uses remote actions)
 			expectedTopLevelPerms: "permissions: {}",
-			description:           "Release mode with explicit empty permissions should add contents: read to agent job",
+			description:           "Release mode with explicit empty permissions should NOT add contents: read to agent job",
 		},
 		{
 			name: "no permissions specified in dev mode",
@@ -76,6 +76,21 @@ Test content`,
 			expectedAgentPerms:    "permissions: read-all", // Should stay read-all
 			expectedTopLevelPerms: "permissions: {}",       // Top-level should always be empty
 			description:           "Dev mode with read-all permissions should have empty top-level permissions, read-all on agent job",
+		},
+		{
+			name: "explicit contents read in release mode",
+			frontmatter: `---
+on: issues
+engine: copilot
+permissions:
+  contents: read
+---
+# Test workflow
+Test content`,
+			actionMode:            ActionModeRelease,
+			expectedAgentPerms:    "permissions:\n      contents: read", // Explicit contents: read should be preserved
+			expectedTopLevelPerms: "permissions: {}",
+			description:           "Release mode with explicit contents: read should preserve it in agent job",
 		},
 	}
 
