@@ -339,7 +339,11 @@ func (c *Compiler) hasSafeEventsOnly(data *WorkflowData, frontmatter map[string]
 			for eventName := range onMap {
 				// Skip command events as they are handled separately
 				// Skip stop-after and reaction as they are not event types
-				if eventName == "command" || eventName == "stop-after" || eventName == "reaction" {
+				// Skip configuration fields that are not events
+				if eventName == "command" || eventName == "stop-after" || eventName == "reaction" ||
+					eventName == "roles" || eventName == "skip-bots" || eventName == "skip-if-match" ||
+					eventName == "skip-if-no-match" || eventName == "skip-roles" || eventName == "manual-approval" ||
+					eventName == "status-comment" || eventName == "slash_command" {
 					continue
 				}
 
@@ -375,6 +379,27 @@ func (c *Compiler) hasSafeEventsOnly(data *WorkflowData, frontmatter map[string]
 				eventCount--
 			}
 			if _, hasReaction := onMap["reaction"]; hasReaction {
+				eventCount--
+			}
+			if _, hasRoles := onMap["roles"]; hasRoles {
+				eventCount--
+			}
+			if _, hasSkipBots := onMap["skip-bots"]; hasSkipBots {
+				eventCount--
+			}
+			if _, hasSkipIfMatch := onMap["skip-if-match"]; hasSkipIfMatch {
+				eventCount--
+			}
+			if _, hasSkipIfNoMatch := onMap["skip-if-no-match"]; hasSkipIfNoMatch {
+				eventCount--
+			}
+			if _, hasSkipRoles := onMap["skip-roles"]; hasSkipRoles {
+				eventCount--
+			}
+			if _, hasManualApproval := onMap["manual-approval"]; hasManualApproval {
+				eventCount--
+			}
+			if _, hasStatusComment := onMap["status-comment"]; hasStatusComment {
 				eventCount--
 			}
 

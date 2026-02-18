@@ -90,7 +90,7 @@ on:
   workflow_dispatch:
   stop-after: "+48h"
   skip-if-match: "is:pr is:open"
-roles: [admin, maintainer]
+  roles: [admin, maintainer]
 engine: claude
 ---
 

@@ -109,7 +109,7 @@ func TestBotsEnvironmentVariableGeneration(t *testing.T) {
 on:
   issues:
     types: [opened]
-roles: [triage]
+  roles: [triage]
 bots: ["dependabot[bot]", "renovate[bot]"]
 ---
 

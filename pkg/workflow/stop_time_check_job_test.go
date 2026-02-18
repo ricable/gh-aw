@@ -24,7 +24,7 @@ func TestPreActivationJob(t *testing.T) {
 on:
   workflow_dispatch:
   stop-after: "+48h"
-roles: [admin, maintainer]
+  roles: [admin, maintainer]
 engine: claude
 ---
 
@@ -106,8 +106,8 @@ This workflow has a stop-after configuration.
 		workflowContent := `---
 on:
   workflow_dispatch:
+  roles: all
 engine: claude
-roles: all
 ---
 
 # Normal Workflow

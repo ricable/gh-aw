@@ -95,7 +95,7 @@ on:
   workflow_dispatch:
   stop-after: "+48h"
   skip-if-no-match: "is:pr is:open label:urgent"
-roles: [admin, maintainer]
+  roles: [admin, maintainer]
 engine: claude
 ---
 

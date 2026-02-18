@@ -1132,9 +1132,6 @@ tools:
   bash: ["echo", "ls", "cat"]
   github:
     allowed: [list_issues, create_issue]
-roles:
-  - admin
-  - maintainer
 bots:
   - copilot
   - dependabot
