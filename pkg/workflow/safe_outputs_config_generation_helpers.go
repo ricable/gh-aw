@@ -60,7 +60,7 @@ func generateMaxWithAllowedConfig(max int, defaultMax int, allowed []string) map
 	return config
 }
 
-// generateMaxWithAllowedAndBlockedConfig creates a config with max and allowed/blocked lists
+// generateMaxWithAllowedAndBlockedConfig creates a config with max, optional allowed list, and optional blocked list
 func generateMaxWithAllowedAndBlockedConfig(max int, defaultMax int, allowed []string, blocked []string) map[string]any {
 	config := generateMaxConfig(max, defaultMax)
 	if len(allowed) > 0 {
