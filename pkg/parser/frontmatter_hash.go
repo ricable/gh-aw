@@ -558,6 +558,22 @@ func computeFrontmatterHashTextBasedWithReader(frontmatterText, markdown, baseDi
 		canonical["template-expressions"] = expressions
 	}
 
+	// Check if inline-imports is enabled by parsing the frontmatter text
+	// When inline-imports is true, include the markdown body in the hash
+	// since the body is embedded in the compiled workflow and changes should trigger recompilation
+	inlineImportsEnabled := false
+	if strings.Contains(frontmatterText, "inline-imports:") && strings.Contains(frontmatterText, "true") {
+		// Simple heuristic check - not perfect but sufficient for hash purposes
+		inlineImportsEnabled = true
+		frontmatterHashLog.Print("Detected inline-imports: true, including markdown body in hash")
+	}
+
+	// Add markdown body when inline-imports is enabled
+	if inlineImportsEnabled && markdown != "" {
+		canonical["markdown-body"] = strings.TrimSpace(markdown)
+		frontmatterHashLog.Printf("Added markdown body to hash (%d bytes)", len(markdown))
+	}
+
 	// Serialize to canonical JSON
 	canonicalJSON, err := marshalCanonicalJSON(canonical)
 	if err != nil {

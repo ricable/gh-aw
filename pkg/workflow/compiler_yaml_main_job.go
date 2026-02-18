@@ -233,13 +233,22 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 	// This reads from aw_info.json for consistent data
 	c.generateWorkflowOverviewStep(yaml, data, engine)
 
-	// Download prompt artifact from activation job
-	compilerYamlLog.Print("Adding prompt artifact download step")
-	yaml.WriteString("      - name: Download prompt artifact\n")
-	fmt.Fprintf(yaml, "        uses: %s\n", GetActionPin("actions/download-artifact"))
-	yaml.WriteString("        with:\n")
-	yaml.WriteString("          name: prompt\n")
-	yaml.WriteString("          path: /tmp/gh-aw/aw-prompts\n")
+	// Handle prompt generation based on inline mode
+	if !c.inlinePrompt {
+		// Standard mode: Download prompt artifact from activation job
+		compilerYamlLog.Print("Adding prompt artifact download step")
+		yaml.WriteString("      - name: Download prompt artifact\n")
+		fmt.Fprintf(yaml, "        uses: %s\n", GetActionPin("actions/download-artifact"))
+		yaml.WriteString("        with:\n")
+		yaml.WriteString("          name: prompt\n")
+		yaml.WriteString("          path: /tmp/gh-aw/aw-prompts\n")
+	} else {
+		// Inline mode: Generate prompt directly in agent job
+		compilerYamlLog.Print("Generating prompt inline in agent job (inline-imports mode)")
+		var promptYaml strings.Builder
+		c.generatePrompt(&promptYaml, data)
+		yaml.WriteString(promptYaml.String())
+	}
 
 	// Collect artifact paths for unified upload at the end
 	var artifactPaths []string
