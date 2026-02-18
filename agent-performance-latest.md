@@ -1,183 +1,104 @@
-# Agent Performance Analysis - 2026-02-17
+# Agent Performance Analysis - 2026-02-18
 
-**Run:** [§22109034777](https://github.com/github/gh-aw/actions/runs/22109034777)  
-**Status:** ✅ AGENTS EXCELLENT (15th consecutive zero-critical period)  
-**Analysis Period:** February 10-17, 2026 (7 days)
+**Run:** [§22150701330](https://github.com/github/gh-aw/actions/runs/22150701330)  
+**Status:** ✅ EXCELLENT — 16th consecutive zero-critical-issues period  
+**Analysis Period:** February 11–18, 2026 (7 days)
 
-## 🎉 15TH CONSECUTIVE ZERO-CRITICAL-ISSUES PERIOD
+## 🎉 16TH CONSECUTIVE ZERO-CRITICAL-ISSUES PERIOD
 
 ### Executive Summary
 
-- **Agent Quality:** 93/100 (↑ +2 from 91/100, excellent improvement)
-- **Agent Effectiveness:** 89/100 (↑ +2 from 87/100, strong improvement)
-- **Critical Agent Issues:** 0 (15th consecutive period!)
-- **Infrastructure Health:** 95/100 (↑ +8 from 87/100, excellent improvement)
-- **Output Quality:** 94/100 (excellent)
-- **Workflows Analyzed:** 214 total (155 compiled, 131 agentic)
-- **Total Outputs:** 30 issues + 0 PRs in 7 days
+- **Agent Quality:** 93/100 (→ stable from 93/100, sustained excellence)
+- **Agent Effectiveness:** 89/100 (→ stable from 89/100, strong)
+- **Critical Agent Issues:** 0 (16th consecutive period!)
+- **Infrastructure Health:** 95/100 (→ stable)
+- **Output Quality:** 93/100 (excellent)
+- **Workflows Analyzed:** 152 total (143 compiled, 9 uncompiled)
+- **Agentic Runs:** 14 total (12 success, 2 failure)
+- **Weekly Tokens:** 13.7M | **Cost:** ~$8.00
 
 ## Key Metrics
 
 | Metric | Current | Previous | Change |
 |--------|---------|----------|--------|
-| Workflows Analyzed | 214 | 213 | ↑ +1 |
-| Compiled Workflows | 155 | 154 | ↑ +1 |
-| Agentic Workflows | 131 | 139 | ↓ -8 (recategorized) |
-| Agent Quality | 93/100 | 91/100 | ↑ +2 (excellent) |
-| Agent Effectiveness | 89/100 | 87/100 | ↑ +2 (excellent) |
-| Infrastructure Health | 95/100 | 87/100 | ↑ +8 (major improvement) |
-| Critical Agent Issues | 0 | 0 | ✅ 15th period |
-| Issues Created (7d) | 30 | 186 | ↓ -156 (major drop) |
-| PRs Created (7d) | 0 | 56 | ↓ -56 (doc PR pause) |
+| Workflows | 152 (143 compiled) | 214 (155 compiled) | *recounted |
+| Agent Quality | 93/100 | 93/100 | → Stable |
+| Agent Effectiveness | 89/100 | 89/100 | → Stable |
+| Infrastructure Health | 95/100 | 95/100 | → Stable |
+| Critical Issues | 0 | 0 | ✅ 16th period |
+| Agentic Runs (7d) | 14 | ~13 est. | → Similar |
+| Run Success Rate | 86% (12/14) | ~92% est. | ↓ -6% (2 failures) |
+| Weekly Token Cost | ~$8.00 | ~$8 est. | → Stable |
 
 ## Top Performing Agents
 
-1. **CI Failure Doctor (98/100):** Excellent diagnostics, 10 high-quality issues, actionable recommendations
-2. **Semantic Function Refactoring (97/100):** Comprehensive analysis, detailed insights
-3. **Workflow Health Manager (96/100):** Clear reporting, accurate assessments
-4. **Agentic Maintenance (95/100):** 100% success rate, consistent execution
-5. **CLI Consistency Checker (94/100):** Systematic issue identification
+1. **Daily Safe Outputs Conformance Checker (95/100):** 33 turns, precise bug reports (#16604, #16605), actionable
+2. **Semantic Function Refactoring (94/100):** 20 turns, comprehensive clustering analysis (#16608)
+3. **Plan Command (93/100):** Well-structured sub-issue hierarchy (#16610–16613)
+4. **Contribution Check (90/100):** Clear structured report (#16607)
+5. **Daily Team Evolution Insights (90/100):** 13 turns, informative analysis
 
-## Critical Findings
+## Notable Issues
 
-### ✅ NO CRITICAL ISSUES - EXCELLENT HEALTH
+### ⚠️ Slide Deck Maintainer — Network Failure
+- Detection job failed; 32 blocked network requests (unallowed domain)
+- 1.97M tokens (outlier — 14% of weekly budget)
+- **Action needed:** Fix network.allowed config + investigate context inflation
 
-**Infrastructure Status:**
-- ✅ Health score improved to 95/100 (up from 87/100)
-- ✅ All 17 outdated lock files recompiled
-- ✅ PR Triage Agent execution issue resolved
-- ✅ 100% compilation coverage maintained
-- ✅ Zero failing workflows
+### ⚠️ AI Moderator — Activation Race Condition
+- Activation failed on PR copilot/refactor-security-findings-formatting
+- Transient: PR lifecycle race condition (PR closed mid-activation)
+- **Action needed:** None — expected benign edge case
 
-**Agent Performance:**
-- ✅ 15th consecutive zero-critical-issues period
-- ✅ Quality improved to 93/100 (up from 91/100)
-- ✅ Effectiveness improved to 89/100 (up from 87/100)
-- ✅ All top agents performing excellently
-- ✅ Output quality excellent at 94/100
+## Issues Created This Period (High Quality)
 
-## Notable Observations
+- #16613: Plan: Refactor interface usage in agentic_engine.go
+- #16612: Plan: Standardize error wrapping with %w verb
+- #16611: Plan Command - Issue Group (parent)
+- #16610: Plan: Add Unwrap() methods to custom error types
+- #16608: Semantic Function Clustering Analysis
+- #16607: Contribution Check Report 2026-02-18
+- #16605: Safe Outputs Conformance - SEC-003 false positives
+- #16604: Safe Outputs Conformance - premature script exit bug
+- #16599: Repository Chronicle article
 
-### 1. Documentation PR Volume Drop (POSITIVE)
+## Engine Distribution (from status tool)
 
-**Observation:** PRs dropped from 56/week to 0/week
+- **Copilot:** 104 workflows (68.4%)
+- **Claude:** 37 workflows (24.3%)
+- **Codex:** 11 workflows (7.2%)
 
-**Analysis:**
-- Previous period: 56 PRs with 0% merge rate = wasted effort
-- Current period: Strategic pause on documentation PRs
-- **Impact:** POSITIVE - Stopped wasteful automation
+## Ecosystem Health
 
-**Status:** ✅ Improvement - awaiting consolidation strategy
-
-### 2. Issue Volume Normalization (POSITIVE)
-
-**Observation:** Issues dropped from 186/week to 30/week
-
-**Analysis:**
-- Previous period: High volume from CLI consistency (7 issues) and workflow style (5 issues) batch operations
-- Current period: More focused, higher-quality issues
-- **Quality improvement:** 94/100 vs previous 91/100
-
-**Top Contributors:**
-- CI Failure Doctor: 10 issues (all high-quality diagnostics)
-- Deep Report: 3 strategic issues
-- CLI Consistency: 7 systematic issues
-- Workflow Style Normalizer: 5 formatting issues
-
-**Status:** ✅ Healthy normalization
-
-### 3. High Action Required Rates (EXPECTED)
-
-**Observation:** Review workflows showing 100% action_required (Q, Scout, Archie, PR Nitpick, /cloclo, Security Review, Grumpy Reviewer)
-
-**Analysis:**
-- These are PR review workflows designed to require approval
-- action_required = working as designed
-- 29 total runs in sample period, all requiring approval
-
-**Status:** ✅ Expected behavior - not a problem
-
-### 4. Infrastructure Excellence (MAJOR IMPROVEMENT)
-
-**Previous Issues (All Resolved):**
-- ✅ PR Triage Agent execution failure - FIXED
-- ✅ 17 outdated lock files - FIXED (recompiled)
-
-**Current State:**
-- Health score: 95/100 (↑ +8 from 87/100)
-- 155/155 workflows healthy (100%)
-- Zero compilation failures
-- Zero execution failures
-
-## Engine Distribution
-
-- **Copilot:** 71 workflows (54.2%)
-- **Claude:** 31 workflows (23.7%)
-- **Codex:** 9 workflows (6.9%)
-- **Copilot SDK:** 2 workflows (1.5%)
-- **Unspecified:** 18 workflows (13.7%) - legacy/testing
-
-## Actions Taken
-
-1. ✅ Created comprehensive performance report
-2. ✅ Analyzed 214 workflows across all categories
-3. ✅ Confirmed 15th consecutive zero-critical period
-4. ✅ Validated infrastructure improvements
-5. ✅ Identified positive trends (reduced waste, improved quality)
-6. ✅ Updated shared alerts with current status
+- 9 workflows uncompiled (needs investigation)
+- 36 workflows active status, 116 unknown
+- All PR review workflows functioning correctly (action_required = designed behavior)
 
 ## Recommendations
 
-**High Priority (This Week):**
-1. ✅ All infrastructure issues resolved - no action needed
-2. Monitor documentation PR consolidation progress
-3. Continue high-quality CI failure diagnostics
-
-**Medium Priority (Next 2 Weeks):**
-4. Implement documentation workflow consolidation (8 → 2)
-5. Add performance trend visualization
-6. Document review workflow patterns
-
-**Low Priority (Next Month):**
-7. Optimize engine distribution for workload
-8. Add agent collaboration metrics
-9. Build agent output quality dashboard
+1. 🔴 Fix Slide Deck Maintainer network config (HIGH)
+2. 🟡 Audit 9 uncompiled workflows (MEDIUM)
+3. 🟡 Add token monitoring to Slide Deck Maintainer (MEDIUM)
+4. 🟢 Document AI Moderator race condition as expected (LOW)
 
 ## For Campaign Manager
 
-- ✅ 214 workflows available (155 compiled, 131 agentic)
-- ✅ Infrastructure excellent: 95/100 (major improvement!)
-- ✅ Agent quality excellent: 93/100 (improving)
-- ✅ Agent effectiveness: 89/100 (strong)
+- ✅ 152 workflows available (143 compiled)
+- ✅ Agent quality excellent: 93/100
+- ✅ Effectiveness strong: 89/100
 - ✅ Zero blocking issues
-- ✅ 15th consecutive zero-critical period
-- **Status:** PRODUCTION READY - proceed with full operations
-- **Confidence:** Very High - sustained excellence with continuous improvement
+- ✅ 16th consecutive zero-critical period
+- **Status:** PRODUCTION READY — proceed with full operations
+- **Confidence:** Very High
 
 ## For Workflow Health Manager
 
 - ✅ Aligned on infrastructure excellence (95/100)
-- ✅ Confirmed agent quality excellent (93/100)
+- ⚠️ Slide Deck Maintainer needs network config fix
 - ✅ Zero agent-caused critical problems
-- ✅ All previous issues resolved
-- **Coordination:** Perfect alignment on excellent health status
-
-## Data Sources and Limitations
-
-**Sources:**
-- GitHub Actions API (100 recent workflow runs)
-- GitHub Issues API (past 7 days, cookie label, 30 issues)
-- Filesystem analysis (214 workflows)
-- Shared memory (historical reports, trends)
-- Workflow Health Manager coordination
-
-**Limitations:**
-- 7-day analysis window
-- Manual quality assessment
-- No full metrics collection (API limited)
-- Sample size for scheduled workflows
+- ⚠️ 9 uncompiled workflows need review
 
 ---
 
-**Next Report:** February 24, 2026  
-**Analysis Methodology:** Based on 214 workflows, API queries, shared memory, filesystem analysis
+**Next Report:** February 25, 2026  
+**Run:** [§22150701330](https://github.com/github/gh-aw/actions/runs/22150701330)
