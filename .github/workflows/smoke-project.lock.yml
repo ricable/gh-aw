@@ -1276,6 +1276,7 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: write
+      discussions: write
       issues: write
       pull-requests: write
     outputs:
@@ -1565,6 +1566,7 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: write
+      discussions: write
       issues: write
       pull-requests: write
     timeout-minutes: 15

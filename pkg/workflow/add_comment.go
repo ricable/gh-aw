@@ -20,7 +20,7 @@ type AddCommentsConfig struct {
 	Target               string   `yaml:"target,omitempty"`              // Target for comments: "triggering" (default), "*" (any issue), or explicit issue number
 	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`         // Target repository in format "owner/repo" for cross-repository comments
 	AllowedRepos         []string `yaml:"allowed-repos,omitempty"`       // List of additional repositories that comments can be added to (additionally to the target-repo)
-	Discussion           *bool    `yaml:"discussion,omitempty"`          // Target discussion comments instead of issue/PR comments. Must be true if present.
+	Discussion           *bool    `yaml:"discussion,omitempty"`          // Enable discussion comment support (default: true). Set to false to disable.
 	HideOlderComments    bool     `yaml:"hide-older-comments,omitempty"` // When true, minimizes/hides all previous comments from the same workflow before creating the new comment
 	AllowedReasons       []string `yaml:"allowed-reasons,omitempty"`     // List of allowed reasons for hiding older comments (default: all reasons allowed)
 }
@@ -114,11 +114,12 @@ func (c *Compiler) buildCreateOutputAddCommentJob(data *WorkflowData, mainJobNam
 	}
 
 	// Determine permissions based on whether discussions are enabled
+	// Default is true (discussion support enabled) unless explicitly set to false
 	var permissions *Permissions
-	if data.SafeOutputs.AddComments.Discussion != nil && *data.SafeOutputs.AddComments.Discussion {
-		permissions = NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite()
-	} else {
+	if data.SafeOutputs.AddComments.Discussion != nil && !*data.SafeOutputs.AddComments.Discussion {
 		permissions = NewPermissionsContentsReadIssuesWritePRWrite()
+	} else {
+		permissions = NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite()
 	}
 
 	// Use the shared builder function to create the job
@@ -163,12 +164,6 @@ func (c *Compiler) parseCommentsConfig(outputMap map[string]any) *AddCommentsCon
 
 	// Validate target-repo (wildcard "*" is not allowed)
 	if validateTargetRepoSlug(config.TargetRepoSlug, addCommentLog) {
-		return nil // Invalid configuration, return nil to cause validation error
-	}
-
-	// Validate discussion field - must be true if present
-	if config.Discussion != nil && !*config.Discussion {
-		addCommentLog.Print("Invalid discussion: must be true if present")
 		return nil // Invalid configuration, return nil to cause validation error
 	}
 

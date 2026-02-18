@@ -30,12 +30,13 @@ func computePermissionsForSafeOutputs(safeOutputs *SafeOutputsConfig) *Permissio
 	}
 	if safeOutputs.AddComments != nil {
 		// Check if add-comment is configured to target discussions
-		if safeOutputs.AddComments.Discussion != nil && *safeOutputs.AddComments.Discussion {
+		// Default is true (discussion support enabled) unless explicitly set to false
+		if safeOutputs.AddComments.Discussion != nil && !*safeOutputs.AddComments.Discussion {
+			safeOutputsPermissionsLog.Print("Adding permissions for add-comment (discussions disabled)")
+			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
+		} else {
 			safeOutputsPermissionsLog.Print("Adding permissions for add-comment (with discussions support)")
 			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWriteDiscussionsWrite())
-		} else {
-			safeOutputsPermissionsLog.Print("Adding permissions for add-comment")
-			permissions.Merge(NewPermissionsContentsReadIssuesWritePRWrite())
 		}
 	}
 	if safeOutputs.CloseIssues != nil {
