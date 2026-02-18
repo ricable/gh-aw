@@ -72,6 +72,22 @@ func FormatError(err CompilerError) string {
 		output.WriteString(renderContext(err))
 	}
 
+	// Add hint if provided
+	if err.Hint != "" {
+		maxLineNum := err.Position.Line + len(err.Context)/2
+		lineNumWidth := len(fmt.Sprintf("%d", maxLineNum))
+		if lineNumWidth < 4 {
+			lineNumWidth = 4
+		}
+		padding := strings.Repeat(" ", lineNumWidth)
+		output.WriteString(padding)
+		output.WriteString(" = ")
+		output.WriteString(applyStyle(styles.Info, "help:"))
+		output.WriteString(" ")
+		output.WriteString(err.Hint)
+		output.WriteString("\n")
+	}
+
 	return output.String()
 }
 

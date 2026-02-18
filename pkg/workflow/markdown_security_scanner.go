@@ -29,6 +29,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/github/gh-aw/pkg/console"
 	"github.com/github/gh-aw/pkg/logger"
 )
 
@@ -190,54 +191,39 @@ func hasLineNumbers(findings []SecurityFinding) bool {
 	return false
 }
 
-// formatCompilerStyleFinding formats a single finding in compiler-style format:
-// filename:line:column: error: message
+// formatCompilerStyleFinding formats a single finding using console.FormatError helper
 func formatCompilerStyleFinding(f SecurityFinding, filename string) string {
-	var output strings.Builder
-
-	// Format: filename:line:column: error: message
-	if f.Line > 0 {
-		col := f.Column
-		if col == 0 {
-			col = 1
-		}
-		fmt.Fprintf(&output, "%s:%d:%d: error: ", filename, f.Line, col)
-	} else {
-		fmt.Fprintf(&output, "%s: error: ", filename)
+	col := f.Column
+	if col == 0 {
+		col = 1
 	}
 
-	// Add the main description
-	output.WriteString(f.Description)
-
-	// Add what triggered the detection if available
+	// Build message with trigger information if available
+	message := f.Description
 	if f.Trigger != "" {
-		fmt.Fprintf(&output, " (triggered by: %q)", f.Trigger)
+		message = fmt.Sprintf("%s (triggered by: %q)", message, f.Trigger)
 	}
 
-	// Add context lines if available
-	if len(f.Context) > 0 {
-		output.WriteString("\n")
-		for i, line := range f.Context {
-			lineNum := f.Line - len(f.Context)/2 + i
-			if lineNum < 1 {
-				continue
-			}
-			fmt.Fprintf(&output, "%4d | %s\n", lineNum, line)
-
-			// Add pointer for the error line
-			if lineNum == f.Line && f.Column > 0 {
-				padding := strings.Repeat(" ", f.Column-1)
-				fmt.Fprintf(&output, "     | %s^\n", padding)
-			}
-		}
-	}
-
-	// Add suggestion for HTML comment issues
+	// Build hint message for HTML comment issues
+	hint := ""
 	if f.Category == CategoryHiddenContent && strings.Contains(f.Description, "HTML comment") {
-		output.WriteString("     = help: the proper fix is to delete the HTML comment section\n")
+		hint = "the proper fix is to delete the HTML comment section"
 	}
 
-	return output.String()
+	// Use console.FormatError for consistent compiler-style formatting
+	compilerErr := console.CompilerError{
+		Position: console.ErrorPosition{
+			File:   filename,
+			Line:   f.Line,
+			Column: col,
+		},
+		Type:    "error",
+		Message: message,
+		Context: f.Context,
+		Hint:    hint,
+	}
+
+	return console.FormatError(compilerErr)
 }
 
 // --- Unicode Abuse Detection ---
