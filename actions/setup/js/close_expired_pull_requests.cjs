@@ -5,6 +5,7 @@ const { executeExpiredEntityCleanup } = require("./expired_entity_main_flow.cjs"
 const { generateExpiredEntityFooter } = require("./generate_footer.cjs");
 const { sanitizeContent } = require("./sanitize_content.cjs");
 const { getWorkflowMetadata } = require("./workflow_metadata_helpers.cjs");
+const { createExpiredEntityProcessor } = require("./expired_entity_handlers.cjs");
 
 /**
  * Add comment to a GitHub Pull Request using REST API
@@ -52,30 +53,27 @@ async function main() {
   // Get workflow metadata for footer
   const { workflowName, workflowId, runUrl } = getWorkflowMetadata(owner, repo);
 
+  // Create processor using shared handler
+  const processEntity = createExpiredEntityProcessor(workflowName, runUrl, workflowId, {
+    entityType: "pull request",
+    addComment: async (pr, message) => {
+      await addPullRequestComment(github, owner, repo, pr.number, message);
+    },
+    closeEntity: async pr => {
+      await closePullRequest(github, owner, repo, pr.number);
+    },
+    buildClosingMessage: (pr, workflowName, runUrl, workflowId) => {
+      return `This pull request was automatically closed because it expired on ${pr.expirationDate.toISOString()}.` + generateExpiredEntityFooter(workflowName, runUrl, workflowId);
+    },
+  });
+
   await executeExpiredEntityCleanup(github, owner, repo, {
     entityType: "pull requests",
     graphqlField: "pullRequests",
     resultKey: "pullRequests",
     entityLabel: "Pull Request",
     summaryHeading: "Expired Pull Requests Cleanup",
-    processEntity: async pr => {
-      const closingMessage = `This pull request was automatically closed because it expired on ${pr.expirationDate.toISOString()}.` + generateExpiredEntityFooter(workflowName, runUrl, workflowId);
-
-      await addPullRequestComment(github, owner, repo, pr.number, closingMessage);
-      core.info(`  ✓ Comment added successfully`);
-
-      await closePullRequest(github, owner, repo, pr.number);
-      core.info(`  ✓ Pull request closed successfully`);
-
-      return {
-        status: "closed",
-        record: {
-          number: pr.number,
-          url: pr.url,
-          title: pr.title,
-        },
-      };
-    },
+    processEntity,
   });
 }
 

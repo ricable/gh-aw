@@ -5,6 +5,7 @@ const { executeExpiredEntityCleanup } = require("./expired_entity_main_flow.cjs"
 const { generateExpiredEntityFooter } = require("./generate_footer.cjs");
 const { sanitizeContent } = require("./sanitize_content.cjs");
 const { getWorkflowMetadata } = require("./workflow_metadata_helpers.cjs");
+const { createExpiredEntityProcessor } = require("./expired_entity_handlers.cjs");
 
 /**
  * Add comment to a GitHub Issue using REST API
@@ -53,30 +54,27 @@ async function main() {
   // Get workflow metadata for footer
   const { workflowName, workflowId, runUrl } = getWorkflowMetadata(owner, repo);
 
+  // Create processor using shared handler
+  const processEntity = createExpiredEntityProcessor(workflowName, runUrl, workflowId, {
+    entityType: "issue",
+    addComment: async (issue, message) => {
+      await addIssueComment(github, owner, repo, issue.number, message);
+    },
+    closeEntity: async issue => {
+      await closeIssue(github, owner, repo, issue.number);
+    },
+    buildClosingMessage: (issue, workflowName, runUrl, workflowId) => {
+      return `This issue was automatically closed because it expired on ${issue.expirationDate.toISOString()}.` + generateExpiredEntityFooter(workflowName, runUrl, workflowId);
+    },
+  });
+
   await executeExpiredEntityCleanup(github, owner, repo, {
     entityType: "issues",
     graphqlField: "issues",
     resultKey: "issues",
     entityLabel: "Issue",
     summaryHeading: "Expired Issues Cleanup",
-    processEntity: async issue => {
-      const closingMessage = `This issue was automatically closed because it expired on ${issue.expirationDate.toISOString()}.` + generateExpiredEntityFooter(workflowName, runUrl, workflowId);
-
-      await addIssueComment(github, owner, repo, issue.number, closingMessage);
-      core.info(`  ✓ Comment added successfully`);
-
-      await closeIssue(github, owner, repo, issue.number);
-      core.info(`  ✓ Issue closed successfully`);
-
-      return {
-        status: "closed",
-        record: {
-          number: issue.number,
-          url: issue.url,
-          title: issue.title,
-        },
-      };
-    },
+    processEntity,
   });
 }
 
