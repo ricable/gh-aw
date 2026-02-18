@@ -72,7 +72,7 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 			},
 		},
 		{
-			name: "add-comment includes all write permissions including discussions",
+			name: "add-comment only - no discussions permission",
 			safeOutputs: &SafeOutputsConfig{
 				AddComments: &AddCommentsConfig{
 					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
@@ -82,11 +82,10 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 				PermissionContents:     PermissionRead,
 				PermissionIssues:       PermissionWrite,
 				PermissionPullRequests: PermissionWrite,
-				PermissionDiscussions:  PermissionWrite,
 			},
 		},
 		{
-			name: "hide-comment includes all write permissions including discussions",
+			name: "hide-comment only - no discussions permission",
 			safeOutputs: &SafeOutputsConfig{
 				HideComment: &HideCommentConfig{
 					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
@@ -96,7 +95,6 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 				PermissionContents:     PermissionRead,
 				PermissionIssues:       PermissionWrite,
 				PermissionPullRequests: PermissionWrite,
-				PermissionDiscussions:  PermissionWrite,
 			},
 		},
 		{
@@ -235,6 +233,42 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 			},
 			expected: map[PermissionScope]PermissionLevel{
 				PermissionContents: PermissionWrite,
+			},
+		},
+		{
+			name: "add-comment with create-discussion includes discussions permission",
+			safeOutputs: &SafeOutputsConfig{
+				AddComments: &AddCommentsConfig{
+					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+				},
+				CreateDiscussions: &CreateDiscussionsConfig{
+					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+				},
+			},
+			expected: map[PermissionScope]PermissionLevel{
+				PermissionContents:     PermissionRead,
+				PermissionIssues:       PermissionWrite,
+				PermissionPullRequests: PermissionWrite,
+				PermissionDiscussions:  PermissionWrite,
+			},
+		},
+		{
+			name: "hide-comment with update-discussion includes discussions permission",
+			safeOutputs: &SafeOutputsConfig{
+				HideComment: &HideCommentConfig{
+					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+				},
+				UpdateDiscussions: &UpdateDiscussionsConfig{
+					UpdateEntityConfig: UpdateEntityConfig{
+						BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
+					},
+				},
+			},
+			expected: map[PermissionScope]PermissionLevel{
+				PermissionContents:     PermissionRead,
+				PermissionIssues:       PermissionWrite,
+				PermissionPullRequests: PermissionWrite,
+				PermissionDiscussions:  PermissionWrite,
 			},
 		},
 		{
