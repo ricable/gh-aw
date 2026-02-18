@@ -5202,6 +5202,15 @@
                   "minItems": 1,
                   "maxItems": 50
                 },
+                "blocked": {
+                  "type": "array",
+                  "description": "Optional list of blocked label patterns. Supports glob-style patterns (e.g., '~*' blocks labels starting with '~', '\\**' blocks labels starting with '*'). Labels matching any blocked pattern will be filtered out.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "maxItems": 50
+                },
                 "max": {
                   "type": "integer",
                   "description": "Optional maximum number of labels to add (default: 3)",
@@ -5245,6 +5254,15 @@
                 "allowed": {
                   "type": "array",
                   "description": "Optional list of allowed labels that can be removed. If omitted, any labels can be removed.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "maxItems": 50
+                },
+                "blocked": {
+                  "type": "array",
+                  "description": "Optional list of blocked label patterns. Supports glob-style patterns (e.g., '~*' blocks labels starting with '~', '\\**' blocks labels starting with '*'). Labels matching any blocked pattern will be filtered out.",
                   "items": {
                     "type": "string"
                   },
