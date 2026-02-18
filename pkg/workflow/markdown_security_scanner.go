@@ -166,7 +166,7 @@ func FormatSecurityFindingsWithFile(findings []SecurityFinding, filename string)
 	// If we have a filename and findings with line numbers, use compiler-style formatting
 	if filename != "" && hasLineNumbers(findings) {
 		for _, f := range findings {
-			sb.WriteString(formatCompilerStyleFinding(f, filename))
+			sb.WriteString(formatSecurityFindingError(f, filename))
 			sb.WriteString("\n")
 		}
 	} else {
@@ -191,8 +191,9 @@ func hasLineNumbers(findings []SecurityFinding) bool {
 	return false
 }
 
-// formatCompilerStyleFinding formats a single finding using console.FormatError helper
-func formatCompilerStyleFinding(f SecurityFinding, filename string) string {
+// formatSecurityFindingError creates a formatted compiler error for a security finding
+// This follows the same pattern as formatCompilerError in compiler.go
+func formatSecurityFindingError(f SecurityFinding, filename string) string {
 	col := f.Column
 	if col == 0 {
 		col = 1
@@ -211,7 +212,7 @@ func formatCompilerStyleFinding(f SecurityFinding, filename string) string {
 	}
 
 	// Use console.FormatError for consistent compiler-style formatting
-	compilerErr := console.CompilerError{
+	return console.FormatError(console.CompilerError{
 		Position: console.ErrorPosition{
 			File:   filename,
 			Line:   f.Line,
@@ -221,9 +222,7 @@ func formatCompilerStyleFinding(f SecurityFinding, filename string) string {
 		Message: message,
 		Context: f.Context,
 		Hint:    hint,
-	}
-
-	return console.FormatError(compilerErr)
+	})
 }
 
 // --- Unicode Abuse Detection ---
