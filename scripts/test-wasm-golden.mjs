@@ -45,9 +45,13 @@ function ensureWasmBuilt() {
 // ── Load Go wasm_exec.js runtime ─────────────────────────────────────
 function loadWasmExecJs() {
   const goRoot = execSync("go env GOROOT", { encoding: "utf8" }).trim();
-  const wasmExecPath = join(goRoot, "misc/wasm/wasm_exec.js");
+  // Go 1.24+ moved wasm_exec.js from misc/wasm/ to lib/wasm/
+  let wasmExecPath = join(goRoot, "lib/wasm/wasm_exec.js");
   if (!existsSync(wasmExecPath)) {
-    throw new Error(`wasm_exec.js not found at ${wasmExecPath}`);
+    wasmExecPath = join(goRoot, "misc/wasm/wasm_exec.js");
+  }
+  if (!existsSync(wasmExecPath)) {
+    throw new Error(`wasm_exec.js not found in ${goRoot}/lib/wasm/ or ${goRoot}/misc/wasm/`);
   }
   // wasm_exec.js expects a global `require` for Node.js
   globalThis.require = createRequire(import.meta.url);

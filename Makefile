@@ -56,7 +56,7 @@ build-wasm:
 		echo "⚠ wasm-opt not found, skipping optimization (install binaryen for ~8% size reduction)"; \
 	fi
 	@echo "✓ Built gh-aw.wasm ($$(du -h gh-aw.wasm | cut -f1))"
-	@echo "  Copy wasm_exec.js from: $$(go env GOROOT)/misc/wasm/wasm_exec.js"
+	@echo "  Copy wasm_exec.js from: $$(go env GOROOT)/lib/wasm/wasm_exec.js (or misc/wasm/ for Go <1.24)"
 
 # Test the code (runs both unlabelled unit tests and integration tests and long tests)
 .PHONY: test
