@@ -6792,8 +6792,8 @@
       "oneOf": [
         {
           "type": "string",
-          "enum": ["claude", "codex", "copilot"],
-          "description": "Simple engine name: 'claude' (default, Claude Code), 'copilot' (GitHub Copilot CLI), or 'codex' (OpenAI Codex CLI)"
+          "enum": ["claude", "codex", "copilot", "mistral-vibe"],
+          "description": "Simple engine name: 'claude' (default, Claude Code), 'copilot' (GitHub Copilot CLI), 'codex' (OpenAI Codex CLI), or 'mistral-vibe' (Mistral Vibe CLI, experimental)"
         },
         {
           "type": "object",
@@ -6801,8 +6801,8 @@
           "properties": {
             "id": {
               "type": "string",
-              "enum": ["claude", "codex", "copilot"],
-              "description": "AI engine identifier: 'claude' (Claude Code), 'codex' (OpenAI Codex CLI), or 'copilot' (GitHub Copilot CLI)"
+              "enum": ["claude", "codex", "copilot", "mistral-vibe"],
+              "description": "AI engine identifier: 'claude' (Claude Code), 'codex' (OpenAI Codex CLI), 'copilot' (GitHub Copilot CLI), or 'mistral-vibe' (Mistral Vibe CLI, experimental)"
             },
             "version": {
               "type": ["string", "number"],

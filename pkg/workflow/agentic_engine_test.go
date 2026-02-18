@@ -11,8 +11,8 @@ func TestEngineRegistry(t *testing.T) {
 
 	// Test that built-in engines are registered
 	supportedEngines := registry.GetSupportedEngines()
-	if len(supportedEngines) != 3 {
-		t.Errorf("Expected 3 supported engines, got %d", len(supportedEngines))
+	if len(supportedEngines) != 4 {
+		t.Errorf("Expected 4 supported engines, got %d", len(supportedEngines))
 	}
 
 	// Test getting engines by ID
@@ -32,6 +32,14 @@ func TestEngineRegistry(t *testing.T) {
 		t.Errorf("Expected codex engine ID, got '%s'", codexEngine.GetID())
 	}
 
+	mistralVibeEngine, err := registry.GetEngine("mistral-vibe")
+	if err != nil {
+		t.Errorf("Expected to find mistral-vibe engine, got error: %v", err)
+	}
+	if mistralVibeEngine.GetID() != "mistral-vibe" {
+		t.Errorf("Expected mistral-vibe engine ID, got '%s'", mistralVibeEngine.GetID())
+	}
+
 	// Test getting non-existent engine
 	_, err = registry.GetEngine("nonexistent")
 	if err == nil {
@@ -45,6 +53,10 @@ func TestEngineRegistry(t *testing.T) {
 
 	if !registry.IsValidEngine("codex") {
 		t.Error("Expected codex to be valid engine")
+	}
+
+	if !registry.IsValidEngine("mistral-vibe") {
+		t.Error("Expected mistral-vibe to be valid engine")
 	}
 
 	if registry.IsValidEngine("nonexistent") {

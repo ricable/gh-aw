@@ -259,7 +259,7 @@ func TestMistralVibeEngineLogParsing(t *testing.T) {
 
 		assert.Equal(t, 5, metrics.Turns, "Should parse turn count")
 		assert.Equal(t, 1500, metrics.TokenUsage, "Should calculate total token usage")
-		assert.Equal(t, 2, len(metrics.ToolCalls), "Should count tool calls")
+		assert.Len(t, metrics.ToolCalls, 2, "Should count tool calls")
 	})
 
 	t.Run("empty log", func(t *testing.T) {
