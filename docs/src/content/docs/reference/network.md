@@ -107,12 +107,14 @@ network:
 
 > [!TIP]
 > When to Use Blocked Domains
+>
 > - **Privacy**: Block tracking and analytics domains while allowing legitimate services
 > - **Security**: Block known malicious or compromised domains
 > - **Compliance**: Enforce organizational network policies
 > - **Fine-grained control**: Allow broad ecosystem access but block specific problematic domains
 
 **Key behaviors**:
+
 - Blocked domains are subtracted from the allowed list
 - Supports both individual domains and ecosystem identifiers
 - Blocked domains include all subdomains (like allowed domains)
@@ -131,6 +133,7 @@ Network permissions follow the principle of least privilege with four access lev
 ## Protocol-Specific Domain Filtering
 
 For fine-grained security control, you can restrict domains to specific protocols (HTTP or HTTPS only). This is particularly useful when:
+
 - Working with legacy systems that only support HTTP
 - Ensuring secure connections by restricting to HTTPS-only
 - Migrating from HTTP to HTTPS gradually
@@ -152,6 +155,7 @@ network:
 ```
 
 **Compiled to AWF:**
+
 ```bash
 --allow-domains ...,example.org,http://legacy.example.com,https://secure.api.example.com,...
 ```
@@ -162,21 +166,6 @@ network:
 - `http://` - HTTP-only access
 - No prefix - Both HTTP and HTTPS (backward compatible)
 
-> [!CAUTION]
-> Protocol Validation
-> Invalid protocols (e.g., `ftp://`, `ws://`) are rejected at compile time with a clear error message:
-> ```
-> error: network.allowed[0]: domain pattern 'ftp://invalid.example.com' 
-> has invalid protocol, only 'http://' and 'https://' are allowed
-> ```
-
-### Best Practices
-
-- **Prefer HTTPS**: Use `https://` prefix for all external APIs and services
-- **Legacy Systems**: Only use `http://` for internal or legacy systems that don't support HTTPS
-- **Default Behavior**: Omit the protocol prefix for domains that should accept both protocols
-- **Gradual Migration**: Use protocol-specific filtering to migrate from HTTP to HTTPS incrementally
-
 ## Content Sanitization
 
 The `network:` configuration also controls which domains are allowed in sanitized content. URLs from domains not in the allowed list are replaced with `(redacted)` to prevent potential data exfiltration through untrusted links.
@@ -185,7 +174,6 @@ The `network:` configuration also controls which domains are allowed in sanitize
 > If you see `(redacted)` in workflow outputs, add the domain to your `network.allowed` list. This applies the same domain allowlist to both network egress (when firewall is enabled) and content sanitization.
 
 GitHub domains (`github.com`, `githubusercontent.com`, etc.) are always allowed by default.
-
 
 ## Ecosystem Identifiers
 
@@ -203,6 +191,7 @@ Mix ecosystem identifiers with specific domains for fine-grained control:
 
 > [!TIP]
 > Common Use Cases
+>
 > - **Python projects**: Add `python` for PyPI, pip, and files.pythonhosted.org
 > - **Node.js projects**: Add `node` for registry.npmjs.org, yarn, and pnpm
 > - **Container builds**: Add `containers` for Docker Hub and other registries
@@ -268,9 +257,7 @@ network:
     - "api.example.com" # Custom domain allowed
 ````
 
-> [!CAUTION]
-> Production Workflows
-> Disabling strict mode reduces security validation. For production workflows, use ecosystem identifiers and keep strict mode enabled (default).
+Disabling strict mode reduces security validation. For production workflows, use ecosystem identifiers and keep strict mode enabled.
 
 ## Implementation
 
@@ -294,6 +281,7 @@ network:
 ```
 
 When enabled, AWF:
+
 - Wraps the Copilot CLI execution command
 - Enforces domain allowlisting using the `--allow-domains` flag
 - Automatically includes all subdomains (e.g., `github.com` allows `api.github.com`)
@@ -315,6 +303,7 @@ network:
 ```
 
 Available log levels:
+
 - `debug`: Detailed diagnostic information for troubleshooting
 - `info`: General informational messages (default)
 - `warn`: Warning messages for potential issues
@@ -363,27 +352,23 @@ network:
     - "api.github.com"
 ```
 
-> [!CAUTION]
-> Security Considerations
-> - SSL bump intercepts and decrypts HTTPS traffic for inspection, acting as a man-in-the-middle
-> - Only enable SSL bump when URL-level filtering is necessary for your security requirements
-> - Use `allow-urls` patterns carefully to avoid breaking legitimate HTTPS connections
-> - This feature is specific to AWF (Agent Workflow Firewall) and does not apply to Sandbox Runtime (SRT) or other sandbox configurations
-> - Requires AWF version 0.9.0 or later
+**Security Considerations**
 
-> [!TIP]
-> When to Use SSL Bump
-> - You need to filter HTTPS traffic by specific URL paths, not just domain names
-> - You want to allow access to specific API endpoints while blocking others on the same domain
-> - You need fine-grained control over HTTPS resources accessed by the AI engine
+- SSL bump intercepts and decrypts HTTPS traffic for inspection, acting as a man-in-the-middle
+- Only enable SSL bump when URL-level filtering is necessary for your security requirements
+- Use `allow-urls` patterns carefully to avoid breaking legitimate HTTPS connections
+- This feature is specific to AWF (Agent Workflow Firewall) and does not apply to Sandbox Runtime (SRT) or other sandbox configurations
+- Requires AWF version 0.9.0 or later
+
+**When to Use SSL Bump**
+
+- You need to filter HTTPS traffic by specific URL paths, not just domain names
+- You want to allow access to specific API endpoints while blocking others on the same domain
+- You need fine-grained control over HTTPS resources accessed by the AI engine
 
 See the [Sandbox Configuration](/gh-aw/reference/sandbox/) documentation for detailed AWF configuration options.
 
 ### Disabling the Firewall
-
-> [!CAUTION]
-> Deprecated
-> The `network.firewall` field is deprecated. The agent sandbox is now mandatory and defaults to AWF. See [Sandbox Configuration](/gh-aw/reference/sandbox/) for details.
 
 The firewall is always enabled via the default `sandbox.agent: awf` configuration:
 
@@ -397,19 +382,8 @@ network:
 # sandbox.agent defaults to 'awf' if not specified
 ```
 
-**Legacy approach (deprecated):**
-
-```yaml wrap
-strict: false
-network:
-  allowed:
-    - defaults
-    - python
-    - "api.example.com"
-  firewall: false
-```
-
 When the firewall is disabled:
+
 - Network permissions are still applied for content sanitization
 - The agent can make network requests without firewall enforcement
 - This is useful during development or when the firewall is incompatible with your workflow
@@ -429,6 +403,7 @@ network:
 ```
 
 **Wildcard matching behavior:**
+
 - `*.example.com` matches `subdomain.example.com` and `deep.nested.example.com`
 - `*.example.com` also matches the base domain `example.com`
 - Only a single wildcard at the start is allowed (e.g., `*.*.example.com` is invalid)
@@ -437,6 +412,7 @@ network:
 > [!TIP]
 > When to Use Wildcards vs Base Domains
 > Both approaches work for subdomain matching:
+>
 > - **Base domain** (`example.com`): Simpler syntax, automatically matches all subdomains
 > - **Wildcard pattern** (`*.example.com`): Explicit about subdomain matching intent, useful when you want to clearly document that subdomains are expected
 

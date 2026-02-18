@@ -43,9 +43,7 @@ Installs and runs the workflow in a specified repository. All outputs are create
 gh aw trial githubnext/agentics/my-workflow --repo myorg/test-repo
 ```
 
-> [!CAUTION]
-> Production Risk
-> Creates real issues and PRs in the target repository. Only use with test repositories.
+This creates real issues and PRs in the target repository. Only use with test repositories.
 
 ### Logical Repository Mode (`--logical-repo`)
 

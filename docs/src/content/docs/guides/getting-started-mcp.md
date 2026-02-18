@@ -90,9 +90,6 @@ mcp-servers:
     allowed: ["search_pages", "get_page"]
 ```
 
-> [!CAUTION]
-> For GitHub tools, always use `toolsets:` instead of `allowed:`. The `allowed:` pattern for GitHub tools is deprecated because tool names may change between versions.
-
 ## GitHub MCP Server
 
 The GitHub MCP server is built into agentic workflows and provides comprehensive access to GitHub's API.
