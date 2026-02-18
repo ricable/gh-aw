@@ -77,12 +77,13 @@ func getRolesToOnRolesCodemod() Codemod {
 			var rolesLines []string
 			var rolesEndIdx int
 
-			if rolesLineValue == "" || rolesLineValue == "all" || strings.HasPrefix(rolesLineValue, "[") {
+			if rolesLineValue == "all" || strings.HasPrefix(rolesLineValue, "[") {
 				// roles: all or roles: [admin, write] - single line format
 				rolesLines = []string{frontmatterLines[rolesLineIdx]}
 				rolesEndIdx = rolesLineIdx
 			} else {
-				// Multi-line array format - find all lines that are part of the roles block
+				// Multi-line array format OR roles: with empty value
+				// Find all lines that are part of the roles block
 				rolesStartIndent := getIndentation(frontmatterLines[rolesLineIdx])
 				rolesLines = append(rolesLines, frontmatterLines[rolesLineIdx])
 				rolesEndIdx = rolesLineIdx
@@ -127,11 +128,15 @@ func getRolesToOnRolesCodemod() Codemod {
 							result = append(result, "on:")
 							// Add roles lines with proper indentation
 							for _, rolesLine := range rolesLines {
-								// Add two spaces of indentation
-								if strings.TrimSpace(rolesLine) == "" {
+								trimmed := strings.TrimSpace(rolesLine)
+								if trimmed == "" {
 									result = append(result, rolesLine)
-								} else {
+								} else if strings.HasPrefix(trimmed, "roles:") {
+									// roles: line gets 2 spaces (nested under on:)
 									result = append(result, "  "+rolesLine)
+								} else {
+									// Array items get 4 spaces (nested under on: and roles:)
+									result = append(result, "    "+trimmed)
 								}
 							}
 							modified = true
@@ -181,7 +186,8 @@ func getRolesToOnRolesCodemod() Codemod {
 									}
 								} else {
 									// Array item line (e.g., "- admin")
-									result = append(result, onItemIndent+trimmed)
+									// These should be indented 2 more spaces than roles: to be nested under it
+									result = append(result, onItemIndent+"  "+trimmed)
 								}
 							}
 						}
