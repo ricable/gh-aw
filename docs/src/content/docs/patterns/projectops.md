@@ -44,6 +44,13 @@ gh aw secrets set GH_AW_PROJECT_GITHUB_TOKEN --value "YOUR_PROJECT_TOKEN"
 
 See the [GitHub Projects v2 authentication](/gh-aw/reference/auth/#gh_aw_project_github_token) for complete details.
 
+> [!IMPORTANT]
+> **Reading vs. Writing to Projects**
+>
+> If your workflow needs to **read** project data (e.g., check existing items before updating), you must also configure `tools.github.github-token` with the same token. The `GH_AW_PROJECT_GITHUB_TOKEN` secret is only used by safe-outputs for **writing** operations.
+>
+> See the example below for the complete configuration.
+
 ## Example: Smart Issue Triage
 
 This example demonstrates intelligent issue routing to project boards with AI-powered content analysis:
@@ -59,11 +66,11 @@ permissions:
 tools:
   github:
     toolsets: [default, projects]
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
 safe-outputs:
   update-project:
     max: 1
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
   add-comment:
     max: 1
 ---

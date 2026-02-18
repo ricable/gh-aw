@@ -250,6 +250,27 @@ safe-outputs:
 
 Delete conflicting fields in Projects UI and recreate.
 
+### Cannot Read GitHub Projects Data
+
+**Error:** Agent cannot access project data even though `GH_AW_PROJECT_GITHUB_TOKEN` is configured.
+
+**Cause:** `GH_AW_PROJECT_GITHUB_TOKEN` is only used by safe-outputs for **writing** to projects. The GitHub tool (used for **reading**) uses a different token chain that doesn't include `GH_AW_PROJECT_GITHUB_TOKEN`.
+
+**Solution:** Configure `tools.github.github-token` to enable reading projects:
+
+```yaml wrap
+# ✅ Correct: Configure token for both reading and writing
+tools:
+  github:
+    toolsets: [default, projects]
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
+safe-outputs:
+  update-project:
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
+```
+
+See [GH_AW_PROJECT_GITHUB_TOKEN](/gh-aw/reference/auth/#gh_aw_project_github_token) for complete details on the separate token chains for reading and writing.
+
 ## Engine-Specific Issues
 
 ### Copilot CLI Not Found

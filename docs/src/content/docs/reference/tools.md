@@ -86,6 +86,17 @@ tools:
 > GitHub Actions Compatibility
 > `toolsets: [default]` expands to `[context, repos, issues, pull_requests]` (excluding `users`) since `GITHUB_TOKEN` lacks user permissions. Use a PAT for the full default set.
 
+> [!IMPORTANT]
+> **Projects Toolset**
+> The `projects` toolset requires a GitHub token with Projects API access. The default `GITHUB_TOKEN` cannot access GitHub Projects v2. Configure `tools.github.github-token` with a PAT that has Projects permissions. See [GH_AW_PROJECT_GITHUB_TOKEN](/gh-aw/reference/auth/#gh_aw_project_github_token) for token setup.
+>
+> ```yaml wrap
+> tools:
+>   github:
+>     toolsets: [default, projects]
+>     github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+> ```
+
 **Common combinations**: `[default]` (read-only), `[default, discussions]` (issue/PR), `[default, actions]` (CI/CD), `[default, code_security]` (security), `[all]` (full access)
 
 #### Toolset Contents

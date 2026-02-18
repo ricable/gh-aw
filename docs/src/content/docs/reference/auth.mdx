@@ -26,7 +26,7 @@ You will need one of the following GitHub Actions secrets configured in your rep
 Depending on what your workflow needs to do, you may need additional GitHub tokens added as repository secrets:
 
 - **Lockdown mode, cross-repo access, or remote GitHub tools** – Add [`GH_AW_GITHUB_TOKEN`](#gh_aw_github_token)
-- **GitHub Projects v2 operations** – Add [`GH_AW_PROJECT_GITHUB_TOKEN`](#gh_aw_project_github_token)
+- **GitHub Projects v2 safe-outputs (writing)** – Add [`GH_AW_PROJECT_GITHUB_TOKEN`](#gh_aw_project_github_token)
 - **Assign Copilot coding agent to issues/PRs** – Add [`GH_AW_AGENT_TOKEN`](#gh_aw_agent_token)
 - **MCP server with special permissions** – Add [`GH_AW_GITHUB_MCP_SERVER_TOKEN`](#gh_aw_github_mcp_server_token)
 
@@ -192,15 +192,30 @@ gh aw secrets set GH_AW_GITHUB_MCP_SERVER_TOKEN --value "YOUR_MCP_PAT"
 
 ### `GH_AW_PROJECT_GITHUB_TOKEN`
 
-If using GitHub Projects v2 operations, you need to configure this GitHub Actions secret with a Personal Access Token (PAT) that has the appropriate scopes and permissions for Projects access.
+If using GitHub Projects v2 **safe-outputs** (writing to projects), you need to configure this GitHub Actions secret with a Personal Access Token (PAT) that has the appropriate scopes and permissions for Projects access.
 
-This is specialized token for [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/learning-about-projects/about-projects) operations, required because the default `GITHUB_TOKEN` cannot access the Projects API.
+This is a specialized token for [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/learning-about-projects/about-projects) **write operations via safe-outputs**, required because the default `GITHUB_TOKEN` cannot access the Projects API.
 
 **When to use**:
 
-- Any Projects operation (creating, updating, or reading project boards).
-- Workflows that call `update-project`, `create-project-status-update` safe output.
+- **Writing to projects** via safe-outputs (`update-project`, `create-project`, `create-project-status-update`).
 - When you want to isolate Projects permissions from other workflow operations.
+
+> [!IMPORTANT]
+> **Reading vs. Writing to Projects**
+>
+> This token is **only** used by safe-outputs for **writing** to projects. If your workflow also needs to **read** project data using the GitHub tool (via `toolsets: [projects]`), you must separately configure `tools.github.github-token`. See [GitHub Tools (`github:`)](/gh-aw/reference/tools/#github-tools-github) for configuration details.
+>
+> ```yaml wrap
+> # ✅ Correct: Configure token for both reading (GitHub tool) and writing (safe-outputs)
+> tools:
+>   github:
+>     toolsets: [default, projects]
+>     github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
+> safe-outputs:
+>   update-project:
+>     github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
+> ```
 
 **Setup**:
 
@@ -255,36 +270,46 @@ After creating your token, add it to repository secrets:
 gh aw secrets set GH_AW_PROJECT_GITHUB_TOKEN --value "YOUR_PROJECT_PAT"
 ```
 
-**Token precedence and fallback**:
+**Token precedence for safe-outputs (writing to projects)**:
 
-per-safe-output -> `GH_AW_PROJECT_GITHUB_TOKEN` -> `GITHUB_TOKEN`.
+per-safe-output `github-token` → `GH_AW_PROJECT_GITHUB_TOKEN`
+
+> [!NOTE]
+> Unlike other tokens, `GH_AW_PROJECT_GITHUB_TOKEN` does **not** fall back to `GITHUB_TOKEN` because `GITHUB_TOKEN` cannot access GitHub Projects v2 API.
+
+**Token precedence for GitHub tools (reading projects)**:
+
+`tools.github.github-token` → `GH_AW_GITHUB_MCP_SERVER_TOKEN` → `GH_AW_GITHUB_TOKEN` → `GITHUB_TOKEN`
+
+> [!WARNING]
+> `GH_AW_PROJECT_GITHUB_TOKEN` is **not** automatically used by the GitHub tool. If you want to read projects using `toolsets: [projects]`, you must explicitly set `tools.github.github-token`.
 
 **Example configuration**:
 
 ```yaml wrap
 ---
-# Option 1: Use GH_AW_PROJECT_GITHUB_TOKEN secret (recommended for org Projects)
-# Just create the secret - no workflow config needed
----
-
-# Option 2: Explicitly configure at safe-output level
+# Option 1: Writing only - Use GH_AW_PROJECT_GITHUB_TOKEN secret for safe-outputs
+# Just create the secret - no additional workflow config needed for writing
 safe-outputs:
   update-project:
-    github-token: ${{ secrets.CUSTOM_PROJECT_TOKEN }}
+    project: https://github.com/orgs/myorg/projects/123
+---
 
-# Option 3: Organization projects with GitHub tools integration
+# Option 2: Reading and writing - Configure both GitHub tools and safe-outputs
+# Required when your agent needs to read project data (e.g., check existing items)
 tools:
   github:
     toolsets: [default, projects]
-    github-token: ${{ secrets.ORG_PROJECT_WRITE }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading
 safe-outputs:
   update-project:
-    github-token: ${{ secrets.ORG_PROJECT_WRITE }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing
 ```
 
 **Notes**:
 
-- For organization-owned projects, configure both GitHub tools and safe outputs with the same token.
+- **Reading vs. writing**: `GH_AW_PROJECT_GITHUB_TOKEN` only applies to safe-outputs (writing). To read projects via the GitHub tool, configure `tools.github.github-token` separately.
+- For workflows that both read and write projects, configure the same token in both `tools.github.github-token` and `safe-outputs.*.github-token`.
 - Default behavior: `update-project` is update-only. It will not create projects. If a project does not exist, the job fails with instructions to create it manually.
 - The default `GITHUB_TOKEN` cannot be used for Projects v2 operations. Configure `GH_AW_PROJECT_GITHUB_TOKEN` or provide a custom token via `safe-outputs.update-project.github-token`.
 - **GitHub Projects v2 PAT Requirements**:

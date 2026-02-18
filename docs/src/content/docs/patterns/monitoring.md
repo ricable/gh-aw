@@ -21,11 +21,21 @@ safe-outputs:
   update-project:
     project: https://github.com/orgs/myorg/projects/123
     max: 10
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
 ```
 
 - Adds issues/PRs to the board and updates custom fields.
 - Can also create views and custom fields when configured.
+
+> [!NOTE]
+> If your agent also needs to **read** project data (e.g., check existing items), add `tools.github.github-token`:
+>
+> ```yaml
+> tools:
+>   github:
+>     toolsets: [default, projects]
+>     github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
+> ```
 
 See the full reference: [/reference/safe-outputs/#project-board-updates-update-project](/gh-aw/reference/safe-outputs/#project-board-updates-update-project)
 

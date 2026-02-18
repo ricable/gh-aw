@@ -108,6 +108,13 @@ gh aw secrets set GH_AW_PROJECT_GITHUB_TOKEN --value "YOUR_PROJECT_TOKEN"
 
 See the [GitHub Projects V2 authentication](/gh-aw/reference/auth/#gh_aw_project_github_token) for complete details.
 
+> [!IMPORTANT]
+> **Reading vs. Writing to Projects**
+>
+> The `GH_AW_PROJECT_GITHUB_TOKEN` secret is only used by safe-outputs for **writing** to projects. If your agent needs to **read** project data (e.g., check existing items, list project fields), you must also configure `tools.github.github-token` with the same token.
+>
+> The examples below show the complete configuration for both reading and writing.
+
 ## Example: Issue Triage
 
 Automatically add new issues to a project board with intelligent categorization:
@@ -124,14 +131,14 @@ permissions:
 tools:
   github:
     toolsets: [default, projects]
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
 safe-outputs:
   add-comment:
     max: 1
   update-project:
     project: https://github.com/orgs/myorg/projects/1
     max: 10
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
 ---
 
 # Smart Issue Triage
@@ -164,12 +171,12 @@ permissions:
 tools:
   github:
     toolsets: [default, projects]
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For reading projects
 safe-outputs:
   update-project:
     project: https://github.com/orgs/myorg/projects/2
     max: 5
-    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}
+    github-token: ${{ secrets.GH_AW_PROJECT_GITHUB_TOKEN }}  # For writing to projects
 ---
 
 # PR Project Tracker
