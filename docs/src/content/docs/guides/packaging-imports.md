@@ -9,9 +9,6 @@ sidebar:
 
 You can add any existing workflow you have access to from external repositories.
 
-> [!CAUTION]
-> Check carefully that the workflow comes from a trusted source and is appropriate for your use in your repository. Review the workflow's content and understand what it does before adding it to your repository.
-
 Use the `gh aw add-wizard` command to add a workflow with interactive guidance:
 
 ```bash wrap
@@ -30,7 +27,7 @@ gh aw add-wizard githubnext/agentics/daily-repo-status
 
 This checks requirements, adds the workflow markdown file to your repository, and generates the corresponding YAML workflow. After adding, commit and push the changes to your repository.
 
-For non-interactive installation, use `gh aw add` with optional versioning:
+For non-interactive installation, use `gh aw add` with optional versioning. By default this looks in the `workflows/` directory, but you can specify an explicit path if needed:
 
 ```bash wrap
 gh aw add githubnext/agentics/ci-doctor              # short form
@@ -39,6 +36,9 @@ gh aw add githubnext/agentics/workflows/ci-doctor.md # explicit path
 ```
 
 Use `--name`, `--pr`, `--force`, `--engine`, or `--verbose` flags to customize installation. The `source` field is automatically added to workflow frontmatter for tracking origin and enabling updates.
+
+> [!NOTE]
+> Check carefully that the workflow comes from a trusted source and is appropriate for your use in your repository. Review the workflow's content and understand what it does before adding it to your repository.
 
 ## Updating Workflows
 
