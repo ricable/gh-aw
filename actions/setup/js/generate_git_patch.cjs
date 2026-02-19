@@ -38,13 +38,20 @@ function generateGitPatch(branchName) {
         // Determine base ref for patch generation
         let baseRef;
         try {
-          // Check if origin/branchName exists
+          // Check if origin/branchName exists in remote tracking refs
           execGitSync(["show-ref", "--verify", "--quiet", `refs/remotes/origin/${branchName}`], { cwd });
           baseRef = `origin/${branchName}`;
         } catch {
-          // Use merge-base with default branch
-          execGitSync(["fetch", "origin", defaultBranch], { cwd });
-          baseRef = execGitSync(["merge-base", `origin/${defaultBranch}`, branchName], { cwd }).trim();
+          // Remote tracking ref not found (e.g. after gh pr checkout which doesn't set tracking refs).
+          // Try fetching the branch from origin so we use only the NEW commits as the patch base.
+          try {
+            execGitSync(["fetch", "origin", branchName], { cwd });
+            baseRef = `origin/${branchName}`;
+          } catch {
+            // Branch doesn't exist on origin yet (new branch) – fall back to merge-base
+            execGitSync(["fetch", "origin", defaultBranch], { cwd });
+            baseRef = execGitSync(["merge-base", `origin/${defaultBranch}`, branchName], { cwd }).trim();
+          }
         }
 
         // Count commits to be included

@@ -73,14 +73,22 @@ if [ -n "$BRANCH_NAME" ]; then
       echo "Using origin/${BRANCH_NAME@Q} as base for patch generation"
       BASE_REF="origin/$BRANCH_NAME"
     else
-      echo "origin/${BRANCH_NAME@Q} does not exist, using merge-base with default branch"
-      # Use the default branch name from environment variable
-      echo "Default branch: ${DEFAULT_BRANCH@Q}"
-      # Fetch the default branch to ensure it's available locally
-      git fetch origin "$DEFAULT_BRANCH"
-      # Find merge base between default branch and current branch
-      BASE_REF="$(git merge-base "origin/$DEFAULT_BRANCH" "$BRANCH_NAME")"
-      echo "Using merge-base as base: ${BASE_REF@Q}"
+      # Remote tracking ref not found (e.g. after gh pr checkout which doesn't set tracking refs).
+      # Try fetching the branch from origin so we use only the NEW commits as the patch base.
+      echo "origin/${BRANCH_NAME@Q} not in remote tracking refs, attempting to fetch from origin"
+      if git fetch origin "$BRANCH_NAME" 2>/dev/null; then
+        echo "Fetched origin/${BRANCH_NAME@Q}, using as base for patch generation"
+        BASE_REF="origin/$BRANCH_NAME"
+      else
+        echo "origin/${BRANCH_NAME@Q} does not exist on remote, using merge-base with default branch"
+        # Use the default branch name from environment variable
+        echo "Default branch: ${DEFAULT_BRANCH@Q}"
+        # Fetch the default branch to ensure it's available locally
+        git fetch origin "$DEFAULT_BRANCH"
+        # Find merge base between default branch and current branch
+        BASE_REF="$(git merge-base "origin/$DEFAULT_BRANCH" "$BRANCH_NAME")"
+        echo "Using merge-base as base: ${BASE_REF@Q}"
+      fi
     fi
     
     # Diagnostic logging: Show diff stats before generating patch
