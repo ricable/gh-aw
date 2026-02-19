@@ -162,26 +162,13 @@ func (c *Compiler) applyDefaults(data *WorkflowData, markdownPath string) error 
 		return nil
 	}
 
-	if data.Permissions == "" {
-		// ============================================================================
-		// PERMISSIONS DEFAULTS
-		// ============================================================================
-		// When no permissions are specified, set default to contents: read.
-		// This provides minimal access needed for most workflows while following
-		// the principle of least privilege.
-		// ============================================================================
-		perms := NewPermissionsContentsRead()
-		yaml := perms.RenderToYAML()
-		// RenderToYAML uses job-friendly indentation (6 spaces). WorkflowData.Permissions
-		// is stored in workflow-level indentation (2 spaces) and later re-indented for jobs.
-		lines := strings.Split(yaml, "\n")
-		for i := 1; i < len(lines); i++ {
-			if strings.HasPrefix(lines[i], "      ") {
-				lines[i] = "  " + lines[i][6:]
-			}
-		}
-		data.Permissions = strings.Join(lines, "\n")
-	}
+	// REMOVED: Default contents: read is no longer applied here
+	// The prompt is now precomputed in the activation job, so the agent job
+	// doesn't need automatic contents: read unless:
+	// 1. In dev/script mode (for checking out actions folder), OR
+	// 2. User explicitly specifies contents: read (or permissions that include it)
+	// The buildMainJob function handles this logic.
+	
 	return nil
 }
 

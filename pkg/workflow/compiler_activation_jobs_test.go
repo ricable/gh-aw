@@ -303,6 +303,129 @@ func TestBuildMainJob_WithPermissions(t *testing.T) {
 		"Permissions should include contents")
 }
 
+// TestBuildMainJob_NoAutoContentsRead tests that contents:read is NOT automatically added in release mode
+func TestBuildMainJob_NoAutoContentsRead(t *testing.T) {
+	compiler := NewCompiler()
+	// Use release mode (default, not dev/script mode)
+	compiler.actionMode = ActionModeRelease
+
+	workflowData := &WorkflowData{
+		Name:            "Test Workflow",
+		Command:         []string{"echo", "test"},
+		MarkdownContent: "# Test\n\nContent",
+		AI:              "copilot",
+		// No permissions specified
+	}
+
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	// In release mode with no explicit permissions, no automatic contents:read should be added
+	// Permissions should be empty (or contain only default permissions from other sources)
+	assert.Empty(t, job.Permissions, "Main job should not have automatic contents:read in release mode")
+}
+
+// TestBuildMainJob_DevModeContentsRead tests that contents:read IS added in dev mode
+func TestBuildMainJob_DevModeContentsRead(t *testing.T) {
+	compiler := NewCompiler()
+	// Use dev mode
+	compiler.actionMode = ActionModeDev
+
+	workflowData := &WorkflowData{
+		Name:            "Test Workflow",
+		Command:         []string{"echo", "test"},
+		MarkdownContent: "# Test\n\nContent",
+		AI:              "copilot",
+		// No permissions specified
+	}
+
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	// In dev mode, contents:read should be added automatically for checkout
+	assert.NotEmpty(t, job.Permissions, "Main job should have permissions in dev mode")
+	assert.Contains(t, job.Permissions, "contents:",
+		"Permissions should include contents in dev mode")
+	assert.Contains(t, job.Permissions, "read",
+		"Contents permission should be read level")
+}
+
+// TestBuildMainJob_ExplicitContentsReadPreserved tests that explicit contents:read is preserved
+func TestBuildMainJob_ExplicitContentsReadPreserved(t *testing.T) {
+	compiler := NewCompiler()
+	// Use release mode (not dev)
+	compiler.actionMode = ActionModeRelease
+
+	workflowData := &WorkflowData{
+		Name:            "Test Workflow",
+		Command:         []string{"echo", "test"},
+		MarkdownContent: "# Test\n\nContent",
+		AI:              "copilot",
+		Permissions:     "contents: read\nissues: write",
+	}
+
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	// User's explicit permissions should be preserved
+	assert.NotEmpty(t, job.Permissions, "Main job should have permissions")
+	assert.Contains(t, job.Permissions, "contents:",
+		"Permissions should include contents")
+	assert.Contains(t, job.Permissions, "issues:",
+		"Permissions should include issues")
+}
+
+// TestBuildMainJob_AllReadIncludesContents tests that permissions with all:read are preserved
+func TestBuildMainJob_AllReadIncludesContents(t *testing.T) {
+	compiler := NewCompiler()
+	// Use release mode (not dev)
+	compiler.actionMode = ActionModeRelease
+
+	workflowData := &WorkflowData{
+		Name:            "Test Workflow",
+		Command:         []string{"echo", "test"},
+		MarkdownContent: "# Test\n\nContent",
+		AI:              "copilot",
+		Permissions:     "all: read",
+	}
+
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	// User's all:read should be preserved
+	assert.NotEmpty(t, job.Permissions, "Main job should have permissions")
+	assert.Contains(t, job.Permissions, "all:",
+		"Permissions should include all")
+}
+
+// TestBuildMainJob_ShorthandReadAllPreserved tests that shorthand read-all is preserved
+func TestBuildMainJob_ShorthandReadAllPreserved(t *testing.T) {
+	compiler := NewCompiler()
+	// Use release mode (not dev)
+	compiler.actionMode = ActionModeRelease
+
+	workflowData := &WorkflowData{
+		Name:            "Test Workflow",
+		Command:         []string{"echo", "test"},
+		MarkdownContent: "# Test\n\nContent",
+		AI:              "copilot",
+		Permissions:     "read-all",
+	}
+
+	job, err := compiler.buildMainJob(workflowData, false)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	// User's read-all should be preserved
+	assert.NotEmpty(t, job.Permissions, "Main job should have permissions")
+	assert.Contains(t, job.Permissions, "read-all",
+		"Permissions should be read-all")
+}
+
 // TestExtractPreActivationCustomFields_NoCustomJob tests extraction when no custom job exists
 func TestExtractPreActivationCustomFields_NoCustomJob(t *testing.T) {
 	compiler := NewCompiler()

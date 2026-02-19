@@ -915,22 +915,41 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 	agentConcurrency := GenerateJobConcurrencyConfig(data)
 
 	// Set up permissions for the agent job
-	// Agent job ALWAYS needs contents: read to access .github and .actions folders
+	// Agent job needs contents: read only in dev/script mode (for checking out actions folder)
+	// or if user explicitly specified contents: read (or permissions that include it)
 	permissions := data.Permissions
-	if permissions == "" {
-		// No permissions specified, just add contents: read
-		perms := NewPermissionsContentsRead()
-		permissions = perms.RenderToYAML()
-	} else {
-		// Parse existing permissions and add contents: read
-		parser := NewPermissionsParser(permissions)
-		perms := parser.ToPermissions()
-
-		// Only add contents: read if not already present
-		if level, exists := perms.Get(PermissionContents); !exists || level == PermissionNone {
-			perms.Set(PermissionContents, PermissionRead)
+	
+	// Determine if we need to add contents: read automatically
+	needsContentsRead := (c.actionMode.IsDev() || c.actionMode.IsScript()) && len(c.generateCheckoutActionsFolder(data)) > 0
+	
+	// Check if user has explicitly specified contents permissions
+	parser := NewPermissionsParser(permissions)
+	hasExplicitContents := parser.HasContentsReadAccess()
+	
+	if needsContentsRead && !hasExplicitContents {
+		// Dev/script mode needs contents: read but user hasn't specified it
+		if permissions == "" {
+			// No permissions specified, add contents: read
+			perms := NewPermissionsContentsRead()
 			permissions = perms.RenderToYAML()
+			compilerActivationJobsLog.Print("Adding contents:read for dev/script mode (no existing permissions)")
+		} else {
+			// Parse existing permissions and add contents: read
+			perms := parser.ToPermissions()
+			
+			// Only add contents: read if not already present
+			if level, exists := perms.Get(PermissionContents); !exists || level == PermissionNone {
+				perms.Set(PermissionContents, PermissionRead)
+				permissions = perms.RenderToYAML()
+				compilerActivationJobsLog.Print("Adding contents:read for dev/script mode (merged with existing permissions)")
+			}
 		}
+	} else if hasExplicitContents {
+		// User has explicitly specified contents permissions, keep them as-is
+		compilerActivationJobsLog.Print("Using user-specified contents permissions")
+	} else {
+		// Not in dev/script mode and no explicit contents permissions - use permissions as-is (may be empty)
+		compilerActivationJobsLog.Print("No contents:read needed (not dev/script mode, no explicit permissions)")
 	}
 
 	job := &Job{
