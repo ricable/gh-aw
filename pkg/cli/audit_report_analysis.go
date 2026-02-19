@@ -254,12 +254,13 @@ func generateFailureAnalysis(processedRun ProcessedRun, errors []ErrorInfo) *Fai
 	}
 
 	// Collect failed job names
-	var failedJobs []string
-	for _, job := range processedRun.JobDetails {
-		if job.Conclusion == "failure" || job.Conclusion == "timed_out" || job.Conclusion == "cancelled" {
-			failedJobs = append(failedJobs, job.Name)
-		}
-	}
+	failedJobs := sliceutil.FilterMap(
+		processedRun.JobDetails,
+		func(job JobInfoWithDuration) bool {
+			return job.Conclusion == "failure" || job.Conclusion == "timed_out" || job.Conclusion == "cancelled"
+		},
+		func(job JobInfoWithDuration) string { return job.Name },
+	)
 
 	// Generate error summary
 	errorSummary := "No specific errors identified"

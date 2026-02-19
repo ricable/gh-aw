@@ -8,6 +8,7 @@ import (
 
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
+	"github.com/github/gh-aw/pkg/sliceutil"
 	"github.com/github/gh-aw/pkg/timeutil"
 	"github.com/github/gh-aw/pkg/workflow"
 )
@@ -228,8 +229,7 @@ func buildAuditData(processedRun ProcessedRun, metrics LogMetrics, mcpToolUsage 
 	}
 
 	// Build job data
-	var jobs []JobData
-	for _, jobDetail := range processedRun.JobDetails {
+	jobs := sliceutil.Map(processedRun.JobDetails, func(jobDetail JobInfoWithDuration) JobData {
 		job := JobData{
 			Name:       jobDetail.Name,
 			Status:     jobDetail.Status,
@@ -238,8 +238,8 @@ func buildAuditData(processedRun ProcessedRun, metrics LogMetrics, mcpToolUsage 
 		if jobDetail.Duration > 0 {
 			job.Duration = timeutil.FormatDuration(jobDetail.Duration)
 		}
-		jobs = append(jobs, job)
-	}
+		return job
+	})
 
 	// Build downloaded files list
 	downloadedFiles := extractDownloadedFiles(run.LogsPath)

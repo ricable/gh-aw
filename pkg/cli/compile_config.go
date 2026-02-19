@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/github/gh-aw/pkg/logger"
+	"github.com/github/gh-aw/pkg/sliceutil"
 	"github.com/github/gh-aw/pkg/stringutil"
 )
 
@@ -78,34 +79,23 @@ func sanitizeValidationResults(results []ValidationResult) []ValidationResult {
 
 	compileConfigLog.Printf("Sanitizing validation results: workflow_count=%d", len(results))
 
-	sanitized := make([]ValidationResult, len(results))
-	for i, result := range results {
-		sanitized[i] = ValidationResult{
+	return sliceutil.Map(results, func(result ValidationResult) ValidationResult {
+		return ValidationResult{
 			Workflow:     result.Workflow,
 			Valid:        result.Valid,
 			CompiledFile: result.CompiledFile,
-			Errors:       make([]CompileValidationError, len(result.Errors)),
-			Warnings:     make([]CompileValidationError, len(result.Warnings)),
+			Errors:       sliceutil.Map(result.Errors, sanitizeCompileValidationError),
+			Warnings:     sliceutil.Map(result.Warnings, sanitizeCompileValidationError),
 		}
+	})
+}
 
-		// Sanitize all error messages
-		for j, err := range result.Errors {
-			sanitized[i].Errors[j] = CompileValidationError{
-				Type:    err.Type,
-				Message: stringutil.SanitizeErrorMessage(err.Message),
-				Line:    err.Line,
-			}
-		}
-
-		// Sanitize all warning messages
-		for j, warn := range result.Warnings {
-			sanitized[i].Warnings[j] = CompileValidationError{
-				Type:    warn.Type,
-				Message: stringutil.SanitizeErrorMessage(warn.Message),
-				Line:    warn.Line,
-			}
-		}
+// sanitizeCompileValidationError returns a copy of the error with its message sanitized
+// to remove potential secret key names.
+func sanitizeCompileValidationError(err CompileValidationError) CompileValidationError {
+	return CompileValidationError{
+		Type:    err.Type,
+		Message: stringutil.SanitizeErrorMessage(err.Message),
+		Line:    err.Line,
 	}
-
-	return sanitized
 }
