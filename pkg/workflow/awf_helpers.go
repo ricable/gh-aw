@@ -151,6 +151,13 @@ func BuildAWFArgs(config AWFCommandConfig) []string {
 		awfHelpersLog.Printf("Added %d custom mounts from agent config", len(sortedMounts))
 	}
 
+	// Add writable mount for safe-outputs directory
+	// /opt/gh-aw is mounted read-only in the AWF container, but the safe-outputs MCP server
+	// needs to write outputs to /opt/gh-aw/safeoutputs/. This override mount makes that
+	// specific subdirectory writable while keeping the rest of /opt/gh-aw read-only.
+	awfArgs = append(awfArgs, "--mount", constants.DefaultSafeOutputsMount)
+	awfHelpersLog.Print("Added writable mount for safe-outputs directory")
+
 	// Add allowed domains
 	awfArgs = append(awfArgs, "--allow-domains", config.AllowedDomains)
 

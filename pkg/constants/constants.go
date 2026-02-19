@@ -475,6 +475,10 @@ const DevModeGhAwImage = "localhost/gh-aw:dev"
 // The gh-aw binary and supporting files are mounted read-only from /opt/gh-aw
 const DefaultGhAwMount = "/opt/gh-aw:/opt/gh-aw:ro"
 
+// DefaultSafeOutputsMount is the mount path for the safe-outputs directory in the AWF agent container
+// This overrides the read-only /opt/gh-aw mount to allow the safe-outputs MCP server to write outputs
+const DefaultSafeOutputsMount = "/opt/gh-aw/safeoutputs:/opt/gh-aw/safeoutputs:rw"
+
 // DefaultGhBinaryMount is the mount path for the gh CLI binary in containerized MCP servers
 // The gh CLI is required for agentic-workflows MCP server to run gh commands
 const DefaultGhBinaryMount = "/usr/bin/gh:/usr/bin/gh:ro"
