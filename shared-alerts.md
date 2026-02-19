@@ -74,3 +74,17 @@
 #### 2026-02-13
 - 🚨 Strict mode crisis affecting 7 workflows (RESOLVED)
 - Infrastructure: 54/100 → RECOVERED
+
+---
+## 2026-02-19 - Workflow Health Alert
+
+### Lockdown Mode Token Missing (P1)
+- **Impact**: PR Triage Agent + Daily Issues Report Generator failing
+- **Root cause**: GH_AW_GITHUB_TOKEN / GH_AW_GITHUB_MCP_SERVER_TOKEN not set in repository
+- **15 additional workflows** have lockdown: true and could fail if triggered
+- **Action needed**: Set GH_AW_GITHUB_TOKEN repository secret
+
+### Safe Outputs FORBIDDEN (P2)  
+- **Impact**: Duplicate Code Detector safe_outputs job failing
+- **Error**: Cannot assign Copilot to issue #16739 (target repository not writable)
+- **May affect**: Other workflows that use safe_outputs with agent assignment
