@@ -245,7 +245,7 @@ func TestCompleteEngineNames(t *testing.T) {
 		{
 			name:       "empty prefix returns all engines",
 			toComplete: "",
-			wantLen:    3, // copilot, claude, codex
+			wantLen:    4, // copilot, claude, codex, gemini
 		},
 		{
 			name:       "c prefix returns claude, codex, copilot",
@@ -260,6 +260,11 @@ func TestCompleteEngineNames(t *testing.T) {
 		{
 			name:       "cop prefix returns copilot",
 			toComplete: "cop",
+			wantLen:    1,
+		},
+		{
+			name:       "g prefix returns gemini",
+			toComplete: "g",
 			wantLen:    1,
 		},
 		{
