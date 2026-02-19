@@ -168,7 +168,7 @@ func (c *Compiler) applyDefaults(data *WorkflowData, markdownPath string) error 
 	// 1. In dev/script mode (for checking out actions folder), OR
 	// 2. User explicitly specifies contents: read (or permissions that include it)
 	// The buildMainJob function handles this logic.
-	
+
 	return nil
 }
 

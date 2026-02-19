@@ -918,14 +918,14 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 	// Agent job needs contents: read only in dev/script mode (for checking out actions folder)
 	// or if user explicitly specified contents: read (or permissions that include it)
 	permissions := data.Permissions
-	
+
 	// Determine if we need to add contents: read automatically
 	needsContentsRead := (c.actionMode.IsDev() || c.actionMode.IsScript()) && len(c.generateCheckoutActionsFolder(data)) > 0
-	
+
 	// Check if user has explicitly specified contents permissions
 	parser := NewPermissionsParser(permissions)
 	hasExplicitContents := parser.HasContentsReadAccess()
-	
+
 	if needsContentsRead && !hasExplicitContents {
 		// Dev/script mode needs contents: read but user hasn't specified it
 		if permissions == "" {
@@ -936,7 +936,7 @@ func (c *Compiler) buildMainJob(data *WorkflowData, activationJobCreated bool) (
 		} else {
 			// Parse existing permissions and add contents: read
 			perms := parser.ToPermissions()
-			
+
 			// Only add contents: read if not already present
 			if level, exists := perms.Get(PermissionContents); !exists || level == PermissionNone {
 				perms.Set(PermissionContents, PermissionRead)
