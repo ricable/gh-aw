@@ -10,6 +10,7 @@ import { markdown } from 'https://esm.sh/@codemirror/lang-markdown@6.5.0';
 import { indentUnit } from 'https://esm.sh/@codemirror/language@6.12.1';
 import { oneDark } from 'https://esm.sh/@codemirror/theme-one-dark@6.1.3';
 import { createWorkerCompiler } from '/gh-aw/wasm/compiler-loader.js';
+import { frontmatterHoverTooltip } from './hover-tooltips.js';
 
 // ---------------------------------------------------------------
 // Sample workflow registry (fetched from GitHub on demand)
@@ -136,6 +137,7 @@ let isCompiling = false;
 let compileTimer = null;
 let currentYaml = '';
 let pendingCompile = false;
+let isDragging = false;
 
 // ---------------------------------------------------------------
 // Theme — follows browser's prefers-color-scheme automatically.
@@ -178,6 +180,7 @@ const editorView = new EditorView({
       key: 'Mod-Enter',
       run: () => { doCompile(); return true; }
     }]),
+    frontmatterHoverTooltip,
     EditorView.updateListener.of(update => {
       if (update.docChanged) {
         try { localStorage.setItem(STORAGE_KEY, update.state.doc.toString()); }
@@ -403,8 +406,6 @@ $('warningClose').addEventListener('click', () => warningBanner.classList.add('d
 // ---------------------------------------------------------------
 // Draggable divider
 // ---------------------------------------------------------------
-let isDragging = false;
-
 divider.addEventListener('mousedown', (e) => {
   isDragging = true;
   divider.classList.add('dragging');
@@ -416,19 +417,10 @@ divider.addEventListener('mousedown', (e) => {
 document.addEventListener('mousemove', (e) => {
   if (!isDragging) return;
   const rect = panels.getBoundingClientRect();
-  const isMobile = window.innerWidth < 768;
-
-  if (isMobile) {
-    const fraction = (e.clientY - rect.top) / rect.height;
-    const clamped = Math.max(0.2, Math.min(0.8, fraction));
-    panelEditor.style.flex = `0 0 ${clamped * 100}%`;
-    panelOutput.style.flex = `0 0 ${(1 - clamped) * 100}%`;
-  } else {
-    const fraction = (e.clientX - rect.left) / rect.width;
-    const clamped = Math.max(0.2, Math.min(0.8, fraction));
-    panelEditor.style.flex = `0 0 ${clamped * 100}%`;
-    panelOutput.style.flex = `0 0 ${(1 - clamped) * 100}%`;
-  }
+  const fraction = (e.clientX - rect.left) / rect.width;
+  const clamped = Math.max(0.2, Math.min(0.8, fraction));
+  panelEditor.style.flex = `0 0 ${clamped * 100}%`;
+  panelOutput.style.flex = `0 0 ${(1 - clamped) * 100}%`;
 });
 
 document.addEventListener('mouseup', () => {
@@ -437,39 +429,6 @@ document.addEventListener('mouseup', () => {
     divider.classList.remove('dragging');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
-  }
-});
-
-// Touch support for mobile divider
-divider.addEventListener('touchstart', (e) => {
-  isDragging = true;
-  divider.classList.add('dragging');
-  e.preventDefault();
-});
-
-document.addEventListener('touchmove', (e) => {
-  if (!isDragging) return;
-  const touch = e.touches[0];
-  const rect = panels.getBoundingClientRect();
-  const isMobile = window.innerWidth < 768;
-
-  if (isMobile) {
-    const fraction = (touch.clientY - rect.top) / rect.height;
-    const clamped = Math.max(0.2, Math.min(0.8, fraction));
-    panelEditor.style.flex = `0 0 ${clamped * 100}%`;
-    panelOutput.style.flex = `0 0 ${(1 - clamped) * 100}%`;
-  } else {
-    const fraction = (touch.clientX - rect.left) / rect.width;
-    const clamped = Math.max(0.2, Math.min(0.8, fraction));
-    panelEditor.style.flex = `0 0 ${clamped * 100}%`;
-    panelOutput.style.flex = `0 0 ${(1 - clamped) * 100}%`;
-  }
-});
-
-document.addEventListener('touchend', () => {
-  if (isDragging) {
-    isDragging = false;
-    divider.classList.remove('dragging');
   }
 });
 
