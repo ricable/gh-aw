@@ -267,7 +267,7 @@ fi
 
 ## Security Considerations
 
-> [!CAUTION]
+> [!NOTE]
 > **Sensitive Data**
 >
 > Memory stores are visible to anyone with repository access:

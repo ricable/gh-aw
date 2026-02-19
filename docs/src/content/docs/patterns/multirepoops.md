@@ -76,35 +76,9 @@ The PAT needs permissions **only on target repositories** where you want to crea
 
 ### GitHub App Installation Token
 
-For enhanced security, use GitHub Apps with automatic token revocation:
+For enhanced security, use GitHub Apps with automatic token revocation. GitHub App tokens provide per-job minting, automatic revocation after job completion, fine-grained permissions, and better attribution than long-lived PATs.
 
-**Specific repositories:**
-
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-    owner: "my-org"
-    repositories: ["repo1", "repo2", "repo3"]
-  create-issue:
-    target-repo: "my-org/repo1"
-```
-
-**Org-wide access** (all repos in installation):
-
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-    owner: "my-org"
-    repositories: ["*"]  # Access all repos
-  create-issue:
-    target-repo: "my-org/repo1"
-```
-
-See [Safe Outputs Reference](/gh-aw/reference/safe-outputs/) for complete authentication configuration.
+See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for complete configuration including specific repository scoping and org-wide access.
 
 ## Common MultiRepoOps Patterns
 

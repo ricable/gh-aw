@@ -146,11 +146,11 @@ All safe outputs from the AI agent are sanitized before being applied to your re
 
 Additionally, safe outputs enforce permission separation - write operations happen in separate jobs with scoped permissions, never in the agentic job itself.
 
-See [Safe Outputs - Sanitization](/gh-aw/reference/safe-outputs/#security-and-sanitization) for configuration options.
+See [Safe Outputs - Text Sanitization](/gh-aw/reference/safe-outputs/#text-sanitization-allowed-domains-allowed-github-references) for configuration options.
 
 ### Tell me more about guardrails
 
-Guardrails is foundational to the design. Agentic workflows implement defense-in-depth through compilation-time validation (schema checks, expression safety, action SHA pinning), runtime isolation (sandboxed containers with network controls), permission separation (read-only defaults with [safe outputs](/gh-aw/reference/safe-outputs/) for writes), tool allowlisting, and output sanitization. See the [Security Architecture](/gh-aw/introduction/architecture/).
+Guardrails are foundational to the design. Agentic workflows implement defense-in-depth through compilation-time validation (schema checks, expression safety, action SHA pinning), runtime isolation (sandboxed containers with network controls), permission separation (read-only defaults with [safe outputs](/gh-aw/reference/safe-outputs/) for writes), tool allowlisting, and output sanitization. See the [Security Architecture](/gh-aw/introduction/architecture/).
 
 ### How is my code and data processed?
 
@@ -295,53 +295,15 @@ See [Pull Request Creation](/gh-aw/reference/safe-outputs/#pull-request-creation
 
 This is expected GitHub Actions security behavior. Pull requests created using the default `GITHUB_TOKEN` or by the GitHub Actions bot user **do not trigger workflow runs** on `pull_request`, `pull_request_target`, or `push` events. This is a [GitHub Actions security feature](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow) designed to prevent accidental recursive workflow execution.
 
-**Why GitHub implements this protection:**
-
 GitHub Actions prevents the `GITHUB_TOKEN` from triggering new workflow runs to avoid infinite loops and uncontrolled automation chains. Without this protection, a workflow could create a PR, which triggers another workflow, which creates another PR, and so on indefinitely.
-
-**Workarounds:**
 
 If you need CI checks to run on PRs created by agentic workflows, you have three options:
 
-**Option 1: Use a Personal Access Token (PAT)**
+**Option 1: Use different authorization**
 
-Configure your workflow to use a PAT instead of `GITHUB_TOKEN`. This allows PR creation to trigger CI workflows:
+Configure your [`create-pull-request` safe output](/gh-aw/reference/safe-outputs/#pull-request-creation-create-pull-request) to use a PAT or a GitHub App. This allows PR creation to trigger CI workflows.
 
-```yaml wrap
-# In your workflow frontmatter
-env:
-  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-```
-
-The PAT must have `repo` scope (or `public_repo` for public repositories only) and should belong to a service account or automation user rather than a personal account.
-
-> [!CAUTION]
-> Using a PAT bypasses GitHub's recursive workflow protection. Ensure your CI workflows cannot trigger the PR creation workflow to avoid infinite loops. Consider using conditional expressions with `if: github.actor != 'automation-user'` to prevent recursive execution.
-
-**Option 2: Use a GitHub App**
-
-Create a GitHub App and use its authentication token instead of `GITHUB_TOKEN`. This is the recommended approach for organizations as it provides better security, auditability, and granular permissions:
-
-```yaml wrap
-# In your workflow frontmatter
-env:
-  GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-
-steps:
-  - name: Generate token
-    id: generate-token
-    uses: actions/create-github-app-token@v1
-    with:
-      app-id: ${{ secrets.APP_ID }}
-      private-key: ${{ secrets.APP_PRIVATE_KEY }}
-```
-
-The GitHub App must have **Contents** (read and write) and **Pull requests** (read and write) permissions. PRs created with the app's token will trigger CI workflows and be attributed to the app.
-
-> [!TIP]
-> GitHub Apps provide better security than PATs because they have repository-scoped permissions, automatic token expiration, and don't require a user account. They're ideal for organization-wide automation.
-
-**Option 3: Use workflow_run trigger**
+**Option 2: Use workflow_run trigger**
 
 Configure your CI workflows to run on `workflow_run` events, which allows them to react to completed workflows:
 
@@ -353,10 +315,6 @@ on:
 ```
 
 This approach maintains security while allowing CI to run after PR creation. See [GitHub Actions workflow_run documentation](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run) for details.
-
-**Recommendation:**
-
-For organizations, **Option 2 (GitHub App)** provides the best security and auditability. For individual users or smaller teams, **Option 1 (PAT with a service account)** is simpler to set up. In both cases, ensure proper safeguards are in place to prevent recursive workflow execution.
 
 ## Workflow Design
 
@@ -378,9 +336,9 @@ Yes, for the purpose of this technology. An **"agent"** is an agentic workflow i
 
 This depends on the AI engine (coding agent) you use:
 
-- **GitHub Copilot CLI** (default): Usage is currently associated with the individual GitHub account of the user supplying the COPILOT_GITHUB_TOKEN, and is drawn from the monthly quota of premium requests for that account. See [GitHub Copilot billing](https://docs.github.com/en/copilot/about-github-copilot/subscription-plans-for-github-copilot).
-- **Claude**: Usage is billed to the Anthropic account associated with ANTHROPIC_API_KEY Actions secret in the repository.
-- **Codex**: Usage is billed to your OpenAI account associated with OPENAI_API_KEY Actions secret in the repository.
+- **GitHub Copilot CLI** (default): Usage is currently associated with the individual GitHub account of the user supplying the [`COPILOT_GITHUB_TOKEN`](/gh-aw/reference/auth/#copilot_github_token), and is drawn from the monthly quota of premium requests for that account. See [GitHub Copilot billing](https://docs.github.com/en/copilot/about-github-copilot/subscription-plans-for-github-copilot).
+- **Claude**: Usage is billed to the Anthropic account associated with [`ANTHROPIC_API_KEY`](/gh-aw/reference/auth/#anthropic_api_key) Actions secret in the repository.
+- **Codex**: Usage is billed to your OpenAI account associated with [`OPENAI_API_KEY`](/gh-aw/reference/auth/#openai_api_key) Actions secret in the repository.
 
 ### What's the approximate cost per workflow run?
 

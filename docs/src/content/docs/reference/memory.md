@@ -96,7 +96,7 @@ Use descriptive file/directory names, hierarchical cache keys (`project-${{ gith
 
 ## Security
 
-Don't store sensitive data. Cache follows repository permissions, logs access. With [threat detection](/gh-aw/reference/safe-outputs/#threat-detection), cache saves only after validation succeeds (restore→modify→upload artifact→validate→save).
+Don't store sensitive data. Cache follows repository permissions, logs access. With [threat detection](/gh-aw/reference/threat-detection/), cache saves only after validation succeeds (restore→modify→upload artifact→validate→save).
 
 ## Examples
 

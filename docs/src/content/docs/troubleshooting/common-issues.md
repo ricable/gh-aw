@@ -125,7 +125,7 @@ tools:
 
 ### Toolset Missing Expected Tools
 
-Check [toolset contents](/gh-aw/reference/tools/#toolset-contents), combine toolsets (`toolsets: [default, actions]`), or inspect with `gh aw mcp inspect <workflow>`.
+Check [GitHub Toolsets](/gh-aw/reference/tools/#github-toolsets), combine toolsets (`toolsets: [default, actions]`), or inspect with `gh aw mcp inspect <workflow>`.
 
 ### MCP Server Connection Failures
 

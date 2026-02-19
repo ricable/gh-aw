@@ -1380,6 +1380,36 @@
               ],
               "description": "Skip workflow execution for specific GitHub users. Useful for preventing workflows from running for specific accounts (e.g., bots, specific team members)."
             },
+            "roles": {
+              "description": "Repository access roles required to trigger agentic workflows. Defaults to ['admin', 'maintainer', 'write'] for security. Use 'all' to allow any authenticated user (⚠️ security consideration).",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["all"],
+                  "description": "Allow any authenticated user to trigger the workflow (⚠️ disables permission checking entirely - use with caution)"
+                },
+                {
+                  "type": "array",
+                  "description": "List of repository permission levels that can trigger the workflow. Permission checks are automatically applied to potentially unsafe triggers.",
+                  "items": {
+                    "type": "string",
+                    "enum": ["admin", "maintainer", "maintain", "write", "triage"],
+                    "description": "Repository permission level: 'admin' (full access), 'maintainer'/'maintain' (repository management), 'write' (push access), 'triage' (issue management)"
+                  },
+                  "minItems": 1,
+                  "maxItems": 50
+                }
+              ]
+            },
+            "bots": {
+              "type": "array",
+              "description": "Allow list of bot identifiers that can trigger the workflow even if they don't meet the required role permissions. When the actor is in this list, the bot must be active (installed) on the repository to trigger the workflow.",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Bot identifier/name (e.g., 'dependabot[bot]', 'renovate[bot]', 'github-actions[bot]')"
+              }
+            },
             "manual-approval": {
               "type": "string",
               "description": "Environment name that requires manual approval before the workflow can run. Must match a valid environment configured in the repository settings."
@@ -5039,6 +5069,10 @@
                   ],
                   "description": "Controls when AI-generated footer is added to the review body. Accepts boolean (true/false) or string ('always', 'none', 'if-body'). The 'if-body' mode is useful for clean approval reviews without body text. Defaults to 'always'."
                 },
+                "target": {
+                  "type": "string",
+                  "description": "Target PR for the review: 'triggering' (default, current PR), '*' (any PR, requires pull_request_number in agent output), or explicit PR number (e.g. ${{ github.event.inputs.pr_number }}). Required when workflow is not triggered by a pull request (e.g. workflow_dispatch)."
+                },
                 "github-token": {
                   "$ref": "#/$defs/github_token",
                   "description": "GitHub token to use for this specific output type. Overrides global github-token if specified."
@@ -5439,6 +5473,13 @@
                   },
                   "description": "Optional list of allowed usernames. If specified, only these users can be assigned."
                 },
+                "blocked": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Optional list of blocked usernames or patterns (e.g., 'copilot', '*[bot]'). Users matching these patterns cannot be assigned. Supports exact matches and glob patterns."
+                },
                 "max": {
                   "type": "integer",
                   "description": "Optional maximum number of user assignments (default: 1)",
@@ -5483,6 +5524,13 @@
                     "type": "string"
                   },
                   "description": "Optional list of allowed usernames. If specified, only these users can be unassigned."
+                },
+                "blocked": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Optional list of blocked usernames or patterns (e.g., 'copilot', '*[bot]'). Users matching these patterns cannot be unassigned. Supports exact matches and glob patterns."
                 },
                 "max": {
                   "type": "integer",
@@ -6385,27 +6433,6 @@
       },
       "additionalProperties": false
     },
-    "roles": {
-      "description": "Repository access roles required to trigger agentic workflows. Defaults to ['admin', 'maintainer', 'write'] for security. Use 'all' to allow any authenticated user (\u26a0\ufe0f security consideration).",
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": ["all"],
-          "description": "Allow any authenticated user to trigger the workflow (\u26a0\ufe0f disables permission checking entirely - use with caution)"
-        },
-        {
-          "type": "array",
-          "description": "List of repository permission levels that can trigger the workflow. Permission checks are automatically applied to potentially unsafe triggers.",
-          "items": {
-            "type": "string",
-            "enum": ["admin", "maintainer", "maintain", "write", "triage"],
-            "description": "Repository permission level: 'admin' (full access), 'maintainer'/'maintain' (repository management), 'write' (push access), 'triage' (issue management)"
-          },
-          "minItems": 1,
-          "maxItems": 50
-        }
-      ]
-    },
     "bots": {
       "type": "array",
       "description": "Allow list of bot identifiers that can trigger the workflow even if they don't meet the required role permissions. When the actor is in this list, the bot must be active (installed) on the repository to trigger the workflow.",
@@ -6685,6 +6712,11 @@
             "action-version": {
               "type": "string",
               "description": "Version of the setup action to use (e.g., 'v4', 'v5'). Overrides the default action version."
+            },
+            "if": {
+              "type": "string",
+              "description": "Optional GitHub Actions if condition to control when the runtime setup step runs. Supports standard GitHub Actions expression syntax. Useful for conditionally installing runtimes based on file presence (e.g., \"hashFiles('go.mod') != ''\" to install Go only when go.mod exists).",
+              "examples": ["hashFiles('go.mod') != ''", "hashFiles('package.json') != ''", "hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''", "hashFiles('uv.lock') != ''", "github.event_name == 'workflow_dispatch'"]
             }
           },
           "additionalProperties": false

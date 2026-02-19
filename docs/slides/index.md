@@ -233,7 +233,6 @@ Analyze issue and break down into implementation tasks
 * **GitHub Copilot** (default, recommended)
 * **Claude Code** (experimental)
 * **Codex** (experimental)
-* **Custom Engine** (bring your own AI)
 
 ```yaml
 engine: copilot  # sensible defaults
@@ -427,10 +426,10 @@ flowchart TB
 
 ---
 
-# Security Layer 1: Agent Sandbox
+# Security Layer 1: Coding Agent Sandbox
 ## Isolated agent process
 
-**Agent Sandbox:**
+**Coding Agent Sandbox:**
 - Agent process runs in isolated container
 - Read-only permissions by default
 - No direct write access to repository
