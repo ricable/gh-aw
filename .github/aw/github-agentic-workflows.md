@@ -230,11 +230,11 @@ The YAML frontmatter supports these fields:
     ```
 
 - **`engine:`** - AI processor configuration
-  - String format: `"copilot"` (default, recommended), `"claude"`, or `"codex"`
+  - String format: `"copilot"` (default, recommended), `"claude"`, `"codex"`, or `"gemini"` (experimental — requires `GEMINI_API_KEY` secret)
   - Object format for extended configuration:
     ```yaml
     engine:
-      id: copilot                       # Required: coding agent identifier (copilot, claude, or codex)
+      id: copilot                       # Required: coding agent identifier (copilot, claude, codex, or gemini)
       version: beta                     # Optional: version of the action (has sensible default)
       model: gpt-5                      # Optional: LLM model to use (has sensible default)
       agent: technical-doc-writer       # Optional: custom agent file (Copilot only, references .github/agents/{agent}.agent.md)
@@ -263,9 +263,9 @@ The YAML frontmatter supports these fields:
         - "blocked-domain.com"
         - "*.untrusted.com"
         - python                          # Block ecosystem identifiers
-      firewall: true                      # Optional: Enable AWF (Agent Workflow Firewall) for Copilot engine
+      firewall: true                      # Optional: Enable AWF (Agent Workflow Firewall) for Copilot/Gemini engines
     ```
-  - **Firewall configuration** (Copilot engine only):
+  - **Firewall configuration** (Copilot and Gemini engines):
     ```yaml
     network:
       firewall:
@@ -1365,7 +1365,7 @@ network:
     - "tracking.com"   # Block specific domains
     - "*.ads.com"      # Block domain patterns
     - ruby             # Block ecosystem identifiers
-  firewall: true      # Enable AWF (Copilot engine only)
+  firewall: true      # Enable AWF (Copilot and Gemini engines)
 
 # Or allow specific domains only
 network:
@@ -1387,8 +1387,7 @@ network: {}
 - Supports exact domain matches and wildcard patterns (where `*` matches any characters, including nested subdomains)
 - **Protocol-specific filtering**: Prefix domains with `http://` or `https://` for protocol restrictions
 - **Domain blocklist**: Use `blocked:` field to explicitly deny domains or ecosystem identifiers
-- **Firewall support**: Copilot engine supports AWF (Agent Workflow Firewall) for domain-based access control
-- Claude engine uses hooks for enforcement; Codex support planned
+- **Firewall support**: Copilot and Gemini engines support AWF (Agent Workflow Firewall) for domain-based access control; Claude engine uses hooks for enforcement
 
 **Permission Modes:**
 1. **Basic infrastructure**: `network: defaults` or no `network:` field (certificates, JSON schema, Ubuntu only)
@@ -1750,6 +1749,7 @@ gh aw logs weekly-research
 gh aw logs --engine copilot          # Only Copilot workflows
 gh aw logs --engine claude           # Only Claude workflows (experimental)
 gh aw logs --engine codex            # Only Codex workflows (experimental)
+gh aw logs --engine gemini           # Only Gemini workflows (experimental)
 
 # Limit number of runs and filter by date (absolute dates)
 gh aw logs -c 10 --start-date 2024-01-01 --end-date 2024-01-31
@@ -1964,7 +1964,7 @@ The workflow frontmatter is validated against JSON Schema during compilation. Co
 
 - **Invalid field names** - Only fields in the schema are allowed
 - **Wrong field types** - e.g., `timeout-minutes` must be integer
-- **Invalid enum values** - e.g., `engine` must be "copilot", "claude", or "codex"
+- **Invalid enum values** - e.g., `engine` must be "copilot", "claude", "codex", or "gemini"
 - **Missing required fields** - Some triggers require specific configuration
 
 Use `gh aw compile --verbose` to see detailed validation messages, or `gh aw compile <workflow-id> --verbose` to validate a specific workflow.
