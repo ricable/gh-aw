@@ -62,11 +62,10 @@ This action copies files from `actions/setup/`, including:
 - Safe output scripts (safe_outputs_*, safe_inputs_*, messages, etc.)
 - Utility scripts (sanitize_*, validate_*, generate_*, etc.)
 
-### Shell Scripts (7 files from `sh/`)
+### Shell Scripts (6 files from `sh/`)
 - `create_gh_aw_tmp_dir.sh` - Creates temporary directory structure
 - `start_safe_inputs_server.sh` - Starts safe-inputs HTTP server
 - `print_prompt_summary.sh` - Prints prompt summary to logs
-- `generate_git_patch.sh` - Generates git patches
 - `create_cache_memory_dir.sh` - Creates cache-memory directory
 - `create_prompt_first.sh` - Creates prompt directory
 - `validate_multi_secret.sh` - Validates that at least one secret from a list is configured
