@@ -9,7 +9,74 @@ import { yaml } from 'https://esm.sh/@codemirror/lang-yaml@6.1.2';
 import { markdown } from 'https://esm.sh/@codemirror/lang-markdown@6.5.0';
 import { indentUnit } from 'https://esm.sh/@codemirror/language@6.12.1';
 import { oneDark } from 'https://esm.sh/@codemirror/theme-one-dark@6.1.3';
+import { autocompletion } from 'https://esm.sh/@codemirror/autocomplete@6.18.4';
 import { createWorkerCompiler } from '/gh-aw/wasm/compiler-loader.js';
+import { parseFrontmatterContext, getSuggestions } from './autocomplete.js';
+
+// ---------------------------------------------------------------
+// Frontmatter autocomplete (schema-driven)
+// ---------------------------------------------------------------
+let autocompleteData = null;
+
+fetch('./autocomplete-data.json')
+  .then(r => r.json())
+  .then(data => { autocompleteData = data; })
+  .catch(() => { /* autocomplete will silently degrade */ });
+
+/**
+ * CodeMirror 6 CompletionSource that provides YAML frontmatter suggestions.
+ * Only activates between the opening and closing `---` delimiters.
+ */
+function frontmatterCompletionSource(context) {
+  if (!autocompleteData) return null;
+
+  const doc = context.state.doc.toString();
+  const pos = context.pos;
+  const ctx = parseFrontmatterContext(doc, pos);
+  if (!ctx) return null;
+
+  const suggestions = getSuggestions(autocompleteData, ctx);
+  if (!suggestions || suggestions.length === 0) return null;
+
+  // Calculate the 'from' position — start of the prefix the user has typed.
+  // We need to figure out where the typed prefix starts in the document.
+  const line = context.state.doc.lineAt(pos);
+  let from;
+  if (ctx.mode === 'key') {
+    // The prefix is the trimmed text at the start of the line (after indent).
+    // Find where the prefix starts in the line.
+    const lineText = line.text;
+    const trimmed = lineText.trimStart();
+    const indentLen = lineText.length - trimmed.length;
+    // Handle list markers: "- foo" -> prefix is "foo", from should be after "- "
+    let prefixStart = indentLen;
+    if (trimmed.startsWith('- ')) {
+      prefixStart += 2;
+    }
+    from = line.from + prefixStart;
+  } else {
+    // Value mode — prefix is after the colon
+    const colonIdx = line.text.indexOf(':');
+    if (colonIdx >= 0) {
+      // Find the start of the value text after ": "
+      const afterColon = line.text.substring(colonIdx + 1);
+      const valueStart = afterColon.length - afterColon.trimStart().length;
+      from = line.from + colonIdx + 1 + valueStart;
+    } else {
+      from = pos;
+    }
+  }
+
+  const options = suggestions.map(s => ({
+    label: s.label,
+    detail: s.detail || undefined,
+    info: s.desc || undefined,
+    type: s.kind === 'key' ? 'property' : 'enum',
+    apply: s.snippet,
+  }));
+
+  return { from, options, filter: true };
+}
 
 // ---------------------------------------------------------------
 // Sample workflow registry (fetched from GitHub on demand)
@@ -182,6 +249,10 @@ const editorView = new EditorView({
     EditorState.tabSize.of(2),
     indentUnit.of('  '),
     editorThemeConfig.of(cmThemeFor(getPreferredTheme())),
+    autocompletion({
+      override: [frontmatterCompletionSource],
+      defaultKeymap: true,
+    }),
     keymap.of([{
       key: 'Mod-Enter',
       run: () => { doCompile(); return true; }
