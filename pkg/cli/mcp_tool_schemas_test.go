@@ -107,6 +107,76 @@ func TestMCPToolOutputSchemas(t *testing.T) {
 			t.Errorf("Expected schema to be an array type, got Type='%s', Types=%v", schema.Type, schema.Types)
 		}
 
-		t.Log("Note: Status tool cannot use this schema in MCP because output schemas must be objects")
+		t.Log("Note: Status tool uses a wrapper object schema (statusResult) to satisfy MCP object requirement")
+	})
+
+	t.Run("status tool output schema is an object wrapping workflows array", func(t *testing.T) {
+		// statusResult wraps []WorkflowStatus in an object to satisfy MCP's object schema requirement
+		type statusResult struct {
+			Workflows []WorkflowStatus `json:"workflows" jsonschema:"List of workflow statuses"`
+		}
+
+		schema, err := GenerateOutputSchema[statusResult]()
+		if err != nil {
+			t.Fatalf("Failed to generate output schema for statusResult: %v", err)
+		}
+
+		if schema == nil {
+			t.Fatal("Expected non-nil schema for statusResult")
+		}
+
+		if schema.Type != "object" {
+			t.Errorf("Expected schema type 'object', got '%s'", schema.Type)
+		}
+
+		if _, ok := schema.Properties["workflows"]; !ok {
+			t.Error("Expected 'workflows' property in statusResult schema")
+		}
+
+		schemaJSON, err := json.Marshal(schema)
+		if err != nil {
+			t.Fatalf("Failed to marshal statusResult schema to JSON: %v", err)
+		}
+
+		if len(schemaJSON) == 0 {
+			t.Error("Expected non-empty JSON schema")
+		}
+
+		t.Logf("Status output schema JSON length: %d bytes", len(schemaJSON))
+	})
+
+	t.Run("compile tool output schema is an object wrapping results array", func(t *testing.T) {
+		// compileResult wraps []ValidationResult in an object to satisfy MCP's object schema requirement
+		type compileResult struct {
+			Results []ValidationResult `json:"results" jsonschema:"List of compilation validation results for each workflow"`
+		}
+
+		schema, err := GenerateOutputSchema[compileResult]()
+		if err != nil {
+			t.Fatalf("Failed to generate output schema for compileResult: %v", err)
+		}
+
+		if schema == nil {
+			t.Fatal("Expected non-nil schema for compileResult")
+		}
+
+		if schema.Type != "object" {
+			t.Errorf("Expected schema type 'object', got '%s'", schema.Type)
+		}
+
+		if _, ok := schema.Properties["results"]; !ok {
+			t.Error("Expected 'results' property in compileResult schema")
+		}
+
+		schemaJSON, err := json.Marshal(schema)
+		if err != nil {
+			t.Fatalf("Failed to marshal compileResult schema to JSON: %v", err)
+		}
+
+		if len(schemaJSON) == 0 {
+			t.Error("Expected non-empty JSON schema")
+		}
+
+		t.Logf("Compile output schema JSON length: %d bytes", len(schemaJSON))
 	})
 }

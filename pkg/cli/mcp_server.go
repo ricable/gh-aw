@@ -448,6 +448,18 @@ func createMCPServer(cmdPath string, actor string, validateActor bool) *mcp.Serv
 		Pattern string `json:"pattern,omitempty" jsonschema:"Optional pattern to filter workflows by name"`
 	}
 
+	// statusResult is the structured output schema for the status tool.
+	// MCP output schemas must be objects, so the workflow array is wrapped.
+	type statusResult struct {
+		Workflows []WorkflowStatus `json:"workflows" jsonschema:"List of workflow statuses"`
+	}
+
+	statusOutputSchema, err := GenerateSchema[statusResult]()
+	if err != nil {
+		mcpLog.Printf("Failed to generate status output schema: %v", err)
+		return server
+	}
+
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "status",
 		Annotations: &mcp.ToolAnnotations{
@@ -463,6 +475,7 @@ Returns a JSON array where each element has the following structure:
 - compiled: Whether the workflow is compiled ("Yes", "No", or "N/A")
 - status: GitHub workflow status ("active", "disabled", "Unknown")
 - time_remaining: Time remaining until workflow deadline (if applicable)`,
+		OutputSchema: statusOutputSchema,
 		Icons: []mcp.Icon{
 			{Source: "📊"},
 		},
@@ -490,7 +503,7 @@ Returns a JSON array where each element has the following structure:
 			}
 		}
 
-		// Marshal to JSON
+		// Marshal to JSON for TextContent (backward compatibility)
 		jsonBytes, err := json.Marshal(statuses)
 		if err != nil {
 			return nil, nil, &jsonrpc.Error{
@@ -502,11 +515,13 @@ Returns a JSON array where each element has the following structure:
 
 		outputStr := string(jsonBytes)
 
+		// Return the wrapper struct as structured output (matches OutputSchema)
+		// and keep the flat array in TextContent for backward compatibility.
 		return &mcp.CallToolResult{
 			Content: []mcp.Content{
 				&mcp.TextContent{Text: outputStr},
 			},
-		}, nil, nil
+		}, statusResult{Workflows: statuses}, nil
 	})
 
 	// Add compile tool
@@ -519,7 +534,13 @@ Returns a JSON array where each element has the following structure:
 		Fix        bool     `json:"fix,omitempty" jsonschema:"Apply automatic codemod fixes to workflows before compiling"`
 	}
 
-	// Generate schema with elicitation defaults
+	// compileResult is the structured output schema for the compile tool.
+	// MCP output schemas must be objects, so the results array is wrapped.
+	type compileResult struct {
+		Results []ValidationResult `json:"results" jsonschema:"List of compilation validation results for each workflow"`
+	}
+
+	// Generate input schema with elicitation defaults
 	compileSchema, err := GenerateSchema[compileArgs]()
 	if err != nil {
 		mcpLog.Printf("Failed to generate compile tool schema: %v", err)
@@ -528,6 +549,12 @@ Returns a JSON array where each element has the following structure:
 	// Add elicitation default: strict defaults to true (most common case)
 	if err := AddSchemaDefault(compileSchema, "strict", true); err != nil {
 		mcpLog.Printf("Failed to add default for strict: %v", err)
+	}
+
+	compileOutputSchema, err := GenerateSchema[compileResult]()
+	if err != nil {
+		mcpLog.Printf("Failed to generate compile output schema: %v", err)
+		return server
 	}
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -553,7 +580,8 @@ Returns JSON array with validation results for each workflow:
 - errors: Array of error objects with type, message, and optional line number
 - warnings: Array of warning objects
 - compiled_file: Path to the generated .lock.yml file`,
-		InputSchema: compileSchema,
+		InputSchema:  compileSchema,
+		OutputSchema: compileOutputSchema,
 		Icons: []mcp.Icon{
 			{Source: "🔨"},
 		},
@@ -653,6 +681,17 @@ Returns JSON array with validation results for each workflow:
 			}
 			// Otherwise, we have output (likely validation errors in JSON), so continue
 			// and return it to the LLM
+		}
+
+		// Parse the JSON output into ValidationResults for structured content.
+		// Keep the flat array in TextContent for backward compatibility.
+		var results []ValidationResult
+		if jsonErr := json.Unmarshal(stdout, &results); jsonErr == nil {
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{
+					&mcp.TextContent{Text: outputStr},
+				},
+			}, compileResult{Results: results}, nil
 		}
 
 		return &mcp.CallToolResult{
