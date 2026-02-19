@@ -148,13 +148,6 @@ Review changes with `git diff .github/workflows/` to verify that deprecated fiel
 
 Typical migrations include `sandbox: false` → `sandbox.agent: false`, `daily at` → `daily around`, and removal of deprecated `network.firewall` and `safe-inputs.mode` fields. Use `git diff --word-diff` for detailed comparison.
 
-> [!CAUTION]
-> Breaking Changes
->
-> **`timeout_minutes` Removed:** The underscore variant `timeout_minutes` has been completely removed from the schema. Workflows using this field will fail compilation. Use `timeout-minutes` (with hyphen) instead.
->
-> **`sandbox: false` Changed:** Top-level `sandbox: false` is no longer supported. Use `sandbox.agent: false` instead to disable only the agent firewall. The MCP gateway remains enabled and cannot be disabled. The `gh aw fix` command includes a codemod to automatically migrate this change.
-
 ## Step 5: Verify Compilation
 
 The upgrade automatically compiles workflows. To validate specific workflows, run `gh aw compile my-workflow --validate`. Common issues include invalid YAML syntax, deprecated fields (fix with `gh aw fix --write`), or incorrect schedule format. See the [schedule syntax reference](/gh-aw/reference/schedule-syntax/) for details.

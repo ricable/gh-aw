@@ -36,20 +36,9 @@ The PAT needs permissions **only on target repositories** (not the source reposi
 
 ### GitHub App Configuration
 
-For enhanced security, use GitHub Apps for automatic token minting and revocation:
+For enhanced security, use GitHub Apps for automatic token minting and revocation. GitHub App tokens are minted on-demand, automatically revoked after job completion, and provide better security than long-lived PATs.
 
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-    owner: "my-org"
-    repositories: ["repo1", "repo2", "repo3"]
-  create-issue:
-    target-repo: "my-org/repo1"
-```
-
-GitHub App tokens are minted on-demand, automatically revoked after job completion, and provide better security than long-lived PATs. See [Safe Outputs Reference](/gh-aw/reference/safe-outputs/#github-app-token-app) for complete configuration.
+See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for complete configuration examples including specific repository scoping and org-wide access.
 
 ## Common Patterns
 

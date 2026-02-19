@@ -426,10 +426,10 @@ flowchart TB
 
 ---
 
-# Security Layer 1: Agent Sandbox
+# Security Layer 1: Coding Agent Sandbox
 ## Isolated agent process
 
-**Agent Sandbox:**
+**Coding Agent Sandbox:**
 - Agent process runs in isolated container
 - Read-only permissions by default
 - No direct write access to repository

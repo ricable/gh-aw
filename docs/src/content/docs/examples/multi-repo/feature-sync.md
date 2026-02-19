@@ -265,17 +265,7 @@ gh aw secrets set CROSS_REPO_PAT --value "ghp_your_token_here"
 
 ### GitHub App Configuration
 
-For enhanced security, use GitHub App installation tokens:
-
-```yaml wrap
-safe-outputs:
-  app:
-    app-id: ${{ vars.APP_ID }}
-    private-key: ${{ secrets.APP_PRIVATE_KEY }}
-    repositories: ["downstream-service", "integration-tests"]
-  create-pull-request:
-    target-repo: "myorg/downstream-service"
-```
+For enhanced security, use GitHub App installation tokens. See [GitHub App for Safe Outputs](/gh-aw/reference/auth/#github-app-for-safe-outputs) for complete configuration including repository scoping options.
 
 ## Best Practices
 
