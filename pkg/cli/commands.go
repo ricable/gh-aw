@@ -235,29 +235,28 @@ func NewWorkflow(workflowName string, verbose bool, force bool) error {
 		return fmt.Errorf("failed to create .github/workflows directory: %w", err)
 	}
 
-	// Construct the destination file path
-	destFile := filepath.Join(githubWorkflowsDir, workflowName+".md")
+	filesToWrite := createWorkflowTemplateFiles(workflowName, githubWorkflowsDir)
+	for i := range filesToWrite {
+		validatedPath, validateErr := fileutil.ValidateAbsolutePath(filesToWrite[i].Path)
+		if validateErr != nil {
+			commandsLog.Printf("Invalid destination file path: %v", validateErr)
+			return fmt.Errorf("invalid destination file path: %w", validateErr)
+		}
+		filesToWrite[i].Path = validatedPath
+	}
+
+	destFile := filesToWrite[0].Path
 	commandsLog.Printf("Destination file: %s", destFile)
 
-	// Validate the destination file path
-	destFile, err = fileutil.ValidateAbsolutePath(destFile)
-	if err != nil {
-		commandsLog.Printf("Invalid destination file path: %v", err)
-		return fmt.Errorf("invalid destination file path: %w", err)
+	if err := ensureTemplateTargetsAvailable(filesToWrite, force); err != nil {
+		commandsLog.Printf("Template target check failed: %v", err)
+		return err
 	}
 
-	// Check if destination file already exists
-	if _, err := os.Stat(destFile); err == nil && !force {
-		commandsLog.Printf("Workflow file already exists and force=false: %s", destFile)
-		return fmt.Errorf("workflow file '%s' already exists. Use --force to overwrite", destFile)
-	}
-
-	// Create the template content
-	template := createWorkflowTemplate(workflowName)
-
-	// Write the template to file with restrictive permissions (owner-only)
-	if err := os.WriteFile(destFile, []byte(template), 0600); err != nil {
-		return fmt.Errorf("failed to write workflow file '%s': %w", destFile, err)
+	for _, file := range filesToWrite {
+		if err := writeTemplateFile(file); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintln(os.Stderr, console.FormatSuccessMessage(fmt.Sprintf("Created new workflow: %s", destFile)))
@@ -266,57 +265,34 @@ func NewWorkflow(workflowName string, verbose bool, force bool) error {
 	return nil
 }
 
-// createWorkflowTemplate generates a concise workflow template with essential options
-func createWorkflowTemplate(workflowName string) string {
-	return `---
-# Trigger - when should this workflow run?
-on:
-  workflow_dispatch:  # Manual trigger
+type workflowTemplateFile struct {
+	Path    string
+	Content string
+	Mode    os.FileMode
+}
 
-# Alternative triggers (uncomment to use):
-# on:
-#   issues:
-#     types: [opened, reopened]
-#   pull_request:
-#     types: [opened, synchronize]
-#   schedule: daily  # Fuzzy daily schedule (scattered execution time)
-#   # schedule: weekly on monday  # Fuzzy weekly schedule
+func ensureTemplateTargetsAvailable(files []workflowTemplateFile, force bool) error {
+	for _, file := range files {
+		if _, err := os.Stat(file.Path); err == nil && !force {
+			if strings.HasSuffix(file.Path, ".md") {
+				return fmt.Errorf("workflow file '%s' already exists. Use --force to overwrite", file.Path)
+			}
+			return fmt.Errorf("template target '%s' already exists. Use --force to overwrite", file.Path)
+		}
+	}
 
-# Permissions - what can this workflow access?
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+	return nil
+}
 
-# Outputs - what APIs and tools can the AI use?
-safe-outputs:
-  create-issue:          # Creates issues (default max: 1)
-    max: 5               # Optional: specify maximum number
-  # create-agent-session:   # Creates GitHub Copilot coding agent sessions (max: 1)
-  # create-pull-request: # Creates exactly one pull request
-  # add-comment:   # Adds comments (default max: 1)
-  #   max: 2             # Optional: specify maximum number
-  # add-labels:
+func writeTemplateFile(file workflowTemplateFile) error {
+	dir := filepath.Dir(file.Path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory '%s': %w", dir, err)
+	}
 
----
+	if err := os.WriteFile(file.Path, []byte(file.Content), file.Mode); err != nil {
+		return fmt.Errorf("failed to write template file '%s': %w", file.Path, err)
+	}
 
-# ` + workflowName + `
-
-Describe what you want the AI to do when this workflow runs.
-
-## Instructions
-
-Replace this section with specific instructions for the AI. For example:
-
-1. Read the issue description and comments
-2. Analyze the request and gather relevant information
-3. Provide a helpful response or take appropriate action
-
-Be clear and specific about what the AI should accomplish.
-
-## Notes
-
-- Run ` + "`" + string(constants.CLIExtensionPrefix) + " compile`" + ` to generate the GitHub Actions workflow
-- See https://github.github.com/gh-aw/ for complete configuration options and tools documentation
-`
+	return nil
 }

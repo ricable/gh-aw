@@ -603,13 +603,14 @@ func TestNewWorkflow(t *testing.T) {
 					contentStr := string(content)
 					// Check for key template elements
 					expectedElements := []string{
-						"# Trigger - when should this workflow run?",
 						"on:",
 						"permissions:",
 						"safe-outputs:",
 						"# " + normalizedName,
 						"workflow_dispatch:",
 					}
+
+					expectedElements = append(expectedElements, "# Trigger - when should this workflow run?")
 					for _, element := range expectedElements {
 						if !strings.Contains(contentStr, element) {
 							t.Errorf("Template missing expected element: %s", element)
@@ -620,6 +621,8 @@ func TestNewWorkflow(t *testing.T) {
 
 			// Clean up for next test
 			os.RemoveAll(".github")
+			os.RemoveAll("inventory")
+			os.RemoveAll("scripts")
 		})
 	}
 }

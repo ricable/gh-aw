@@ -136,6 +136,16 @@ Agentic workflows execute as **a single GitHub Actions job** with the AI agent r
    - Example: "Run migrations, rollback if deployment fails"
    - **Alternative**: Use traditional GitHub Actions with conditional steps and job failure handling
 
+### Steering Pattern
+
+For complex scenarios, use a hybrid model: **agentic control-plane decisions** with a **deterministic workflow backbone**:
+
+- Agentic layer steers: selects next wave, decides retry scope, and dispatches downstream workflows
+- Deterministic jobs execute: approvals, fan-out, builds/tests, and auditable state transitions
+- Use workflow outputs/artifacts/tracker IDs for state handoff between runs
+
+This keeps AI decision-making while preserving reliability for long-running orchestration.
+
 ### How to Handle These Requests
 
 When a user requests capabilities beyond agentic workflows:
@@ -271,6 +281,63 @@ These resources contain workflow patterns, best practices, safe outputs, and per
    - **Hub-and-spoke tracking**: Component repos create tracking issues in a central repo
    - **Feature synchronization**: Main repo propagates changes to sub-repos via PRs
    - **Organization-wide coordination**: Single workflow creates issues across multiple repos
+
+   **CentralRepoOps (private control-plane variant):**
+   - Use when the user wants **one private repository** to coordinate rollout across many repositories
+   - Keywords: "single private repo", "control repo", "rollout to 100s of repos", "fleet", "governance"
+   - Prefer **agentic-first explicit notation** in examples and generated markdown:
+     - Show prompt body first, but keep tunable frontmatter defaults visible in the same file
+     - Avoid imports for commonly tuned controls (concurrency, rate-limit, tracker-id, safe-outputs)
+     - Omit `default:` fields when using standard defaults; apply defaults via fallback expressions where values are consumed
+   - Preferred example style:
+
+     ```aw
+     ---
+     on:
+       workflow_dispatch:
+         inputs:
+           objective: { required: true }
+           rollout_profile: { required: false, default: "standard" }
+     concurrency:
+       group: "centralrepoops-${{ github.workflow }}-${{ inputs.rollout_profile }}"
+       cancel-in-progress: false
+     rate-limit:
+       max: 2
+       window: 60
+     ---
+
+     # <workflow>
+
+     ## Objective
+     {{inputs.objective}}
+
+     ## Instructions
+     Focus on the rollout objective and produce the smallest safe change.
+     ```
+
+   - Expansion rule:
+     - Start with explicit tunable defaults in one file
+     - Extract only truly fixed internals if the user asks for further simplification
+   - Always include a short "Tuning" section in generated workflow text:
+     - Call out exactly which knobs users are expected to change
+     - Mark deterministic/runtime wiring as "usually keep as-is"
+   - Prefer profile-based scaffolding for this variant:
+     - **Lean profile (default):** compact frontmatter + instruction-first prompt
+     - **Advanced profile (only when requested):** campaign tracking and wave-promotion controls
+     - Then customize only objective/targets/caps instead of writing from scratch
+   - Selection rule (minimize choices):
+     1. Single-repo demo → simple profile
+     2. Multi-repo control plane (most cases) → CentralRepoOps lean profile
+     3. Campaign + promotion steering required → CentralRepoOps advanced profile
+   - Prefer markdown-first authoring (`.github/workflows/<id>.md`) with deterministic jobs + prompt instructions
+   - Prefer built-in frontmatter controls first: `manual-approval`, `concurrency`, `rate-limit`, `tracker-id`
+   - Recommended model:
+     1. agentic control-plane decisions for steering (next wave, retry scope, mutation intent)
+     2. deterministic workflow backbone (fan-out, shard/build validation, approvals, auditable state transitions)
+   - For campaign-style rollouts, include explicit control-plane metadata as workflow inputs (for example: `campaign_id`, `campaign_goal`) and propagate them into summary/dispatch outputs
+   - For wave steering, include promotion controls in workflow inputs (for example: `promote_to_next_wave`, `next_rollout_profile`) and publish structured payload via `safe-outputs.dispatch-workflow`
+   - Prefer a **single starter workflow** for initial adoption, then split into retry/replay workflows as scale grows
+   - Reference docs: https://github.github.com/gh-aw/patterns/centralrepoops/
 
    **Architectural Constraints:**
    - ✅ **CAN**: Create issues/PRs/comments in external repos using `target-repo`

@@ -144,7 +144,7 @@ Examples:
 			return cli.CreateWorkflowInteractively(cmd.Context(), workflowName, verbose, forceFlag)
 		}
 
-		// Template mode with workflow name
+		// Create workflow with workflow name
 		workflowName := args[0]
 		return cli.NewWorkflow(workflowName, verbose, forceFlag)
 	},

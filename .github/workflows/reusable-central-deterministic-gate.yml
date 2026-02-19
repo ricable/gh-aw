@@ -1,0 +1,198 @@
+name: Reusable Central Deterministic Gate
+
+on:
+  workflow_call:
+    inputs:
+      rollout_profile:
+        description: Rollout profile (pilot, standard, broad)
+        required: false
+        default: standard
+        type: string
+      targets_pilot_json:
+        description: JSON array of owner/repo targets for pilot profile
+        required: false
+        default: "[]"
+        type: string
+      targets_standard_json:
+        description: JSON array of owner/repo targets for standard profile
+        required: false
+        default: "[]"
+        type: string
+      targets_broad_json:
+        description: JSON array of owner/repo targets for broad profile
+        required: false
+        default: "[]"
+        type: string
+      target_ref:
+        description: Default target git ref for deterministic checkout/build
+        required: false
+        default: main
+        type: string
+      shard_count:
+        description: Number of rollout shards
+        required: false
+        default: "1"
+        type: string
+      shard_index:
+        description: Zero-based shard index to execute
+        required: false
+        default: "0"
+        type: string
+    outputs:
+      primary_target_repo:
+        description: Primary repository used by the agentic wrapper checkout step
+        value: ${{ jobs.select_shard.outputs.primary_target_repo }}
+      target_ref:
+        description: Target git ref applied to deterministic checkout/build
+        value: ${{ jobs.resolve_policy.outputs.target_ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve_policy:
+    runs-on: ubuntu-latest
+    outputs:
+      targets_json: ${{ steps.resolve.outputs.targets_json }}
+      target_ref: ${{ steps.resolve.outputs.target_ref }}
+      shard_count: ${{ steps.resolve.outputs.shard_count }}
+      shard_index: ${{ steps.resolve.outputs.shard_index }}
+    steps:
+      - id: resolve
+        uses: actions/github-script@v7
+        env:
+          ROLLOUT_PROFILE: ${{ inputs.rollout_profile }}
+          TARGETS_PILOT_JSON: ${{ inputs.targets_pilot_json }}
+          TARGETS_STANDARD_JSON: ${{ inputs.targets_standard_json }}
+          TARGETS_BROAD_JSON: ${{ inputs.targets_broad_json }}
+          TARGET_REF: ${{ inputs.target_ref }}
+          SHARD_COUNT: ${{ inputs.shard_count }}
+          SHARD_INDEX: ${{ inputs.shard_index }}
+          CURRENT_REPOSITORY: ${{ github.repository }}
+        with:
+          script: |
+            const profile = (process.env.ROLLOUT_PROFILE || 'standard').toLowerCase();
+            const targetsByProfile = {
+              pilot: process.env.TARGETS_PILOT_JSON || '[]',
+              standard: process.env.TARGETS_STANDARD_JSON || '[]',
+              broad: process.env.TARGETS_BROAD_JSON || '[]',
+            };
+
+            if (!Object.prototype.hasOwnProperty.call(targetsByProfile, profile)) {
+              core.setFailed(`Invalid rollout_profile '${profile}'. Expected one of: pilot, standard, broad`);
+              return;
+            }
+
+            let targets = [];
+            try {
+              const parsed = JSON.parse(targetsByProfile[profile]);
+              if (!Array.isArray(parsed) || !parsed.every((repo) => typeof repo === 'string' && repo.includes('/'))) {
+                core.setFailed(`targets_${profile}_json must be a JSON array of owner/repo strings`);
+                return;
+              }
+              targets = parsed;
+            } catch (error) {
+              core.setFailed(`Failed to parse targets_${profile}_json: ${error.message}`);
+              return;
+            }
+
+            if (targets.length === 0) {
+              targets = [process.env.CURRENT_REPOSITORY];
+              core.info(`No configured targets for '${profile}'. Falling back to current repository: ${targets[0]}`);
+            }
+
+            const targetRef = String(process.env.TARGET_REF || 'main').trim() || 'main';
+            const shardCountRaw = String(process.env.SHARD_COUNT || '1').trim();
+            const shardIndexRaw = String(process.env.SHARD_INDEX || '0').trim();
+            const shardCount = Number.parseInt(shardCountRaw, 10);
+            const shardIndex = Number.parseInt(shardIndexRaw, 10);
+
+            if (!Number.isInteger(shardCount) || shardCount <= 0) {
+              core.setFailed(`shard_count must be a positive integer, got '${shardCountRaw}'`);
+              return;
+            }
+
+            if (!Number.isInteger(shardIndex) || shardIndex < 0) {
+              core.setFailed(`shard_index must be a non-negative integer, got '${shardIndexRaw}'`);
+              return;
+            }
+
+            core.setOutput('targets_json', JSON.stringify(targets));
+            core.setOutput('target_ref', targetRef);
+            core.setOutput('shard_count', String(shardCount));
+            core.setOutput('shard_index', String(shardIndex));
+
+  select_shard:
+    needs: [resolve_policy]
+    runs-on: ubuntu-latest
+    outputs:
+      selected_targets_json: ${{ steps.select.outputs.selected_targets_json }}
+      primary_target_repo: ${{ steps.select.outputs.primary_target_repo }}
+    steps:
+      - id: select
+        uses: actions/github-script@v7
+        env:
+          TARGETS_JSON: ${{ needs.resolve_policy.outputs.targets_json }}
+          SHARD_COUNT: ${{ needs.resolve_policy.outputs.shard_count }}
+          SHARD_INDEX: ${{ needs.resolve_policy.outputs.shard_index }}
+        with:
+          script: |
+            const targets = JSON.parse(process.env.TARGETS_JSON || '[]');
+            const shardCount = Number.parseInt(process.env.SHARD_COUNT || '1', 10);
+            const shardIndex = Number.parseInt(process.env.SHARD_INDEX || '0', 10);
+
+            if (!Array.isArray(targets) || targets.length === 0) {
+              core.setFailed('No target repositories found after policy resolution');
+              return;
+            }
+
+            if (shardIndex >= shardCount) {
+              core.setFailed(`shard_index (${shardIndex}) must be less than shard_count (${shardCount})`);
+              return;
+            }
+
+            const shardSize = Math.ceil(targets.length / shardCount);
+            const start = shardIndex * shardSize;
+            const end = start + shardSize;
+            const selected = targets.slice(start, end);
+
+            if (selected.length === 0) {
+              core.setFailed(`Selected shard ${shardIndex} is empty for ${targets.length} targets and ${shardCount} shards`);
+              return;
+            }
+
+            core.setOutput('selected_targets_json', JSON.stringify(selected));
+            core.setOutput('primary_target_repo', selected[0]);
+
+  deterministic_build:
+    needs: [resolve_policy, select_shard]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.select_shard.outputs.selected_targets_json) }}
+    steps:
+      - name: Checkout selected repository
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ matrix.repo }}
+          ref: ${{ needs.resolve_policy.outputs.target_ref }}
+          token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Deterministic validation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Validating repository: ${{ matrix.repo }}"
+          git rev-parse HEAD
+
+          if [[ -f package.json ]]; then
+            npm ci
+            npm run --if-present build
+          elif [[ -f go.mod ]]; then
+            go build ./...
+          else
+            echo "No default build strategy detected; checkout validation completed."
+          fi
+

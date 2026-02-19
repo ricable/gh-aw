@@ -1,0 +1,111 @@
+name: Reusable Central Rollout Summary
+
+on:
+  workflow_call:
+    inputs:
+      objective:
+        description: Rollout objective used for this run
+        required: false
+        default: ""
+        type: string
+      rollout_profile:
+        description: Rollout profile (pilot, standard, broad)
+        required: false
+        default: "standard"
+        type: string
+      selected_targets_json:
+        description: JSON array of policy-selected targets from deterministic gate
+        required: false
+        default: "[]"
+        type: string
+      replay_targets_json:
+        description: JSON array of replay targets for this run
+        required: false
+        default: "[]"
+        type: string
+      created_prs:
+        description: Number of PRs created by the rollout workflow
+        required: false
+        default: "0"
+        type: string
+      created_issues:
+        description: Number of issues created by the rollout workflow
+        required: false
+        default: "0"
+        type: string
+    outputs:
+      summary_json:
+        description: JSON summary payload for downstream reporting
+        value: ${{ jobs.summarize.outputs.summary_json }}
+
+permissions:
+  contents: read
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    outputs:
+      summary_json: ${{ steps.generate.outputs.summary_json }}
+    steps:
+      - id: generate
+        uses: actions/github-script@v7
+        env:
+          OBJECTIVE: ${{ inputs.objective }}
+          ROLLOUT_PROFILE: ${{ inputs.rollout_profile }}
+          SELECTED_TARGETS_JSON: ${{ inputs.selected_targets_json }}
+          REPLAY_TARGETS_JSON: ${{ inputs.replay_targets_json }}
+          CREATED_PRS: ${{ inputs.created_prs }}
+          CREATED_ISSUES: ${{ inputs.created_issues }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const parseArray = (raw, name) => {
+              try {
+                const parsed = JSON.parse(raw || '[]');
+                if (!Array.isArray(parsed)) {
+                  throw new Error(`${name} must be a JSON array`);
+                }
+                return parsed.filter((item) => typeof item === 'string');
+              } catch (error) {
+                core.setFailed(`${name} parse error: ${error.message}`);
+                return null;
+              }
+            };
+
+            const selectedTargets = parseArray(process.env.SELECTED_TARGETS_JSON, 'selected_targets_json');
+            const replayTargets = parseArray(process.env.REPLAY_TARGETS_JSON, 'replay_targets_json');
+            if (!selectedTargets || !replayTargets) {
+              return;
+            }
+
+            const toInt = (raw) => {
+              const value = Number.parseInt(String(raw || '0').trim(), 10);
+              return Number.isInteger(value) && value >= 0 ? value : 0;
+            };
+
+            const summary = {
+              objective: String(process.env.OBJECTIVE || '').trim(),
+              rollout_profile: process.env.ROLLOUT_PROFILE || 'standard',
+              selected_target_count: selectedTargets.length,
+              replay_target_count: replayTargets.length,
+              created_prs: toInt(process.env.CREATED_PRS),
+              created_issues: toInt(process.env.CREATED_ISSUES),
+              run_url: process.env.RUN_URL,
+              generated_at: new Date().toISOString(),
+            };
+
+            core.summary
+              .addHeading('CentralRepoOps Rollout Summary')
+              .addTable([
+                [{ data: 'Field', header: true }, { data: 'Value', header: true }],
+                ['Objective', summary.objective || '(not provided)'],
+                ['Profile', summary.rollout_profile],
+                ['Selected targets', String(summary.selected_target_count)],
+                ['Replay targets', String(summary.replay_target_count)],
+                ['PRs created', String(summary.created_prs)],
+                ['Issues created', String(summary.created_issues)],
+                ['Run URL', summary.run_url],
+              ])
+              .write();
+
+            core.setOutput('summary_json', JSON.stringify(summary));
