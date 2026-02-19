@@ -203,13 +203,13 @@ jobs:
           - name: "CLI Audit & Inspect"
             packages: "./pkg/cli"
             pattern: "^TestAudit|^TestInspect"
-          - name: "CLI Docker Build"  # Isolate slow Docker build test (~38s)
+          - name: "CLI Docker Build"  # Isolate slow Docker tests (~43s)
             packages: "./pkg/cli"
-            pattern: "TestDockerBuild"
+            pattern: "TestDockerBuild|TestDockerImage"
           - name: "CLI Completion & Other"  # Remaining catch-all (reduced from original)
             packages: "./pkg/cli"
             pattern: ""  # Catch-all for tests not matched by other CLI patterns
-            skip_pattern: "^TestCompile[^W]|TestPoutine|TestMCPInspectPlaywright|TestMCPGateway|TestMCPAdd|TestMCPInspectGitHub|TestMCPServer|TestMCPConfig|TestLogs|TestFirewall|TestNoStopTime|TestLocalWorkflow|TestProgressFlagSignature|TestConnectHTTPMCPServer|TestCompileWorkflows_EmptyMarkdown|TestCompileWithZizmor|TestCompileWithPoutine|TestCompileWithPoutineAndZizmor|^TestAdd|^TestList|^TestUpdate|^TestAudit|^TestInspect|TestDockerBuild"
+            skip_pattern: "^TestCompile[^W]|TestPoutine|TestMCPInspectPlaywright|TestMCPGateway|TestMCPAdd|TestMCPInspectGitHub|TestMCPServer|TestMCPConfig|TestLogs|TestFirewall|TestNoStopTime|TestLocalWorkflow|TestProgressFlagSignature|TestConnectHTTPMCPServer|TestCompileWorkflows_EmptyMarkdown|TestCompileWithZizmor|TestCompileWithPoutine|TestCompileWithPoutineAndZizmor|^TestAdd|^TestList|^TestUpdate|^TestAudit|^TestInspect|TestDockerBuild|TestDockerImage"
           - name: "Workflow Compiler"
             packages: "./pkg/workflow"
             pattern: "TestCompile|TestWorkflow|TestGenerate|TestParse"
@@ -662,6 +662,17 @@ jobs:
             ls -la *.wasm 2>/dev/null || echo "No wasm files in working directory" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
+
+      - name: Run wasm golden tests (Go string API)
+        run: make test-wasm-golden
+
+      - name: Set up Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
+        with:
+          node-version: '20'
+
+      - name: Run wasm binary golden tests (Node.js)
+        run: node scripts/test-wasm-golden.mjs
 
   validate-yaml:
     runs-on: ubuntu-latest
