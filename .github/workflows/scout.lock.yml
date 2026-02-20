@@ -34,7 +34,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f4dcca3eea6547e9841ec07c4248de1cf7d8c54ad12cf47c63edca5a5fd3b472"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"52cdcf55daa164c7092d10dfd4daa3abef6010ac7f956de59b4f2c768265c194"}
 
 name: "Scout"
 "on":
@@ -70,6 +70,10 @@ name: "Scout"
   # - write # Roles processed as role check in pre-activation job
   workflow_dispatch:
     inputs:
+      depth:
+        default: "3"
+        description: "Research depth level (1-5). Higher values mean more searches and deeper analysis. Default: 3"
+        required: false
       topic:
         description: Research topic or question
         required: true
@@ -165,6 +169,7 @@ jobs:
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
           GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          GH_AW_GITHUB_EVENT_INPUTS_DEPTH: ${{ github.event.inputs.depth }}
           GH_AW_GITHUB_EVENT_INPUTS_TOPIC: ${{ github.event.inputs.topic }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
@@ -278,6 +283,7 @@ jobs:
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
+          GH_AW_GITHUB_EVENT_INPUTS_DEPTH: ${{ github.event.inputs.depth }}
           GH_AW_GITHUB_EVENT_INPUTS_TOPIC: ${{ github.event.inputs.topic }}
           GH_AW_EXPR_799BE623: ${{ github.event.issue.number || github.event.pull_request.number }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
@@ -299,6 +305,7 @@ jobs:
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_EVENT_COMMENT_ID: ${{ github.event.comment.id }}
           GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          GH_AW_GITHUB_EVENT_INPUTS_DEPTH: ${{ github.event.inputs.depth }}
           GH_AW_GITHUB_EVENT_INPUTS_TOPIC: ${{ github.event.inputs.topic }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
@@ -327,6 +334,7 @@ jobs:
                 GH_AW_GITHUB_ACTOR: process.env.GH_AW_GITHUB_ACTOR,
                 GH_AW_GITHUB_EVENT_COMMENT_ID: process.env.GH_AW_GITHUB_EVENT_COMMENT_ID,
                 GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: process.env.GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER,
+                GH_AW_GITHUB_EVENT_INPUTS_DEPTH: process.env.GH_AW_GITHUB_EVENT_INPUTS_DEPTH,
                 GH_AW_GITHUB_EVENT_INPUTS_TOPIC: process.env.GH_AW_GITHUB_EVENT_INPUTS_TOPIC,
                 GH_AW_GITHUB_EVENT_ISSUE_NUMBER: process.env.GH_AW_GITHUB_EVENT_ISSUE_NUMBER,
                 GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: process.env.GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER,

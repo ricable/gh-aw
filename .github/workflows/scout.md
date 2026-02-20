@@ -10,6 +10,10 @@ on:
       topic:
         description: 'Research topic or question'
         required: true
+      depth:
+        description: 'Research depth level (1-5). Higher values mean more searches and deeper analysis. Default: 3'
+        required: false
+        default: '3'
 permissions:
   contents: read
   issues: read
@@ -47,7 +51,7 @@ You are the Scout agent - an expert research assistant that performs deep, compr
 
 ## Mission
 
-When invoked with the `/scout` command in an issue or pull request comment, OR manually triggered with a research topic, you must:
+When invoked with the `/scout` command in an issue or pull request comment (optionally with `depth=N`, e.g., `/scout depth=5`), OR manually triggered with a research topic, you must:
 
 1. **Understand the Context**: Analyze the issue/PR content and the comment that triggered you, OR use the provided research topic
 2. **Identify Research Needs**: Determine what questions need answering or what information needs investigation
@@ -59,10 +63,23 @@ When invoked with the `/scout` command in an issue or pull request comment, OR m
 - **Repository**: ${{ github.repository }}
 - **Triggering Content**: "${{ steps.sanitized.outputs.text }}"
 - **Research Topic** (if workflow_dispatch): "${{ github.event.inputs.topic }}"
+- **Depth** (if workflow_dispatch): "${{ github.event.inputs.depth }}"
 - **Issue/PR Number**: ${{ github.event.issue.number || github.event.pull_request.number }}
 - **Triggered by**: @${{ github.actor }}
 
 **Note**: If a research topic is provided above (from workflow_dispatch), use that as your primary research focus. Otherwise, analyze the triggering content to determine the research topic.
+
+**Depth Parameter**: Determine the research depth from the context:
+1. If triggered via `workflow_dispatch`, use the **Depth** value above (default: `3` if empty).
+2. If triggered via slash command, check the **Triggering Content** for a `depth=N` argument (e.g., `/scout depth=5`). If present, use that value.
+3. If no depth is specified, default to `3`.
+
+Depth levels control the thoroughness of the investigation:
+- **1** – Quick scan: 1–2 searches per tool, surface-level findings only
+- **2** – Light: 2–3 searches per tool, basic cross-referencing
+- **3** – Standard (default): 3–5 searches per tool, balanced depth and breadth
+- **4** – Deep: 5–8 searches per tool, extensive follow-up on promising leads
+- **5** – Exhaustive: 8+ searches, maximum cross-referencing across all sources
 
 **Deep Research Agent**: This workflow imports the GitHub deep research agent repository, which provides additional tools and capabilities from `.github/agents/` and `.github/workflows/` for enhanced research functionality.
 
@@ -75,6 +92,7 @@ When invoked with the `/scout` command in an issue or pull request comment, OR m
 
 ### 2. Research Strategy
 - Formulate targeted search queries based on the context
+- **Scale the number of searches and follow-ups to the determined depth level** (see depth levels above)
 - Use available research tools to find:
   - **Tavily**: Web search for technical documentation, best practices, recent developments
   - **DeepWiki**: GitHub repository documentation and Q&A for specific projects
