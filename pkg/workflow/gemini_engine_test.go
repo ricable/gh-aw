@@ -151,6 +151,7 @@ func TestGeminiEngineExecution(t *testing.T) {
 		assert.Contains(t, stepContent, "name: Run Gemini", "Should have correct step name")
 		assert.Contains(t, stepContent, "id: agentic_execution", "Should have agentic_execution ID")
 		assert.Contains(t, stepContent, "gemini", "Should invoke gemini command")
+		assert.Contains(t, stepContent, "--yolo", "Should include --yolo flag for auto-approving tool executions")
 		assert.Contains(t, stepContent, "--output-format json", "Should use JSON output format")
 		assert.Contains(t, stepContent, `--prompt "$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"`, "Should include prompt argument with correct shell quoting")
 		assert.Contains(t, stepContent, "/tmp/test.log", "Should include log file")
@@ -189,8 +190,9 @@ func TestGeminiEngineExecution(t *testing.T) {
 
 		stepContent := strings.Join(steps[0], "\n")
 
-		assert.Contains(t, stepContent, "--mcp-config /tmp/gh-aw/mcp-config/mcp-servers.json", "Should include MCP config")
-		assert.Contains(t, stepContent, "GH_AW_MCP_CONFIG: /tmp/gh-aw/mcp-config/mcp-servers.json", "Should set MCP config env var")
+		// Gemini CLI reads MCP config from .gemini/settings.json, not --mcp-config flag
+		assert.NotContains(t, stepContent, "--mcp-config", "Should NOT include --mcp-config flag (Gemini CLI does not support it)")
+		assert.Contains(t, stepContent, "GH_AW_MCP_CONFIG: ${{ github.workspace }}/.gemini/settings.json", "Should set MCP config env var to Gemini settings.json path")
 	})
 
 	t.Run("with custom command", func(t *testing.T) {
