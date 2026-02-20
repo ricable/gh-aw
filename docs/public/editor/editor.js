@@ -8,7 +8,7 @@ import { keymap } from 'https://esm.sh/@codemirror/view@6.39.14';
 import { yaml } from 'https://esm.sh/@codemirror/lang-yaml@6.1.2';
 import { markdown } from 'https://esm.sh/@codemirror/lang-markdown@6.5.0';
 import { indentUnit } from 'https://esm.sh/@codemirror/language@6.12.1';
-import { oneDark } from 'https://esm.sh/@codemirror/theme-one-dark@6.1.3';
+import { githubLight, githubDark } from 'https://esm.sh/@uiw/codemirror-theme-github@4.25.4';
 import { createWorkerCompiler } from '/gh-aw/wasm/compiler-loader.js';
 import { frontmatterHoverTooltip } from './hover-tooltips.js';
 
@@ -142,7 +142,7 @@ let isDragging = false;
 // ---------------------------------------------------------------
 // Theme — follows browser's prefers-color-scheme automatically.
 // Primer CSS handles the page via data-color-mode="auto".
-// We only need to toggle the CodeMirror theme (oneDark vs default).
+// We only need to toggle the CodeMirror theme (githubDark vs githubLight).
 // ---------------------------------------------------------------
 const editorThemeConfig = new Compartment();
 const outputThemeConfig = new Compartment();
@@ -153,7 +153,7 @@ function isDark() {
 }
 
 function cmThemeFor(dark) {
-  return dark ? oneDark : [];
+  return dark ? githubDark : githubLight;
 }
 
 function applyCmTheme() {
@@ -324,10 +324,15 @@ function setStatus(status, text) {
   statusBadge.setAttribute('data-status', status);
   statusText.textContent = text;
 
-  // Pulse animation for loading/compiling states
+  // Hide the dot in the ready state; pulse it for loading/compiling
   if (status === 'loading' || status === 'compiling') {
+    statusDot.style.display = '';
     statusDot.style.animation = 'pulse 1.2s ease-in-out infinite';
+  } else if (status === 'ready') {
+    statusDot.style.display = 'none';
+    statusDot.style.animation = '';
   } else {
+    statusDot.style.display = '';
     statusDot.style.animation = '';
   }
 }
