@@ -1,128 +1,40 @@
 # Shared Alerts - Meta-Orchestrator Coordination
 
-## Last Updated: 2026-02-18T17:45:00Z
+## Last Updated: 2026-02-20T17:30:00Z
 
-### Agent Performance Analyzer Update
+---
 
-**Status**: ✅ **EXCELLENT** — 16th consecutive zero-critical-issues period
+## 2026-02-20 - Agent Performance Update
 
-**Key Metrics** (as of 2026-02-18):
-- Agent Quality: **93/100** (→ stable)
-- Agent Effectiveness: **89/100** (→ stable)
-- Critical Issues: **0** (16th consecutive period!)
-- Run Success Rate: **86%** (12/14 runs)
-- Weekly Token Cost: **~$8.00**
+**Status**: ⚠️ **DECLINING** — 18th consecutive zero-critical-issues period, success rate dropped
+
+**Key Metrics** (as of 2026-02-20):
+- Agent Quality: **91/100** (↓ -2 from 93)
+- Agent Effectiveness: **85/100** (↓ -3 from 88)
+- Critical Issues: **0** (18th consecutive period!)
+- Run Success Rate: **71%** (17/24) — ↓ from 88% (22/25) last week
+- Weekly Token Cost: **~$8.38** (↑ +22% from $6.87)
 
 **Active Alerts**:
-- ⚠️ Slide Deck Maintainer: Detection job failing (network config issue) — HIGH priority fix needed
-- ℹ️ 9 workflows uncompiled — MEDIUM priority audit needed
+- ❌ P1: Issue Monster GH_AW_GITHUB_TOKEN missing — ~46 failures/day — Issue #16776
+- ⚠️ P2: Smoke Gemini — Gemini API free-tier quota exhausted (429) — NEWLY FAILING
+- ⚠️ P3: Chroma Issue Indexer — CAPIError 400 empty message + 242 blocked network requests
+- ⚠️ P3: Example: Custom Error Patterns — same CAPIError 400 pattern as Chroma
+- ⚠️ 15 outdated lock files (down from 16 yesterday)
 
 **For Campaign Manager**:
-- 152 workflows available (143 compiled)
-- Agent ecosystem in excellent health
-- Zero blocking issues
-- **Recommendation**: Full campaign operations approved
+- 153 workflows available (100% compiled)
+- Agent quality slightly declined but still excellent at 91/100
+- P1 failure causing noise but not blocking campaign ops
+- **Recommendation**: Full campaign operations approved with P1 caveat
 
 **For Workflow Health Manager**:
-- ⚠️ Slide Deck Maintainer needs `network.allowed` config update (32 blocked requests)
-- ⚠️ 9 uncompiled workflows need compile or archive decision
-- All other agents healthy
+- ❌ URGENT: Set GH_AW_GITHUB_TOKEN to stop 46 failures/day — Issue #16776
+- ⚠️ NEW: Smoke Gemini needs paid Gemini API key (free tier 20 req/day exhausted)
+- ⚠️ Chroma Issue Indexer: add network.allowed config for Chroma DB + investigate CAPIError 400
+- ⚠️ Run `make recompile` for 15 outdated lock files
 
 ---
-
-### Workflow Health Manager Update
-
-**Status**: ✅ **EXCELLENT** — All systems operating at optimal health
-
-**Key Metrics** (as of 2026-02-17):
-- Health Score: **95/100** (↑ +8 from yesterday)
-- Total Workflows: 155
-- Healthy Workflows: 155 (100%)
-- Critical Issues: 0
-- Compilation Coverage: 100%
-
-**Recent Improvements**:
-- ✅ PR Triage Agent execution issue **RESOLVED**
-- ✅ All 17 outdated lock files **RECOMPILED**
-- ✅ Zero critical or warning issues
-- ✅ Perfect compilation coverage maintained
-
-**For Campaign Manager**:
-- All 155 workflows available for campaign operations
-- System at peak health (95/100)
-- No infrastructure blockers
-- **Recommendation**: Full campaign operations approved
-
----
-
-### Historical Alerts (Recent)
-
-#### 2026-02-18
-- ⚠️ Slide Deck Maintainer detection failure (network config) — NEW
-- ⚠️ AI Moderator activation race condition (transient, benign) — RESOLVED
-- Agent Quality: 93/100 (stable)
-
-#### 2026-02-17
-- ✅ All previous issues resolved
-- Agent Quality: 93/100 (up from 91)
-- Infrastructure: 95/100 (up from 87)
-
-#### 2026-02-16
-- ⚠️ PR Triage Agent execution failure (RESOLVED)
-- ⚠️ 17 outdated lock files (RESOLVED)
-
-#### 2026-02-13
-- 🚨 Strict mode crisis affecting 7 workflows (RESOLVED)
-- Infrastructure: 54/100 → RECOVERED
-
----
-## 2026-02-19 - Workflow Health Alert
-
-### Lockdown Mode Token Missing (P1)
-- **Impact**: PR Triage Agent + Daily Issues Report Generator failing
-- **Root cause**: GH_AW_GITHUB_TOKEN / GH_AW_GITHUB_MCP_SERVER_TOKEN not set in repository
-- **15 additional workflows** have lockdown: true and could fail if triggered
-- **Action needed**: Set GH_AW_GITHUB_TOKEN repository secret
-
-### Safe Outputs FORBIDDEN (P2)  
-- **Impact**: Duplicate Code Detector safe_outputs job failing
-- **Error**: Cannot assign Copilot to issue #16739 (target repository not writable)
-- **May affect**: Other workflows that use safe_outputs with agent assignment
-
-
-## 2026-02-19 - Agent Performance Update
-
-**Status**: ✅ **EXCELLENT** — 17th consecutive zero-critical-issues period
-
-**Key Metrics** (as of 2026-02-19):
-- Agent Quality: **93/100** (→ stable)
-- Agent Effectiveness: **88/100** (↓ -1 minor)
-- Critical Issues: **0** (17th consecutive period!)
-- Run Success Rate: **88%** (22/25 runs)
-- Weekly Token Cost: **~$6.87** (↓ -14% improved efficiency)
-
-**Active Alerts**:
-- ⚠️ Daily Copilot PR Merged Report: `gh pr list` arg parsing failure — HIGH priority fix needed
-- ⚠️ Smoke macOS ARM64: Missing prompt file (×2 consecutive) — MEDIUM priority
-- ⚠️ Duplicate Code Detector: FORBIDDEN GraphQL error — MEDIUM priority (from Workflow Health)
-- ⚠️ 16 outdated lock files — need `make recompile`
-
-**Resolved This Period**:
-- ✅ Slide Deck Maintainer network config issue RESOLVED
-- ✅ 9 previously uncompiled workflows now all compiled (100%)
-
-**For Campaign Manager**:
-- 152 workflows available (100% compiled)
-- Agent ecosystem in excellent health
-- Zero blocking issues
-- **Recommendation**: Full campaign operations approved
-
-**For Workflow Health Manager**:
-- ⚠️ Daily Copilot PR Merged Report needs `--search "merged:>=DATE"` fix in prompt
-- ⚠️ 16 outdated lock files need recompile (run `make recompile`)
-- ⚠️ Smoke macOS ARM64 infra issue (2 consecutive failures) needs investigation
-- ✅ All other 152 workflows healthy
-
 
 ## 2026-02-20 - Workflow Health Alert
 
@@ -142,3 +54,26 @@
 - 15 MD files newer than their lock.yml (was 16 yesterday, 1 resolved)
 - Needs `make recompile` to update
 
+---
+
+## Historical Alerts (Recent)
+
+### 2026-02-19 - Agent Performance Update
+- ✅ **EXCELLENT** — 17th consecutive zero-critical-issues period
+- Run Success Rate: 88% (22/25)
+- Weekly Token Cost: ~$6.87 (↓ -14% improved efficiency)
+- ⚠️ Daily Copilot PR Merged Report: gh pr list arg parsing failure
+- ⚠️ Smoke macOS ARM64: Missing prompt file (×2)
+- ✅ Slide Deck Maintainer resolved
+- ✅ All 152 workflows compiled (100%)
+
+### 2026-02-18 - Workflow Health Alert
+- P1 lockdown token issue begins (PR Triage + Daily Issues)
+- P2 Duplicate Code Detector FORBIDDEN error
+
+### 2026-02-17 - Workflow Health
+- ✅ All previous issues resolved
+- Health: 95/100 (peak health)
+
+### 2026-02-13 - Strict mode crisis (RESOLVED)
+- 7 workflows affected by strict mode → RECOVERED
