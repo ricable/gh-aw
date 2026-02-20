@@ -12,6 +12,7 @@ GitHub Agentic Workflows use [AI Engines](/gh-aw/reference/glossary/#engine) (no
 - [**Copilot CLI**](#using-copilot-cli)
 - [**Claude by Anthropic (Claude Code)**](#using-claude-by-anthropic-claude-code)
 - [**OpenAI Codex**](#using-openai-codex)
+- [**Google Gemini**](#using-google-gemini)
 
 ## Using Copilot CLI
 
@@ -76,6 +77,26 @@ To use [OpenAI Codex](https://openai.com/blog/openai-codex):
    ```bash wrap
    gh aw secrets set OPENAI_API_KEY --value "<your-openai-api-key>"
    ```
+
+## Using Google Gemini
+
+To use [Google Gemini CLI](https://github.com/google-gemini/gemini-cli):
+
+1. Request the use of the Gemini engine in your workflow frontmatter:
+
+   ```yaml wrap
+   engine: gemini
+   ```
+
+2. Configure `GEMINI_API_KEY` GitHub Actions secret.
+
+   [Create a Gemini API key](https://aistudio.google.com/apikey) and add it to your repository:
+
+   ```bash wrap
+   gh aw secrets set GEMINI_API_KEY --value "<your-gemini-api-key>"
+   ```
+
+Gemini CLI reads MCP server configuration from `.gemini/settings.json` (project-level). GitHub Agentic Workflows automatically generates this file during workflow setup — no manual MCP configuration is required.
 
 ## Extended Coding Agent Configuration
 

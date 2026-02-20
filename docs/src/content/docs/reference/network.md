@@ -185,7 +185,23 @@ Mix ecosystem identifiers with specific domains for fine-grained control:
 | `github` | GitHub domains |
 | `containers` | Docker Hub, GitHub Container Registry, Quay |
 | `linux-distros` | Debian, Alpine, and other Linux package repositories |
-| `dotnet`, `dart`, `go`, `haskell`, `java`, `node`, `perl`, `php`, `python`, `ruby`, `rust`, `swift` | Language-specific package managers and registries |
+| `clojure` | Clojure/Clojars (clojars.org, repo.clojars.org) |
+| `dart` | Dart/Flutter (pub.dev, pub.dartlang.org) |
+| `dotnet` | .NET and NuGet ecosystem |
+| `elixir` | Elixir/Hex (hex.pm, repo.hex.pm, builds.hex.pm) |
+| `go` | Go ecosystem (proxy.golang.org, sum.golang.org, pkg.go.dev) |
+| `haskell` | Haskell/Hackage |
+| `java` | Java/Maven/Gradle (central.sonatype.com, maven.google.com, repo.gradle.org) |
+| `kotlin` | Kotlin/JetBrains (packages.jetbrains.team, ge.jetbrains.com) |
+| `node` | Node.js/NPM/Yarn/pnpm |
+| `perl` | Perl/CPAN |
+| `php` | PHP/Composer |
+| `python` | Python/PyPI/Conda |
+| `ruby` | Ruby/RubyGems |
+| `rust` | Rust/Cargo/Crates (crates.io, index.crates.io) |
+| `scala` | Scala/SBT (repo.scala-sbt.org, repo.typesafe.com) |
+| `swift` | Swift/CocoaPods |
+| `zig` | Zig (ziglang.org, pkg.machengine.org) |
 | `terraform` | HashiCorp and Terraform domains |
 | `playwright` | Playwright testing framework domains |
 
