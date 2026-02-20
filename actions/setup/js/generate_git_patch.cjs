@@ -39,8 +39,33 @@ function resolveBaseRef(branchName, defaultBranch, cwd) {
     core.info(`[generate_git_patch] fetch succeeded, baseRef="${baseRef}"`);
     return baseRef;
   } catch (fetchErr) {
-    // Branch doesn't exist on origin yet (new branch) – fall back to merge-base
-    core.warning(`[generate_git_patch] fetch of origin/${branchName} failed (${getErrorMessage(fetchErr)}); falling back to merge-base with "${defaultBranch}"`);
+    // Distinguish between "branch doesn't exist on origin" and other fetch failures.
+    let branchExistsOnOrigin = false;
+    try {
+      // git ls-remote --exit-code origin refs/heads/<branch> succeeds only if the ref exists.
+      execGitSync(["ls-remote", "--exit-code", "origin", `refs/heads/${branchName}`], { cwd });
+      branchExistsOnOrigin = true;
+    } catch (lsRemoteErr) {
+      core.info(
+        `[generate_git_patch] ls-remote did not find refs/heads/${branchName} on origin (${getErrorMessage(
+          lsRemoteErr,
+        )}); treating as new branch`,
+      );
+    }
+
+    if (branchExistsOnOrigin) {
+      // The branch exists on origin, so this is a real fetch failure (auth/network/etc).
+      const message = `[generate_git_patch] fetch of origin/${branchName} failed, but branch exists on origin; cannot safely determine baseRef: ${getErrorMessage(
+        fetchErr,
+      )}`;
+      core.error(message);
+      throw fetchErr;
+    }
+
+    // Branch doesn't exist on origin yet (new branch) – fall back to merge-base.
+    core.warning(
+      `[generate_git_patch] origin does not have branch ${branchName}; falling back to merge-base with "${defaultBranch}"`,
+    );
   }
 
   execGitSync(["fetch", "origin", defaultBranch], { cwd });
