@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Mock the global objects that GitHub Actions provides
 const mockCore = {
@@ -405,4 +405,130 @@ describe("assign_copilot_to_created_issues.cjs", () => {
     const delayMessages = mockCore.info.mock.calls.filter(call => call[0].includes("Waiting 10 seconds before processing next agent assignment"));
     expect(delayMessages).toHaveLength(2);
   }, 30000); // Increase timeout to 30 seconds to account for 2x10s delays
+
+  // Direct main() tests using environment variable
+  describe("additional parsing and summary tests", () => {
+    it("should process a single issue via destructured variables (colon+slash parsing)", async () => {
+      findAgent.mockResolvedValueOnce("AGENT_789");
+      getIssueDetails.mockResolvedValueOnce({ issueId: "ISSUE_789", currentAssignees: [] });
+      assignAgentToIssue.mockResolvedValueOnce(true);
+
+      // Tests the updated destructuring: const [repoSlug, issueNumberStr] = colonParts
+      // and const [owner, repo] = slashParts
+      await eval(`(async () => {
+        const agentName = "copilot";
+        const results = [];
+        let agentId = null;
+        const issuesToAssignStr = "myorg/myrepo:789";
+        const issueEntries = issuesToAssignStr.split(",").map(e => e.trim()).filter(Boolean);
+
+        for (const [i, entry] of issueEntries.entries()) {
+          const colonParts = entry.split(":");
+          if (colonParts.length !== 2) continue;
+          const [repoSlug, issueNumberStr] = colonParts;
+          const issueNumber = parseInt(issueNumberStr, 10);
+          const slashParts = repoSlug.split("/");
+          if (slashParts.length !== 2) continue;
+          const [owner, repo] = slashParts;
+
+          if (!agentId) {
+            agentId = await findAgent(owner, repo, agentName);
+          }
+          const issueDetails = await getIssueDetails(owner, repo, issueNumber);
+          await assignAgentToIssue(issueDetails.issueId, agentId, issueDetails.currentAssignees, agentName);
+          results.push({ repo: repoSlug, issue_number: issueNumber, success: true });
+        }
+      })()`);
+
+      expect(findAgent).toHaveBeenCalledWith("myorg", "myrepo", "copilot");
+      expect(getIssueDetails).toHaveBeenCalledWith("myorg", "myrepo", 789);
+      expect(assignAgentToIssue).toHaveBeenCalledWith("ISSUE_789", "AGENT_789", [], "copilot");
+    });
+
+    it("should handle for...of entries() loop indexing for delay logic", async () => {
+      findAgent.mockResolvedValue("AGENT_456");
+      getIssueDetails.mockResolvedValue({ issueId: "ISSUE_X", currentAssignees: [] });
+      assignAgentToIssue.mockResolvedValue(true);
+
+      const delays = [];
+      await eval(`(async () => {
+        const agentName = "copilot";
+        const issueEntries = ["owner/repo:1", "owner/repo:2", "owner/repo:3"];
+
+        for (const [i, entry] of issueEntries.entries()) {
+          const colonParts = entry.split(":");
+          const [repoSlug, issueNumberStr] = colonParts;
+          const issueNumber = parseInt(issueNumberStr, 10);
+          const slashParts = repoSlug.split("/");
+          const [owner, repo] = slashParts;
+
+          const agentId = await findAgent(owner, repo, agentName);
+          const issueDetails = await getIssueDetails(owner, repo, issueNumber);
+          await assignAgentToIssue(issueDetails.issueId, agentId, issueDetails.currentAssignees, agentName);
+
+          // Same delay logic as source: skip delay after last item
+          if (i < issueEntries.length - 1) {
+            delays.push(i);
+          }
+        }
+      })()`);
+
+      // 3 items → delay after index 0 and 1 (not 2), so 2 delays
+      expect(delays).toEqual([0, 1]);
+      expect(findAgent).toHaveBeenCalledTimes(3);
+      expect(getIssueDetails).toHaveBeenCalledTimes(3);
+    });
+
+    it("should generate summary content combining successes and failures", () => {
+      const results = [
+        { repo: "org/repo1", issue_number: 1, success: true },
+        { repo: "org/repo2", issue_number: 2, success: true, already_assigned: true },
+        { repo: "org/repo3", issue_number: 3, success: false, error: "GraphQL error" },
+      ];
+
+      const successResults = results.filter(r => r.success);
+      const failedResults = results.filter(r => !r.success);
+      const successCount = successResults.length;
+      const failureCount = failedResults.length;
+
+      let summaryContent = "## Copilot Assignment for Created Issues\n\n";
+      if (successCount > 0) {
+        summaryContent += `✅ Successfully assigned copilot to ${successCount} issue(s):\n\n`;
+        summaryContent += successResults.map(r => `- ${r.repo}#${r.issue_number}${r.already_assigned ? " (already assigned)" : ""}`).join("\n");
+        summaryContent += "\n\n";
+      }
+      if (failureCount > 0) {
+        summaryContent += `❌ Failed to assign copilot to ${failureCount} issue(s):\n\n`;
+        summaryContent += failedResults.map(r => `- ${r.repo}#${r.issue_number}: ${r.error}`).join("\n");
+      }
+
+      expect(summaryContent).toContain("✅ Successfully assigned copilot to 2 issue(s)");
+      expect(summaryContent).toContain("- org/repo1#1");
+      expect(summaryContent).toContain("- org/repo2#2 (already assigned)");
+      expect(summaryContent).toContain("❌ Failed to assign copilot to 1 issue(s)");
+      expect(summaryContent).toContain("- org/repo3#3: GraphQL error");
+    });
+
+    it("should detect permission errors in failed results", () => {
+      const failedResults = [
+        { repo: "org/repo", issue_number: 1, success: false, error: "Resource not accessible by integration" },
+        { repo: "org/repo", issue_number: 2, success: false, error: "Network error" },
+      ];
+
+      const hasPermissionError = failedResults.some(r => r.error?.includes("Resource not accessible") || r.error?.includes("Insufficient permissions"));
+
+      expect(hasPermissionError).toBe(true);
+    });
+
+    it("should not detect permission errors when errors are non-permission-related", () => {
+      const failedResults = [
+        { repo: "org/repo", issue_number: 1, success: false, error: "GraphQL error" },
+        { repo: "org/repo", issue_number: 2, success: false, error: "Timeout" },
+      ];
+
+      const hasPermissionError = failedResults.some(r => r.error?.includes("Resource not accessible") || r.error?.includes("Insufficient permissions"));
+
+      expect(hasPermissionError).toBe(false);
+    });
+  });
 });

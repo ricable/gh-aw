@@ -41,17 +41,16 @@ async function main() {
   const results = [];
   let agentId = null;
 
-  for (let i = 0; i < issueEntries.length; i++) {
-    const entry = issueEntries[i];
+  for (const [i, entry] of issueEntries.entries()) {
     // Parse repo:number format
-    const parts = entry.split(":");
-    if (parts.length !== 2) {
+    const colonParts = entry.split(":");
+    if (colonParts.length !== 2) {
       core.warning(`Invalid issue entry format: ${entry}. Expected 'owner/repo:number'`);
       continue;
     }
 
-    const repoSlug = parts[0];
-    const issueNumber = parseInt(parts[1], 10);
+    const [repoSlug, issueNumberStr] = colonParts;
+    const issueNumber = parseInt(issueNumberStr, 10);
 
     if (isNaN(issueNumber) || issueNumber <= 0) {
       core.warning(`Invalid issue number in entry: ${entry}`);
@@ -59,14 +58,13 @@ async function main() {
     }
 
     // Parse owner/repo from repo slug
-    const repoParts = repoSlug.split("/");
-    if (repoParts.length !== 2) {
+    const slashParts = repoSlug.split("/");
+    if (slashParts.length !== 2) {
       core.warning(`Invalid repo format: ${repoSlug}. Expected 'owner/repo'`);
       continue;
     }
 
-    const owner = repoParts[0];
-    const repo = repoParts[1];
+    const [owner, repo] = slashParts;
 
     try {
       // Find agent (reuse cached ID for same repo)
@@ -134,11 +132,10 @@ async function main() {
   }
 
   // Generate step summary
-  const successCount = results.filter(r => r.success).length;
-  const failureCount = results.length - successCount;
-
   const successResults = results.filter(r => r.success);
   const failedResults = results.filter(r => !r.success);
+  const successCount = successResults.length;
+  const failureCount = failedResults.length;
 
   let summaryContent = "## Copilot Assignment for Created Issues\n\n";
 
@@ -168,7 +165,4 @@ async function main() {
   }
 }
 
-// Export for use with require()
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = { main };
-}
+module.exports = { main };
