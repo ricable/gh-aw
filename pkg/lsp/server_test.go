@@ -5,6 +5,7 @@ package lsp
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -213,10 +214,7 @@ func buildLSPMsg(t *testing.T, msg map[string]any) string {
 	t.Helper()
 	body, err := json.Marshal(msg)
 	require.NoError(t, err, "marshaling test message")
-	return "Content-Length: " + json.Number(func() string {
-		b, _ := json.Marshal(len(body))
-		return string(b)
-	}()).String() + "\r\n\r\n" + string(body)
+	return fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(body), string(body))
 }
 
 func parseLSPMessages(t *testing.T, data []byte) []map[string]any {

@@ -1,6 +1,7 @@
 package lsp
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -232,8 +233,5 @@ func filterCompletions(items []CompletionItem, prefix string) []CompletionItem {
 }
 
 func padIndex(i int) string {
-	if i < 10 {
-		return "0" + string(rune('0'+i))
-	}
-	return string(rune('0'+i/10)) + string(rune('0'+i%10))
+	return fmt.Sprintf("%04d", i)
 }
