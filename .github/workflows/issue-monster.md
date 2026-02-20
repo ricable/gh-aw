@@ -14,9 +14,7 @@ permissions:
   issues: read
   pull-requests: read
 
-engine:
-  id: copilot
-  model: gpt-5.1-codex-mini
+engine: codex
 
 timeout-minutes: 30
 
