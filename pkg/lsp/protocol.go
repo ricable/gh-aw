@@ -133,7 +133,7 @@ type CompletionItem struct {
 	Detail           string             `json:"detail,omitempty"`
 	Documentation    *MarkupContent     `json:"documentation,omitempty"`
 	InsertText       string             `json:"insertText,omitempty"`
-	InsertTextFormat InsertTextFormat    `json:"insertTextFormat,omitempty"`
+	InsertTextFormat InsertTextFormat   `json:"insertTextFormat,omitempty"`
 	SortText         string             `json:"sortText,omitempty"`
 	Deprecated       bool               `json:"deprecated,omitempty"`
 }

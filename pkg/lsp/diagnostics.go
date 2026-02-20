@@ -125,14 +125,13 @@ func extractYAMLErrorLine(errMsg string) int {
 
 // checkSchemaValidation validates frontmatter against the JSON schema and returns diagnostics.
 func checkSchemaValidation(snap *DocumentSnapshot) []Diagnostic {
-	if snap.FrontmatterYAML == "" {
-		return nil
-	}
-
-	// Parse the YAML into a map
 	var frontmatter map[string]any
-	if err := goyaml.Unmarshal([]byte(snap.FrontmatterYAML), &frontmatter); err != nil {
-		return nil // YAML errors already reported by checkYAMLSyntax
+
+	if snap.FrontmatterYAML != "" {
+		// Parse the YAML into a map
+		if err := goyaml.Unmarshal([]byte(snap.FrontmatterYAML), &frontmatter); err != nil {
+			return nil // YAML errors already reported by checkYAMLSyntax
+		}
 	}
 
 	if frontmatter == nil {

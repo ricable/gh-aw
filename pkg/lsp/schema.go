@@ -79,10 +79,21 @@ func (sp *SchemaProvider) PropertyDescription(path []string) *PropertyInfo {
 		return nil
 	}
 
+	// Preserve local description and default before resolving $ref
+	localDesc, _ := propDef["description"].(string)
+	localDefault, hasLocalDefault := propDef["default"]
+
 	// Follow $ref if present
 	propDef = sp.resolveRef(propDef)
 
 	info := sp.extractPropertyInfo(key, propDef)
+	// Use local description if available (more specific than ref target)
+	if localDesc != "" {
+		info.Description = localDesc
+	}
+	if hasLocalDefault {
+		info.Default = fmt.Sprintf("%v", localDefault)
+	}
 	return &info
 }
 
@@ -333,14 +344,15 @@ func findPathInMapping(mapping *goyaml.Node, targetLine int, parentPath []string
 		}
 
 		// Check if the target line falls within this value's range
-		if valNode.Kind == goyaml.MappingNode {
+		switch valNode.Kind {
+		case goyaml.MappingNode:
 			// Determine the end line of this mapping value
 			valEndLine := nodeEndLine(valNode)
 			if targetLine > keyLine && targetLine <= valEndLine {
 				newPath := append(append([]string{}, parentPath...), keyName)
 				return findPathInMapping(valNode, targetLine, newPath)
 			}
-		} else if valNode.Kind == goyaml.SequenceNode {
+		case goyaml.SequenceNode:
 			valEndLine := nodeEndLine(valNode)
 			if targetLine > keyLine && targetLine <= valEndLine {
 				return append(append([]string{}, parentPath...), keyName), ""
