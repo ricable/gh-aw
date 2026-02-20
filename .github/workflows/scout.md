@@ -11,7 +11,7 @@ on:
         description: 'Research topic or question'
         required: true
       depth:
-        description: 'Research depth level (1-5). Higher values mean more searches and deeper analysis. Default: 3'
+        description: 'Research depth level (1-5, or 0 for full/unlimited). Mirrors git fetch-depth: 0=full history, 1=shallow. Default: 3'
         required: false
         default: '3'
 permissions:
@@ -51,7 +51,7 @@ You are the Scout agent - an expert research assistant that performs deep, compr
 
 ## Mission
 
-When invoked with the `/scout` command in an issue or pull request comment (optionally with `depth=N`, e.g., `/scout depth=5`), OR manually triggered with a research topic, you must:
+When invoked with the `/scout` command in an issue or pull request comment (optionally with `depth=N`, e.g., `/scout depth=5` or `/scout depth=0` for full research), OR manually triggered with a research topic, you must:
 
 1. **Understand the Context**: Analyze the issue/PR content and the comment that triggered you, OR use the provided research topic
 2. **Identify Research Needs**: Determine what questions need answering or what information needs investigation
@@ -74,8 +74,9 @@ When invoked with the `/scout` command in an issue or pull request comment (opti
 2. If triggered via slash command, check the **Triggering Content** for a `depth=N` argument (e.g., `/scout depth=5`). If present, use that value.
 3. If no depth is specified, default to `3`.
 
-Depth levels control the thoroughness of the investigation:
-- **1** – Quick scan: 1–2 searches per tool, surface-level findings only
+Depth levels control the thoroughness of the investigation (mirrors `fetch-depth` convention: `0` = full/unlimited):
+- **0** – Full research: no limit on searches, exhaustive cross-referencing across all sources (like `fetch-depth: 0` = full history)
+- **1** – Shallow: 1–2 searches per tool, surface-level findings only
 - **2** – Light: 2–3 searches per tool, basic cross-referencing
 - **3** – Standard (default): 3–5 searches per tool, balanced depth and breadth
 - **4** – Deep: 5–8 searches per tool, extensive follow-up on promising leads

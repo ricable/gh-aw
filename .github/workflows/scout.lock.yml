@@ -34,7 +34,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"52cdcf55daa164c7092d10dfd4daa3abef6010ac7f956de59b4f2c768265c194"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f3d6d6f0f0d2a4a504736649a2ea5480e47a67346e79b4f4df8c4b82ae0fde78"}
 
 name: "Scout"
 "on":
@@ -72,7 +72,7 @@ name: "Scout"
     inputs:
       depth:
         default: "3"
-        description: "Research depth level (1-5). Higher values mean more searches and deeper analysis. Default: 3"
+        description: "Research depth level (1-5, or 0 for full/unlimited). Mirrors git fetch-depth: 0=full history, 1=shallow. Default: 3"
         required: false
       topic:
         description: Research topic or question
