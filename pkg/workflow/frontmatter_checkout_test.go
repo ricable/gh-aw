@@ -362,3 +362,148 @@ imports:
 	importedCheckoutIdx := strings.Index(lockStr, "repository: org/data")
 	assert.Less(t, mainCheckoutIdx, importedCheckoutIdx, "main checkout should come before imported checkout")
 }
+
+// TestFrontmatterCheckout_MultipleCheckouts_DifferentTokens verifies that an array of checkout
+// entries with distinct tokens compiles correctly and that every step has persist-credentials: false.
+func TestFrontmatterCheckout_MultipleCheckouts_DifferentTokens(t *testing.T) {
+	frontmatter := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+checkout:
+  - ref: main
+  - repository: org/private-a
+    ref: v1.0.0
+    path: private-a
+    token: ${{ secrets.TOKEN_A }}
+  - repository: org/private-b
+    ref: develop
+    path: private-b
+    token: ${{ secrets.TOKEN_B }}
+---`
+	markdown := "# Agent\n\nComplete the task."
+
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-tokens-test")
+	workflowPath := filepath.Join(tmpDir, "test.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(frontmatter+"\n\n"+markdown), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+	lockStr := string(lockContent)
+
+	// Main checkout (ref: main override) must be present and have persist-credentials: false
+	assert.Contains(t, lockStr, "name: Checkout repository", "should have main checkout step")
+	assert.Contains(t, lockStr, "ref: main", "main checkout should use overridden ref")
+
+	// Each additional checkout should carry its token
+	assert.Contains(t, lockStr, "repository: org/private-a", "should include private-a")
+	assert.Contains(t, lockStr, "token: ${{ secrets.TOKEN_A }}", "should include TOKEN_A")
+	assert.Contains(t, lockStr, "repository: org/private-b", "should include private-b")
+	assert.Contains(t, lockStr, "token: ${{ secrets.TOKEN_B }}", "should include TOKEN_B")
+
+	// Every checkout step must have persist-credentials: false
+	persistFalseCount := strings.Count(lockStr, "persist-credentials: false")
+	assert.GreaterOrEqual(t, persistFalseCount, 3, "all checkout steps must have persist-credentials: false")
+}
+
+// TestFrontmatterCheckout_MultipleCheckouts_DifferentFetchDepths verifies that multiple checkouts
+// can specify different fetch depths and that the compiled output reflects each independently.
+func TestFrontmatterCheckout_MultipleCheckouts_DifferentFetchDepths(t *testing.T) {
+	frontmatter := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+checkout:
+  - fetch-depth: 0
+  - repository: org/large-repo
+    path: large-repo
+    fetch-depth: 1
+  - repository: org/small-repo
+    path: small-repo
+---`
+	markdown := "# Agent\n\nComplete the task."
+
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-depths-test")
+	workflowPath := filepath.Join(tmpDir, "test.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(frontmatter+"\n\n"+markdown), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+	lockStr := string(lockContent)
+
+	// Main checkout overrides: fetch-depth 0 (full history)
+	assert.Contains(t, lockStr, "name: Checkout repository", "should have main checkout step")
+	assert.Contains(t, lockStr, "fetch-depth: 0", "main checkout should have full history")
+
+	// large-repo: shallow clone depth 1
+	assert.Contains(t, lockStr, "repository: org/large-repo", "should include large-repo")
+	assert.Contains(t, lockStr, "fetch-depth: 1", "large-repo should have shallow clone")
+
+	// small-repo: no fetch-depth (actions/checkout default)
+	assert.Contains(t, lockStr, "repository: org/small-repo", "should include small-repo")
+
+	// persist-credentials: false must appear for every checkout step
+	persistFalseCount := strings.Count(lockStr, "persist-credentials: false")
+	assert.GreaterOrEqual(t, persistFalseCount, 3, "all checkout steps must have persist-credentials: false")
+}
+
+// TestFrontmatterCheckout_PersistCredentialsFalse_Enforced verifies that persist-credentials is
+// always false by default even when other fields such as token and fetch-depth are specified.
+func TestFrontmatterCheckout_PersistCredentialsFalse_Enforced(t *testing.T) {
+	frontmatter := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+checkout:
+  - ref: main
+    token: ${{ secrets.GITHUB_TOKEN }}
+    fetch-depth: 0
+  - repository: org/extra
+    path: extra
+    token: ${{ secrets.EXTRA_TOKEN }}
+    fetch-depth: 10
+---`
+	markdown := "# Agent\n\nComplete the task."
+
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-persist-creds-test")
+	workflowPath := filepath.Join(tmpDir, "test.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(frontmatter+"\n\n"+markdown), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+	lockStr := string(lockContent)
+
+	// persist-credentials: true must never appear
+	assert.NotContains(t, lockStr, "persist-credentials: true", "persist-credentials must never be true by default")
+
+	// persist-credentials: false must appear for every checkout step (main + additional)
+	persistFalseCount := strings.Count(lockStr, "persist-credentials: false")
+	assert.GreaterOrEqual(t, persistFalseCount, 2, "all checkout steps must have persist-credentials: false")
+}

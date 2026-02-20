@@ -197,3 +197,105 @@ func TestParseCheckoutConfig_InvalidInput(t *testing.T) {
 	_, err := parseCheckoutConfig("not-an-object")
 	assert.Error(t, err, "should return error for invalid input type")
 }
+
+// TestCheckoutManager_MultipleCheckouts_DifferentTokens verifies that multiple additional checkouts
+// can each carry their own token and that persist-credentials defaults to false for all of them.
+func TestCheckoutManager_MultipleCheckouts_DifferentTokens(t *testing.T) {
+	checkouts := []CheckoutConfig{
+		{
+			Repository: "org/repo-a",
+			Ref:        "main",
+			Token:      "${{ secrets.TOKEN_A }}",
+			Path:       "repo-a",
+		},
+		{
+			Repository: "org/repo-b",
+			Ref:        "develop",
+			Token:      "${{ secrets.TOKEN_B }}",
+			Path:       "repo-b",
+		},
+	}
+
+	mgr := NewCheckoutManager(checkouts, false, "")
+	additional := mgr.GenerateAdditionalCheckoutSteps()
+	addResult := strings.Join(additional, "")
+
+	// Both checkouts should appear with their respective tokens
+	assert.Contains(t, addResult, "repository: org/repo-a", "should include repo-a")
+	assert.Contains(t, addResult, "token: ${{ secrets.TOKEN_A }}", "should include token for repo-a")
+	assert.Contains(t, addResult, "repository: org/repo-b", "should include repo-b")
+	assert.Contains(t, addResult, "token: ${{ secrets.TOKEN_B }}", "should include token for repo-b")
+
+	// persist-credentials must be false for every additional checkout
+	// Count occurrences to confirm both checkouts have it set
+	persistFalseCount := strings.Count(addResult, "persist-credentials: false")
+	assert.Equal(t, 2, persistFalseCount, "every additional checkout must have persist-credentials: false")
+}
+
+// TestCheckoutManager_MultipleCheckouts_DifferentFetchDepths verifies that multiple additional
+// checkouts can specify different fetch depths.
+func TestCheckoutManager_MultipleCheckouts_DifferentFetchDepths(t *testing.T) {
+	checkouts := []CheckoutConfig{
+		// First entry: no path → main checkout override with fetch-depth 0 (full history)
+		{FetchDepth: intPtr(0)},
+		// Second entry: additional checkout with shallow clone (depth 1)
+		{Repository: "org/large-repo", Path: "large-repo", FetchDepth: intPtr(1)},
+		// Third entry: additional checkout with no explicit fetch-depth (omitted → actions/checkout default)
+		{Repository: "org/small-repo", Path: "small-repo"},
+	}
+
+	mgr := NewCheckoutManager(checkouts, false, "")
+
+	mainLines := mgr.GenerateMainCheckoutStep()
+	mainResult := strings.Join(mainLines, "")
+	assert.Contains(t, mainResult, "fetch-depth: 0", "main checkout should have full history (depth 0)")
+	assert.Contains(t, mainResult, "persist-credentials: false", "main checkout must have persist-credentials: false")
+
+	additional := mgr.GenerateAdditionalCheckoutSteps()
+	addResult := strings.Join(additional, "")
+	assert.Contains(t, addResult, "repository: org/large-repo", "should include large-repo")
+	assert.Contains(t, addResult, "fetch-depth: 1", "large-repo should have shallow clone depth 1")
+	assert.Contains(t, addResult, "repository: org/small-repo", "should include small-repo")
+	assert.NotContains(t, addResult, "fetch-depth: 0", "small-repo should not have a fetch-depth line (omitted)")
+}
+
+// TestCheckoutManager_PersistCredentialsFalseDefault_AllCheckouts verifies that persist-credentials
+// defaults to false for every generated checkout step when not explicitly set by the user.
+func TestCheckoutManager_PersistCredentialsFalseDefault_AllCheckouts(t *testing.T) {
+	checkouts := []CheckoutConfig{
+		// Main checkout override (no path)
+		{Ref: "release/1.0"},
+		// Additional checkouts
+		{Repository: "org/lib1", Path: "lib1"},
+		{Repository: "org/lib2", Path: "lib2"},
+		{Repository: "org/lib3", Path: "lib3", Token: "${{ secrets.LIB3_TOKEN }}"},
+	}
+
+	mgr := NewCheckoutManager(checkouts, false, "")
+
+	mainResult := strings.Join(mgr.GenerateMainCheckoutStep(), "")
+	assert.Contains(t, mainResult, "persist-credentials: false", "main checkout must default to persist-credentials: false")
+
+	additionalResult := strings.Join(mgr.GenerateAdditionalCheckoutSteps(), "")
+	// Three additional checkouts, each must have persist-credentials: false
+	persistFalseCount := strings.Count(additionalResult, "persist-credentials: false")
+	assert.Equal(t, 3, persistFalseCount, "all 3 additional checkouts must have persist-credentials: false")
+}
+
+// TestCheckoutManager_AdditionalCheckout_TokenNotPropagatedToMain verifies that a token specified
+// in an additional checkout (one with a path) is NOT propagated to the main checkout step.
+func TestCheckoutManager_AdditionalCheckout_TokenNotPropagatedToMain(t *testing.T) {
+	checkouts := []CheckoutConfig{
+		{Repository: "org/private-data", Path: "data", Token: "${{ secrets.DATA_TOKEN }}"},
+	}
+
+	mgr := NewCheckoutManager(checkouts, false, "")
+
+	mainResult := strings.Join(mgr.GenerateMainCheckoutStep(), "")
+	// The main checkout step must NOT inherit the token from the additional checkout
+	assert.NotContains(t, mainResult, "${{ secrets.DATA_TOKEN }}", "main checkout must not inherit token from additional checkout")
+	assert.Contains(t, mainResult, "persist-credentials: false", "main checkout must still have persist-credentials: false")
+
+	addResult := strings.Join(mgr.GenerateAdditionalCheckoutSteps(), "")
+	assert.Contains(t, addResult, "token: ${{ secrets.DATA_TOKEN }}", "additional checkout should have its token")
+}
