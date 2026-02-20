@@ -75,6 +75,22 @@ func (c *Compiler) ParseWorkflowFile(markdownPath string) (*WorkflowData, error)
 		workflowData.Features = mergedFeatures
 	}
 
+	// Merge checkout configurations from imports (appended as additional checkouts)
+	if engineSetup.importsResult.MergedCheckouts != "" {
+		var importedCheckouts []any
+		if err := json.Unmarshal([]byte(engineSetup.importsResult.MergedCheckouts), &importedCheckouts); err != nil {
+			orchestratorWorkflowLog.Printf("Warning: failed to unmarshal merged checkouts from imports: %v", err)
+		} else {
+			parsed, parseErr := parseCheckoutConfig(importedCheckouts)
+			if parseErr != nil {
+				orchestratorWorkflowLog.Printf("Warning: failed to parse merged checkouts from imports: %v", parseErr)
+			} else {
+				workflowData.CustomCheckouts = append(workflowData.CustomCheckouts, parsed...)
+				orchestratorWorkflowLog.Printf("Merged %d checkout(s) from imports", len(parsed))
+			}
+		}
+	}
+
 	// Process and merge custom steps with imported steps
 	c.processAndMergeSteps(result.Frontmatter, workflowData, engineSetup.importsResult)
 

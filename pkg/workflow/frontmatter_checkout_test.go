@@ -179,3 +179,186 @@ checkout:
 	assert.Contains(t, lockStr, "repository: org/mytools", "should include the repo")
 	assert.Contains(t, lockStr, "path: mytools", "should auto-derive path from repo slug")
 }
+
+// TestFrontmatterCheckout_ImportedSingleCheckout verifies that a checkout field in an imported
+// agentic workflow is merged into the main workflow as an additional checkout.
+func TestFrontmatterCheckout_ImportedSingleCheckout(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-import-single-test")
+
+	// Shared/imported workflow that declares a checkout for an extra repo
+	importContent := `---
+checkout:
+  repository: org/shared-tools
+  ref: v1.0.0
+  path: shared-tools
+---
+
+# Shared Tools
+
+Use shared tools from org/shared-tools.
+`
+	importPath := filepath.Join(tmpDir, "shared.md")
+	require.NoError(t, os.WriteFile(importPath, []byte(importContent), 0644))
+
+	// Main workflow that imports the shared workflow
+	mainContent := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+imports:
+  - shared.md
+---
+
+# Main Workflow
+
+Complete the task.
+`
+	workflowPath := filepath.Join(tmpDir, "main.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(mainContent), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+
+	lockStr := string(lockContent)
+
+	// The imported checkout should appear as an additional checkout step
+	assert.Contains(t, lockStr, "repository: org/shared-tools", "should include imported repository")
+	assert.Contains(t, lockStr, "ref: v1.0.0", "should include imported ref")
+	assert.Contains(t, lockStr, "path: shared-tools", "should include imported path")
+	assert.Contains(t, lockStr, "persist-credentials: false", "should default persist-credentials to false")
+
+	// Main checkout should still be present
+	assert.Contains(t, lockStr, "name: Checkout repository", "should still have main checkout")
+
+	// Main checkout should come before the imported additional checkout
+	mainIdx := strings.Index(lockStr, "name: Checkout repository")
+	importedIdx := strings.Index(lockStr, "repository: org/shared-tools")
+	assert.Less(t, mainIdx, importedIdx, "main checkout should precede imported additional checkout")
+}
+
+// TestFrontmatterCheckout_ImportedArrayCheckout verifies that multiple checkout entries in an
+// imported agentic workflow are all merged as additional checkouts.
+func TestFrontmatterCheckout_ImportedArrayCheckout(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-import-array-test")
+
+	// Shared/imported workflow that declares multiple checkouts
+	importContent := `---
+checkout:
+  - repository: org/lib-a
+    path: lib-a
+  - repository: org/lib-b
+    ref: develop
+    path: lib-b
+---
+
+# Shared Libraries
+`
+	importPath := filepath.Join(tmpDir, "libs.md")
+	require.NoError(t, os.WriteFile(importPath, []byte(importContent), 0644))
+
+	mainContent := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+imports:
+  - libs.md
+---
+
+# Main Workflow
+`
+	workflowPath := filepath.Join(tmpDir, "main.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(mainContent), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+
+	lockStr := string(lockContent)
+
+	// Both imported checkouts should be present
+	assert.Contains(t, lockStr, "repository: org/lib-a", "should include first imported checkout")
+	assert.Contains(t, lockStr, "path: lib-a", "should include first imported path")
+	assert.Contains(t, lockStr, "repository: org/lib-b", "should include second imported checkout")
+	assert.Contains(t, lockStr, "ref: develop", "should include second imported ref")
+	assert.Contains(t, lockStr, "path: lib-b", "should include second imported path")
+}
+
+// TestFrontmatterCheckout_MainAndImportedMerged verifies that checkout configs from both the
+// main workflow and an imported workflow are merged: the main workflow's config controls the main
+// checkout step, and the imported workflow's checkout(s) are appended as additional checkouts.
+func TestFrontmatterCheckout_MainAndImportedMerged(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "frontmatter-checkout-main-and-import-test")
+
+	// Imported workflow declares an additional checkout
+	importContent := `---
+checkout:
+  repository: org/data
+  ref: main
+  path: data
+---
+
+# Data
+`
+	importPath := filepath.Join(tmpDir, "data.md")
+	require.NoError(t, os.WriteFile(importPath, []byte(importContent), 0644))
+
+	// Main workflow overrides the main checkout ref AND imports the shared workflow
+	mainContent := `---
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: read
+engine: copilot
+strict: false
+checkout:
+  ref: my-branch
+imports:
+  - data.md
+---
+
+# Main Workflow
+`
+	workflowPath := filepath.Join(tmpDir, "main.md")
+	require.NoError(t, os.WriteFile(workflowPath, []byte(mainContent), 0644))
+
+	compiler := NewCompiler()
+	require.NoError(t, compiler.CompileWorkflow(workflowPath))
+
+	lockFile := strings.TrimSuffix(workflowPath, ".md") + ".lock.yml"
+	lockContent, err := os.ReadFile(lockFile)
+	require.NoError(t, err)
+
+	lockStr := string(lockContent)
+
+	// Main checkout should use the main workflow's ref override
+	assert.Contains(t, lockStr, "name: Checkout repository", "should have main checkout step")
+	assert.Contains(t, lockStr, "ref: my-branch", "main checkout should use main workflow's ref")
+
+	// The imported additional checkout should also be present
+	assert.Contains(t, lockStr, "repository: org/data", "should include imported repo")
+	assert.Contains(t, lockStr, "path: data", "should include imported path")
+
+	// Main checkout precedes imported additional checkout
+	mainCheckoutIdx := strings.Index(lockStr, "name: Checkout repository")
+	importedCheckoutIdx := strings.Index(lockStr, "repository: org/data")
+	assert.Less(t, mainCheckoutIdx, importedCheckoutIdx, "main checkout should come before imported checkout")
+}

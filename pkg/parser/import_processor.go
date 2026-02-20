@@ -36,6 +36,7 @@ type ImportsResult struct {
 	MergedPostSteps     string           // Merged post-steps configuration from all imports (appended in order)
 	MergedLabels        []string         // Merged labels from all imports (union of label names)
 	MergedCaches        []string         // Merged cache configurations from all imports (appended in order)
+	MergedCheckouts     string           // Merged checkout configurations from all imports (JSON array)
 	MergedJobs          string           // Merged jobs from imported YAML workflows (JSON format)
 	MergedFeatures      []map[string]any // Merged features configuration from all imports (parsed YAML structures)
 	ImportedFiles       []string         // List of imported file paths (for manifest)
@@ -263,6 +264,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 	var skipBots []string                 // Track unique skip-bots
 	skipBotsSet := make(map[string]bool)  // Set for deduplicating skip-bots
 	var caches []string                   // Track cache configurations (appended in order)
+	var checkouts []any                   // Track checkout configurations from imports (as JSON-parsed values)
 	var jobsBuilder strings.Builder       // Track jobs from imported YAML workflows
 	var features []map[string]any         // Track features configurations from imports (parsed structures)
 	var agentFile string                  // Track custom agent file
@@ -791,6 +793,26 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 			caches = append(caches, cacheContent)
 		}
 
+		// Extract checkout from imported file (append all checkout configs as additional checkouts)
+		checkoutContent, err := extractCheckoutFromContent(string(content))
+		if err == nil && checkoutContent != "" {
+			// The checkout field can be a single object or an array of objects.
+			// Normalise to []any so we can accumulate across multiple imports.
+			var checkoutRaw any
+			if jsonErr := json.Unmarshal([]byte(checkoutContent), &checkoutRaw); jsonErr != nil {
+				log.Printf("Warning: failed to parse checkout config from import %s: %v", item.fullPath, jsonErr)
+			} else {
+				switch v := checkoutRaw.(type) {
+				case []any:
+					checkouts = append(checkouts, v...)
+					log.Printf("Extracted %d checkout(s) from import: %s", len(v), item.fullPath)
+				case map[string]any:
+					checkouts = append(checkouts, v)
+					log.Printf("Extracted 1 checkout from import: %s", item.fullPath)
+				}
+			}
+		}
+
 		// Extract features from imported file (parse as map structure)
 		featuresContent, err := extractFeaturesFromContent(string(content))
 		if err == nil && featuresContent != "" && featuresContent != "{}" {
@@ -835,6 +857,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 		MergedPostSteps:     postStepsBuilder.String(),
 		MergedLabels:        labels,
 		MergedCaches:        caches,
+		MergedCheckouts:     checkoutsToJSON(checkouts),
 		MergedJobs:          jobsBuilder.String(),
 		MergedFeatures:      features,
 		ImportedFiles:       topologicalOrder,
@@ -843,6 +866,20 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 		RepositoryImports:   repositoryImports,
 		ImportInputs:        importInputs,
 	}, nil
+}
+
+// checkoutsToJSON serialises a slice of checkout config values to a JSON array string.
+// Returns an empty string if the slice is empty.
+func checkoutsToJSON(checkouts []any) string {
+	if len(checkouts) == 0 {
+		return ""
+	}
+	data, err := json.Marshal(checkouts)
+	if err != nil {
+		log.Printf("Warning: failed to serialise merged checkout configs to JSON: %v", err)
+		return ""
+	}
+	return string(data)
 }
 
 // findCyclePath uses DFS to find a complete cycle path in the dependency graph

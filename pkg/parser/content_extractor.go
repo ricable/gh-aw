@@ -192,6 +192,12 @@ func extractCacheFromContent(content string) (string, error) {
 	return extractFrontmatterField(content, "cache", "{}")
 }
 
+// extractCheckoutFromContent extracts checkout section from frontmatter as JSON string.
+// The checkout field can be a single object or an array of checkout config objects.
+func extractCheckoutFromContent(content string) (string, error) {
+	return extractFrontmatterField(content, "checkout", "")
+}
+
 // extractFeaturesFromContent extracts features section from frontmatter as JSON string
 func extractFeaturesFromContent(content string) (string, error) {
 	return extractFrontmatterField(content, "features", "{}")
