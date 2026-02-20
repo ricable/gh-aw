@@ -1,89 +1,90 @@
-# Workflow Health Dashboard - 2026-02-19
+# Workflow Health Dashboard - 2026-02-20
 
 ## Overview
-- **Total workflows**: 152 (152 executable)
-- **Healthy**: 149 (98%)
-- **Warning**: 3 (2%) — failing scheduled runs
+- **Total workflows**: 153 (153 executable, 36 shared includes excluded)
+- **Healthy**: 150 (98%)
+- **Warning**: 3 (2%) — lockdown token failures + intermittent safe_outputs error
 - **Critical**: 0 (0%)
-- **Compilation coverage**: 152/152 (100% ✅)
-- **Outdated lock files**: 16 (MD newer than lock)
-- **Overall health score**: 88/100 (↓ -7 from 95)
+- **Compilation coverage**: 153/153 (100% ✅)
+- **Outdated lock files**: 15 (MD newer than lock — down 1 from yesterday's 16)
+- **Overall health score**: 85/100 (↓ -3 from yesterday's 88)
 
-## Status: GOOD with Notable Issues
+## Status: GOOD — Active P1 Issue Ongoing
 
-System is mostly healthy. Three scheduled workflows failing today.
+P1 lockdown token issue persists and has expanded to include Issue Monster (runs every 30 min).
 
 ### Health Assessment Summary
 
-- ✅ **0 compilation failures** (all 152 workflows compile successfully)
-- ✅ **100% compilation coverage** (152/152 lock files present)
-- ⚠️ **16 workflows with outdated lock files** (MD modified after lock compilation)
-- ❌ **3 scheduled workflow failures** (2 lockdown auth, 1 safe_outputs permission)
+- ✅ **0 compilation failures** (all 153 workflows compile successfully)
+- ✅ **100% compilation coverage** (153/153 lock files present)
+- ⚠️ **15 outdated lock files** (MD modified after lock compilation — needs recompile)
+- ❌ **P1: Lockdown token missing** — 3 workflows failing
+- ⚠️ **P2: Duplicate Code Detector intermittent** — succeeded today, but alternating pattern
 
 ## Critical Issues 🚨
 
-### ✅ NO CRITICAL ISSUES (P0)
+### ✅ NO CRITICAL P0 ISSUES
 
 ## Warnings ⚠️
 
-### [P1] PR Triage Agent + Daily Issues Report Generator - Lockdown Token Missing (Score: 40/100)
-- **Status:** Failing (PR Triage: 2+ consecutive days; Daily Issues: today)
-- **Error:** Lockdown mode enabled but GH_AW_GITHUB_TOKEN/GH_AW_GITHUB_MCP_SERVER_TOKEN not set
-- **Impact:** PR categorization paused, daily issue analytics not running
-- **Action:** Issue created - fix requires setting GH_AW_GITHUB_TOKEN secret
-- **Runs:** 22171130204 (PR Triage), 22165491563 (Daily Issues)
+### [P1] Lockdown Token Missing — 3 Workflows Failing (Score: 40/100)
+- **Affected workflows**: Issue Monster (every 30min!), PR Triage Agent (every 6h), Daily Issues Report Generator (daily)
+- **Issue**: #16776 (updated today with Issue Monster escalation)
+- **Error**: `GH_AW_GITHUB_TOKEN` not configured; lockdown mode requires custom token
+- **Impact**: ~50+ failures/day (Issue Monster 30-min schedule × ~46 failures/day)
+- **Fix**: Set `GH_AW_GITHUB_TOKEN` repository secret
+- **Runs**: [§22215346914](https://github.com/github/gh-aw/actions/runs/22215346914), [§22213875229](https://github.com/github/gh-aw/actions/runs/22213875229)
 
-### [P2] Duplicate Code Detector - Safe Outputs Permission Error (Score: 60/100)
-- **Status:** Failing today
-- **Error:** FORBIDDEN when assigning Copilot to issue #16739 via GraphQL (replaceActorsForAssignable)
-- **Impact:** Duplicate code analysis not publishing results
-- **Action:** Issue created for investigation
-- **Run:** 22167968348
+### [P2] Duplicate Code Detector — Intermittent safe_outputs FORBIDDEN (Score: 65/100)
+- **Status**: Succeeded today (2026-02-20T03:58)! But was failing on 2/19 and 2/18
+- **Pattern**: Alternating success/failure — may be transient API error
+- **Issue**: #16778 (updated today noting today's success)
+- **Recommendation**: Monitor for 3+ more cycles before closing
 
 ## Healthy Workflows ✅
 
-**149 workflows (98%)** operating normally today.
+**150 workflows (98%)** operating normally.
+
+## Outdated Lock Files (15)
+
+MD files modified after their lock files — should be recompiled with `make recompile`:
+- ai-moderator.md
+- bot-detection.md
+- cli-consistency-checker.md
+- daily-firewall-report.md
+- daily-multi-device-docs-tester.md
+- daily-regulatory.md
+- daily-security-red-team.md
+- functional-pragmatist.md
+- glossary-maintainer.md
+- lockfile-stats.md
+- notion-issue-summary.md
+- prompt-clustering-analysis.md
+- tidy.md
+- video-analyzer.md
+- workflow-skill-extractor.md
 
 ## Systemic Issues
 
-### Lockdown Mode Token Missing
-- **Affected workflows:** 2 (PR Triage Agent, Daily Issues Report Generator)
-- **Pattern:** Both have `tools.github.lockdown: true` requiring custom token
-- **Root cause:** GH_AW_GITHUB_TOKEN secret not configured in repository
-- **Other workflows at risk:** 15 additional workflows with lockdown enabled may fail if triggered
-
-## Outdated Lock Files (16)
-
-These MD files were modified after their lock files were compiled. They should be recompiled:
-- agent-performance-analyzer.md
-- archie.md
-- breaking-change-checker.md
-- daily-cli-tools-tester.md
-- daily-observability-report.md
-- dev-hawk.md
-- docs-noob-tester.md
-- mcp-inspector.md
-- org-health-report.md
-- poem-bot.md
-- repo-audit-analyzer.md
-- schema-consistency-checker.md
-- sergo.md
-- smoke-copilot.md
-- static-analysis-report.md
-- ubuntu-image-analyzer.md
+### Lockdown Token Missing (P1 — Ongoing from Feb 18)
+- **Affected workflows**: 3 confirmed failing; 15+ at risk (have lockdown: true)
+- **Root cause**: `GH_AW_GITHUB_TOKEN` / `GH_AW_GITHUB_MCP_SERVER_TOKEN` not set
+- **Escalation**: Issue Monster failures now ~46/day (every 30 min schedule)
+- **Action**: Issue #16776 updated with Issue Monster impact
+- **Resolution path**: Set `GH_AW_GITHUB_TOKEN` repository secret
 
 ## Actions Taken This Run
 
-- Created 2 new issues (P1 lockdown token issue, P2 safe_outputs permission)
-- Identified 16 outdated lock files
-- No existing health issues needed updating
+- Added comment to issue #16776 escalating Issue Monster impact
+- Added comment to issue #16778 noting Duplicate Code Detector may be self-healing
+- Identified 15 outdated lock files (down from 16 yesterday — 1 recompiled)
 
-## Engine Distribution (152 executable workflows)
+## Engine Distribution (153 executable workflows)
 - Copilot: ~72 (47%)
 - Claude: ~31 (20%)
 - Codex: ~9 (6%)
-- Other/Unspecified: ~40 (26%)
+- Other/Unspecified: ~41 (27%)
 
 ---
-> Last updated: 2026-02-19T07:32:00Z (run 22172610317)
-> Next check: 2026-02-20 (daily schedule)
+> Last updated: 2026-02-20T07:30:55Z (run 22215406972)
+> Next check: 2026-02-21 (daily schedule)

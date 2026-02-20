@@ -122,3 +122,23 @@
 - ⚠️ 16 outdated lock files need recompile (run `make recompile`)
 - ⚠️ Smoke macOS ARM64 infra issue (2 consecutive failures) needs investigation
 - ✅ All other 152 workflows healthy
+
+
+## 2026-02-20 - Workflow Health Alert
+
+### Lockdown Token Missing - ESCALATED (P1)
+- **Issue Monster NOW FAILING** - runs every 30 minutes, generating ~46 failures/day
+- **Root cause unchanged**: GH_AW_GITHUB_TOKEN not set in repository
+- **Total affected**: Issue Monster + PR Triage Agent + Daily Issues Report = 3 workflows
+- **Impact**: ~50+ failed runs per day (Issue Monster is primary driver)
+- **Issue**: #16776 updated with escalation
+
+### Duplicate Code Detector (P2) — Partial Recovery
+- Succeeded today (2026-02-20T03:58) after 2 consecutive failures
+- Alternating success/failure pattern suggests intermittent API flakiness
+- Issue #16778 updated; monitor 3 more cycles before closing
+
+### Compilation Coverage: 15 stale lock files
+- 15 MD files newer than their lock.yml (was 16 yesterday, 1 resolved)
+- Needs `make recompile` to update
+
