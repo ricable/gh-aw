@@ -135,13 +135,15 @@ func TestCheckoutManager_TrialMode(t *testing.T) {
 	assert.Contains(t, result, "token:", "should include token in trial mode")
 }
 
-func TestCheckoutManager_CustomPersistCredentials(t *testing.T) {
-	co := CheckoutConfig{PersistCredentials: boolPtr(true)}
+func TestCheckoutManager_PersistCredentialsAlwaysFalse(t *testing.T) {
+	// persist-credentials must always be false; it cannot be overridden by the user.
+	co := CheckoutConfig{Ref: "my-branch"}
 	mgr := NewCheckoutManager([]CheckoutConfig{co}, false, "")
 	lines := mgr.GenerateMainCheckoutStep()
 	result := strings.Join(lines, "")
 
-	assert.Contains(t, result, "persist-credentials: true", "should respect user-specified persist-credentials")
+	assert.Contains(t, result, "persist-credentials: false", "persist-credentials must always be false")
+	assert.NotContains(t, result, "persist-credentials: true", "persist-credentials must never be true")
 }
 
 func TestCheckoutManager_FetchDepth(t *testing.T) {
@@ -260,7 +262,7 @@ func TestCheckoutManager_MultipleCheckouts_DifferentFetchDepths(t *testing.T) {
 }
 
 // TestCheckoutManager_PersistCredentialsFalseDefault_AllCheckouts verifies that persist-credentials
-// defaults to false for every generated checkout step when not explicitly set by the user.
+// is always false for every generated checkout step regardless of what the user configures.
 func TestCheckoutManager_PersistCredentialsFalseDefault_AllCheckouts(t *testing.T) {
 	checkouts := []CheckoutConfig{
 		// Main checkout override (no path)

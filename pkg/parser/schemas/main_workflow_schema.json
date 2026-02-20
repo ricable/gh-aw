@@ -6795,10 +6795,6 @@
               "type": "string",
               "description": "Relative path under GITHUB_WORKSPACE to place the repository."
             },
-            "persist-credentials": {
-              "type": "boolean",
-              "description": "Whether to configure the token or SSH key with the local git config. Default: false."
-            },
             "clean": {
               "type": "boolean",
               "description": "Whether to execute git clean -ffdx and git reset --hard HEAD before fetching."

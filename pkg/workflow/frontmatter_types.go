@@ -88,13 +88,13 @@ type RateLimitConfig struct {
 
 // CheckoutConfig represents a single actions/checkout configuration.
 // Supports the same fields as the actions/checkout action.
+// Note: persist-credentials is always set to false for security and cannot be overridden.
 type CheckoutConfig struct {
 	Repository             string `json:"repository,omitempty"`                // Repository to check out (default: current repo)
 	Ref                    string `json:"ref,omitempty"`                       // Branch, tag, or SHA to check out
 	Token                  string `json:"token,omitempty"`                     // Personal access token or app token
 	SSHKey                 string `json:"ssh-key,omitempty"`                   // SSH key used to fetch the repository
 	Path                   string `json:"path,omitempty"`                      // Relative path under GITHUB_WORKSPACE to place the repository
-	PersistCredentials     *bool  `json:"persist-credentials,omitempty"`       // Whether to persist credentials after checkout (default: false for security)
 	Clean                  *bool  `json:"clean,omitempty"`                     // Whether to run git clean before fetching
 	Filter                 string `json:"filter,omitempty"`                    // Partial clone filter (e.g. "blob:none")
 	SparseCheckout         string `json:"sparse-checkout,omitempty"`           // List of patterns for sparse checkout

@@ -46,6 +46,7 @@ func (m *CheckoutManager) GenerateMainCheckoutStep() []string {
 	lines = append(lines, "        with:\n")
 
 	// Start from defaults.
+	// persist-credentials is always false and cannot be overridden by user config.
 	persistCredentials := false
 
 	// Collect overrides from user-specified first checkout (if it has no explicit path,
@@ -77,9 +78,6 @@ func (m *CheckoutManager) GenerateMainCheckoutStep() []string {
 		setSafeDirectory = override.SetSafeDirectory
 		sparseCheckoutConeMode = override.SparseCheckoutConeMode
 		clean = override.Clean
-		if override.PersistCredentials != nil {
-			persistCredentials = *override.PersistCredentials
-		}
 	}
 
 	// Trial mode overrides: set repository and token when running in trial mode.
@@ -217,12 +215,8 @@ func (m *CheckoutManager) generateAdditionalCheckoutStep(co CheckoutConfig, inde
 	}
 	lines = append(lines, fmt.Sprintf("          path: %s\n", path))
 
-	// Default persist-credentials to false for security.
-	persistCredentials := false
-	if co.PersistCredentials != nil {
-		persistCredentials = *co.PersistCredentials
-	}
-	lines = append(lines, fmt.Sprintf("          persist-credentials: %v\n", persistCredentials))
+	// persist-credentials is always false and cannot be overridden.
+	lines = append(lines, "          persist-credentials: false\n")
 
 	if co.Clean != nil {
 		lines = append(lines, fmt.Sprintf("          clean: %v\n", *co.Clean))
