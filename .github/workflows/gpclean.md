@@ -37,7 +37,7 @@ tools:
 strict: false
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 
 # Pre-download SBOM to get accurate dependency information
 steps:

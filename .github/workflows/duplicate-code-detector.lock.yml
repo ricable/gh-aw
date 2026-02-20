@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c5be1cf2be142247a13c39ee11de63cdc913ae5a3d2d9ab9fb9394c2ae9cb7b4"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6959e34e3f3612dd207aa1e3782d9b7b59eca6910291816264ab122c899717b7"}
 
 name: "Duplicate Code Detector"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/duplicate-code-detector.md}}

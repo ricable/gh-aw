@@ -30,7 +30,7 @@
 #     - shared/mood.md
 #     - shared/safe-output-app.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bd7e980e642e393d5eac39ee0e8725f55831fe46639d839ecd5df22fb3a10fa5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"28a52709ff4df94b56ced1b3e9869376585acf26ead71e371cc873501e7f1943"}
 
 name: "Changeset Generator"
 "on":
@@ -199,7 +199,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/changeset-format.md}}

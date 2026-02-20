@@ -61,7 +61,7 @@ steps:
       cd docs
       npm ci
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Slide Deck Maintenance Agent

@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"743012e6a439e77b6d31205b9932b4addefdf20e31f5c23e6c51706134cdf25b"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"50cb36b0254017702f116e6c00eab6dec00296045962fe2b618e055a1186e5d7"}
 
 name: "Discussion Task Miner - Code Quality Improvement Agent"
 "on":
@@ -201,7 +201,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/jqschema.md}}

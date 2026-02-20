@@ -28,7 +28,7 @@ safe-outputs:
     max: 1
     close-older-discussions: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Terminal Stylist - Console Output Analysis

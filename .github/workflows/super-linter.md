@@ -18,7 +18,7 @@ engine: copilot
 name: Super Linter Report
 timeout-minutes: 15
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - shared/reporting.md
 jobs:
   super_linter:

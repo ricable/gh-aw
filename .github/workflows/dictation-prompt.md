@@ -16,7 +16,7 @@ engine: copilot
 network: defaults
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - shared/reporting.md
 
 tools:

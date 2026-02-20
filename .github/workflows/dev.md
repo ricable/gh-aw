@@ -19,7 +19,7 @@ safe-outputs:
     expires: 7d
     title-prefix: "[Daily Report] "
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Daily Status Report

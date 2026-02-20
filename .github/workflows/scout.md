@@ -16,7 +16,7 @@ permissions:
   pull-requests: read
 engine: claude
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - shared/reporting.md
   - shared/mcp/arxiv.md
   - shared/mcp/tavily.md

@@ -28,7 +28,7 @@
 #     - ../agents/ci-cleaner.agent.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"a357047a49d2c10cfbbaab657ff9b46b83d17cbe04a033659d38cc572be8b382"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b80e53294db0e32423b0886f65721237f954dd5f641c0c04966258e31a70a313"}
 
 name: "CI Cleaner"
 "on":
@@ -173,7 +173,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/agents/ci-cleaner.agent.md}}

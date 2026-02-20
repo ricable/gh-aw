@@ -28,7 +28,7 @@
 #     - shared/mcp/brave.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"683e68dc826ae90ab36845403914608d2ae16919e3d0956152b061c60167576d"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"94dfd2c476982a718f9746f71d3c76d272de68e293a76e521170375ae4d0e054"}
 
 name: "Brave Web Search Agent"
 "on":
@@ -197,7 +197,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/mcp/brave.md}}

@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Instructions for Test Workflow

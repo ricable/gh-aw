@@ -27,7 +27,7 @@ concurrency:
   group: "refiner-${{ github.event.pull_request.number }}"
   cancel-in-progress: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Code Refiner

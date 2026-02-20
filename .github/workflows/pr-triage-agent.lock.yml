@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6bffeabbdd66874bb410dc01865464d03144d69bdcb1b9eac3e87ded92ae0cb0"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"247430e899b61b98e672372cc93d34759d87e94994a8725538ba932f7c7f8965"}
 
 name: "PR Triage Agent"
 "on":
@@ -198,7 +198,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/pr-triage-agent.md}}

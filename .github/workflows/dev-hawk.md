@@ -33,7 +33,7 @@ safe-outputs:
 timeout-minutes: 15
 strict: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Dev Hawk - Development Workflow Monitor

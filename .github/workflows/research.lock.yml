@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3bc5d7adac1eba642348e556da6fdda43302f69b1feb09a404149133388f1b30"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bbf094ee9e7e520f8411de0d013e86105810575873814b1a2d88caaf7950add3"}
 
 name: "Basic Research Agent"
 "on":
@@ -175,7 +175,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/mcp/tavily.md}}

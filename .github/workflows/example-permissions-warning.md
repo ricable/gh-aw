@@ -15,7 +15,7 @@ strict: false
 features:
   dangerous-permissions-write: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Example: Properly Provisioned Permissions

@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"babf32bc0f17f143da2d3cc6c7216050da644b62975734638fce5fb7b16f3994"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"defc7bb4eb63bb532a522e3188ad89e5d5862fb8ada9dd5bb7cfacdc6b17ed3f"}
 
 name: "Release"
 "on":
@@ -182,7 +182,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/release.md}}

@@ -10,7 +10,7 @@ safe-outputs:
       - test-workflow
     max: 1
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Test Dispatcher Workflow

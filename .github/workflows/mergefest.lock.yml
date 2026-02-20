@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"946dbc3d5e53e272910bb2afeb49edbe63b3a9afe24498ff1534dbb1cd64fc84"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"072736b0e981f8cbb2fc715116c77ec8562efd628479115be72f599c3cf96bb4"}
 
 name: "Mergefest"
 "on":
@@ -194,7 +194,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/mergefest.md}}

@@ -28,7 +28,7 @@
 #     - shared/mcp/semgrep.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bf2dc5ae4b7422012fdb44020461f3632d0c60609a575dce0f43ede2ac85a69f"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"786f386848f7370fa9eabc908849c311cb7c57129388947a80cfa68362cc190a"}
 
 name: "Daily Semgrep Scan"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/mcp/semgrep.md}}

@@ -28,7 +28,7 @@
 #     - shared/ffmpeg.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f2304eadcdad1d6d90cedf29453667ccc710f1775b3ffc0adb9684b85740b9c0"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"e7dce02393124599dcb8b2fb7cc4b30915e641d5790570e78998f8d9a3d1fcfb"}
 
 name: "Video Analysis Agent"
 "on":
@@ -174,7 +174,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/ffmpeg.md}}

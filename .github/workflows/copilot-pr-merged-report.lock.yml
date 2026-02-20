@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"21c2db42dcc980075b13f9e2c95fd5fce54934011d134071fa162e57e9d9d243"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3786ad3b8029c3c53ce6231436a00189f4621e11531b4eb1a35012df4702a6e3"}
 
 name: "Daily Copilot PR Merged Report"
 "on":
@@ -137,7 +137,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/gh.md}}

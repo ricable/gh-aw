@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"705a6dad8951578693e72a9fad0af462c327259f5effc63da94c17442df1a2fd"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"2648c2f9a0db90a32e613363da0071530c984661a25a0a77144dce79a38f203b"}
 
 name: "Code Simplifier"
 "on":
@@ -174,7 +174,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

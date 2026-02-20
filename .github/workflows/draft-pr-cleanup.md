@@ -29,7 +29,7 @@ safe-outputs:
     run-failure: "❌ Draft PR cleanup failed! [{workflow_name}]({run_url}) {status}. Some draft PRs may not be processed."
 timeout-minutes: 20
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Draft PR Cleanup Agent 🧹

@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"185e8e9fea9c9af8fff8ab7305985b79a14fcf173b44bccb604bb9cef76117b9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"904f8b4707b30206c0de6137f50cc456372073f7cd72a3230d1145708d56a10e"}
 
 name: "Daily CLI Performance Agent"
 "on":
@@ -202,7 +202,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

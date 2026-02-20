@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c99a64c4ce143d7bf55240d81d76c63f88ead024ce63d0b64301207de70b1b44"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"167a58c233e25d8980cdeb7de9e5090a6e47b783b9916e0dc59a6876d43a2b35"}
 
 name: "Terminal Stylist"
 "on":
@@ -170,7 +170,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/terminal-stylist.md}}

@@ -13,7 +13,7 @@ tools:
 timeout-minutes: 5
 strict: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Codex GitHub Remote MCP Test

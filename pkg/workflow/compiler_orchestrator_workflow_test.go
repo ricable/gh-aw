@@ -32,7 +32,7 @@ func TestBuildInitialWorkflowData_BasicFields(t *testing.T) {
 		frontmatterName:      "Test Frontmatter Name",
 		trackerID:            "TRACKER-123",
 		importedMarkdown:     "Imported content",
-		importPaths:          []string{"/path/to/import"},
+		importPaths:          []parser.ImportPath{{Path: "/path/to/import"}},
 		mainWorkflowMarkdown: "Main markdown",
 		allIncludedFiles:     []string{"/file1", "/file2"},
 		markdownContent:      "Full markdown content",
@@ -72,7 +72,7 @@ func TestBuildInitialWorkflowData_BasicFields(t *testing.T) {
 	assert.Equal(t, "TRACKER-123", workflowData.TrackerID)
 	assert.Equal(t, []string{"/imported/file"}, workflowData.ImportedFiles)
 	assert.Equal(t, "Imported content", workflowData.ImportedMarkdown)
-	assert.Equal(t, []string{"/path/to/import"}, workflowData.ImportPaths)
+	assert.Equal(t, []parser.ImportPath{{Path: "/path/to/import"}}, workflowData.ImportPaths)
 	assert.Equal(t, "Main markdown", workflowData.MainWorkflowMarkdown)
 	assert.Equal(t, []string{"/file1", "/file2"}, workflowData.IncludedFiles)
 	assert.Equal(t, "Full markdown content", workflowData.MarkdownContent)
@@ -1405,7 +1405,7 @@ func TestBuildInitialWorkflowData_FieldMapping(t *testing.T) {
 		markdownContent:      "# Content",
 		importedMarkdown:     "Imported",
 		mainWorkflowMarkdown: "Main",
-		importPaths:          []string{"/path1", "/path2"},
+		importPaths:          []parser.ImportPath{{Path: "/path1"}, {Path: "/path2"}},
 		allIncludedFiles:     []string{"/file1"},
 		tools:                map[string]any{"tool1": "config1"},
 		runtimes:             map[string]any{"runtime1": "v1"},
@@ -1438,7 +1438,7 @@ func TestBuildInitialWorkflowData_FieldMapping(t *testing.T) {
 	assert.Equal(t, "# Content", workflowData.MarkdownContent)
 	assert.Equal(t, "Imported", workflowData.ImportedMarkdown)
 	assert.Equal(t, "Main", workflowData.MainWorkflowMarkdown)
-	assert.Equal(t, []string{"/path1", "/path2"}, workflowData.ImportPaths)
+	assert.Equal(t, []parser.ImportPath{{Path: "/path1"}, {Path: "/path2"}}, workflowData.ImportPaths)
 	assert.Equal(t, []string{"/file1"}, workflowData.IncludedFiles)
 	assert.Equal(t, "copilot", workflowData.AI)
 	assert.NotNil(t, workflowData.Tools)

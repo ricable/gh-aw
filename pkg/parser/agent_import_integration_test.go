@@ -105,8 +105,8 @@ This workflow imports a custom agent with array-format tools.`
 
 	expectedImportPath := ".github/agents/feature-flag-remover.agent.md"
 	found := false
-	for _, path := range result.ImportPaths {
-		if path == expectedImportPath {
+	for _, ip := range result.ImportPaths {
+		if ip.Path == expectedImportPath {
 			found = true
 			break
 		}

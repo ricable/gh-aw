@@ -22,7 +22,7 @@ safe-outputs:
 timeout-minutes: 60
 strict: true
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Daily CLI Tools Exploratory Tester

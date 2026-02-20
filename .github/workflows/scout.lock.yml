@@ -34,7 +34,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f4dcca3eea6547e9841ec07c4248de1cf7d8c54ad12cf47c63edca5a5fd3b472"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b42bb71b03c763e01e8f6cdeda5ce9236956a8c7a01595a33452ace1226efe5b"}
 
 name: "Scout"
 "on":
@@ -247,7 +247,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

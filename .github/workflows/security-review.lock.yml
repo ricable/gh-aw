@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7ed05f87d4291aa66da0c27f6ecb72eefa9cbe3a4653046c50372a2b1d08693b"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"78d294778bc53dc377e50f8d259d78c427dab9c5c8b9b7bc30b9314735651276"}
 
 name: "Security Review Agent 🔒"
 "on":
@@ -201,7 +201,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/security-review.md}}

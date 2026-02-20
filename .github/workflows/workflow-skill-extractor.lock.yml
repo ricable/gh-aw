@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"78cb8ee1a41e1061163bed55c1d04a284852cecfca965bbd6eae93b28ed15f4e"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"281a0dbd7a98d159d2a8ca3946fcd0028ee68ff129a4be4160615e7b68a93c4a"}
 
 name: "Workflow Skill Extractor"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

@@ -42,7 +42,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"0b3a36033c9a5a9f012dcaaadda443842af75df8d790b2999c8be7eb89bdfae6"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"1eddadc04f7783af2851c07d3b332ed04080a308639f414a72e26c86c113ea89"}
 
 name: "MCP Inspector Agent"
 "on":
@@ -186,7 +186,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/mcp/arxiv.md}}

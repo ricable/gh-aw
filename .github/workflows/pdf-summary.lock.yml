@@ -28,7 +28,7 @@
 #     - shared/mcp/markitdown.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f0ff631d24bf99cb08f3741f3d450fdb207c9deb09362f1d8b0196a4464bd7b3"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7e007952bbda0e3e5cfde530a7655d57de17e9cb6748efafe293b6243e5b7e36"}
 
 name: "Resource Summarizer Agent"
 "on":
@@ -219,7 +219,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/mcp/markitdown.md}}

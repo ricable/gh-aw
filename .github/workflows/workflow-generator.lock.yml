@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"a050c2eeebe0b225b5e51f8bb7e533314d35f338d1db67669665b1be4b8adfb9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c26b351ef63b03173b8a5a951d6b979ee1970d7c99b0c2339a117ec066dba28e"}
 
 name: "Workflow Generator"
 "on":
@@ -198,7 +198,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/workflow-generator.md}}

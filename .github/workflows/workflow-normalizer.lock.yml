@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"45bc7216cd4ae98e16bbe10affdf05c580698482093dade0516ec7a7e515da36"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7a9a9d3ac441f3cfa873ff43a226f9137739ce0471d11e21a296c91c218ae14c"}
 
 name: "Workflow Normalizer"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

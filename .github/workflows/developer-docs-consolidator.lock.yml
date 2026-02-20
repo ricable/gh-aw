@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"52018fcc1971e79d8598808b6fdeab210e06a9d148d2356c2f86e09903365c20"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"68d1f456fef99dbe7dd47a1b7d13d3e9bfa95850ec0e6b9511295d54fde72f52"}
 
 name: "Developer Documentation Consolidator"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

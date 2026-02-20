@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"26fbe593cfc5a0684979a0dc435a2235bcf8162ae42bd42b0cc9abd00308c37c"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b14ee96afa7fdaa6786db1c3c3e8a4e5817a94e335dcab23369d8c97389783e9"}
 
 name: "Dev Hawk"
 "on":
@@ -186,7 +186,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/dev-hawk.md}}

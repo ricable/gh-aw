@@ -26,7 +26,7 @@ safe-outputs:
     max: 20
 timeout-minutes: 15
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Sub-Issue Closer 🔒

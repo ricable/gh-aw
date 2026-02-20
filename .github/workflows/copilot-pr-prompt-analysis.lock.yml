@@ -30,7 +30,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4972670408e854d61ea1cef39e96003b6ca7526c2107920ae0c38b000837c6d9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"764114caf9bef2a06d60d5aa87cce595f0e0d97f9020af6116978d6ba62a04f4"}
 
 name: "Copilot PR Prompt Pattern Analysis"
 "on":
@@ -203,7 +203,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/jqschema.md}}

@@ -112,7 +112,7 @@ safe-outputs:
   missing-tool:
 timeout-minutes: 45
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - ../agents/ci-cleaner.agent.md
 ---
 

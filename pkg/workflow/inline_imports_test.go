@@ -363,7 +363,7 @@ func TestInlinedImports_AgentFileCleared(t *testing.T) {
 		frontmatterName:      "agent-test",
 		parsedFrontmatter:    &FrontmatterConfig{Name: "agent-test", Engine: "copilot", InlinedImports: true},
 		tools:                map[string]any{},
-		importPaths:          []string{".github/agents/my-agent.md"},
+		importPaths:          []parser.ImportPath{{Path: ".github/agents/my-agent.md"}},
 		mainWorkflowMarkdown: "# Main",
 	}
 

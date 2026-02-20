@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f309fe23c13debe9a3441258ac96fbe446d207aabeb50ecd7e0543a20786d79a"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3f1f65c43e2c7674619b14f92e0d242bb31e67f99e4ce5438cdc0e3e7b43bf25"}
 
 name: "Step Name Alignment"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/step-name-alignment.md}}

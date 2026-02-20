@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ccda8e38ee3a43619d6ab3ce9db317722d6a78804c4f49a1b4a9117d2ff021c7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"87423a454731e5964c5da2c9fcb4042b72f88df950632a8ff5da61499961b2be"}
 
 name: "Test Create PR Error Handling"
 "on":
@@ -168,7 +168,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/test-create-pr-error-handling.md}}

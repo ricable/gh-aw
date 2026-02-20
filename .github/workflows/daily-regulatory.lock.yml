@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6bc7064192101134f213231bc2126aa30b3211cd5bbdc6bef2cafe81b22aa250"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"01a89d6b4fe085cfcbcb3306769d3d55193f605d86a0f5b194a7912419034304"}
 
 name: "Daily Regulatory Report Generator"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/github-queries-safe-input.md}}

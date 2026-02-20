@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"67a1744589def0d89133d581aee4b752753adbdc77f9d76790c1e16ee98b2508"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"933d7717866c165c8be06a338bac4b3db1312c6aad35af66b6fa6ef2b2d4cf89"}
 
 name: "Sub-Issue Closer"
 "on":
@@ -170,7 +170,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/sub-issue-closer.md}}

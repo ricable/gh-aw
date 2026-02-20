@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"92f2186cfc3bb66ef47342e0e23abc1ed566cc0dee63d87b741daf49a91d9041"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7ab2d6d929508faed764bef9e9503403b9ce86b056c3e5b662d9109f9e86b434"}
 
 name: "Firewall Test Agent"
 "on":
@@ -138,7 +138,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/firewall.md}}

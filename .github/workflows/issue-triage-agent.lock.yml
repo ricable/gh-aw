@@ -27,7 +27,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"9dbd3ff61f5a92eac5a99a5c46b452bfe4d91bbca94dc325cc4a4bfc969e005e"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c188e598d2dc28722620e82d5b8ffce493a924ed2441c61270dac70ec502c69a"}
 
 name: "Issue Triage Agent"
 "on":
@@ -161,7 +161,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

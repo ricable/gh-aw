@@ -36,7 +36,7 @@ tools:
   bash: [":*"]
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 # Dependabot Dependency Checker
 

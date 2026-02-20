@@ -26,7 +26,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"07c26a0fb014466ca768c00f41b46da3610d4a95f012914facf6adfd5775b924"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"309efc1a88e258aea933c163073062534247b4a0c16f750c1fbd9fbaa08a9fb8"}
 
 name: "Test Dispatcher Workflow"
 "on":
@@ -166,7 +166,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/test-dispatcher.md}}

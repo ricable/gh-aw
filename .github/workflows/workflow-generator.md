@@ -27,7 +27,7 @@ safe-outputs:
     allowed: [copilot]    # Only allow copilot agent
 timeout-minutes: 5
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 {{#runtime-import? .github/shared-instructions.md}}

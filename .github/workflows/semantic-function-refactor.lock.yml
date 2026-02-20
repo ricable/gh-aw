@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"924435422df46c5a9975adf255f0a3725fe02c8ae3a8cfc5323ee48a3b7c7680"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"658772960403bf14ad5e7b0254294218d1c1d53bfb92753d13a2d224eb0e65d9"}
 
 name: "Semantic Function Refactoring"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

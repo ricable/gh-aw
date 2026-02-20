@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7885ee82ff0bf979506525a90d1f509fafeac200be62ed4d79552baa077a33ee"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"adf76e9f62f2058f2d929eea13b33065b7ad6f3b18be027b836593e5057bd787"}
 
 name: "Example: Properly Provisioned Permissions"
 "on":
@@ -138,7 +138,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/example-permissions-warning.md}}

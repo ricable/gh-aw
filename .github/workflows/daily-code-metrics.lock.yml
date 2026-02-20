@@ -30,7 +30,7 @@
 #     - shared/reporting.md
 #     - shared/trends.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"90cdc96a45c8d61adb30503e3d00a4cd026b94d383b6f24c9727afd0a2358d48"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"27194d7df80716a88ce6ceaa8a90876a1c9743a28e81516dea417d72c27cf774"}
 
 name: "Daily Code Metrics and Trend Tracking Agent"
 "on":
@@ -203,7 +203,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

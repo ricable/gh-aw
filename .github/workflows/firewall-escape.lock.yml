@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"fe3a2df8fd1997bea5ed310c527762f76c1e696a8aa649c51e6437865f20e570"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f28c5f47fd09656850e02a6c58c324738374ecfd4e5060a80fbe78c6d80f49f8"}
 
 name: "The Great Escapi"
 "on":
@@ -221,7 +221,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/firewall-escape.md}}

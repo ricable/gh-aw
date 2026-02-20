@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"16b65f0e91dbbc230a48657381e9955e83742a9972b9f6a66209b9496390fac3"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"1488eafc6235aff066132b97bf600f6d31cd7c7f9c89c6c8cb1b9589a0d157f3"}
 
 name: "Layout Specification Maintainer"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/layout-spec-maintainer.md}}

@@ -30,7 +30,7 @@
 #     - shared/reporting.md
 #     - shared/weekly-issues-data-fetch.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ec5f80ed35d36217ef602a57a7a7c5b79beb42045b888888ddc0d8e9dea1deb9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c8027112b0ecf4e19f550c4cb78be874d04d87d4ee1427de093dfc149b1f38a8"}
 
 name: "DeepReport - Intelligence Gathering Agent"
 "on":
@@ -202,7 +202,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/jqschema.md}}

@@ -367,7 +367,7 @@ steps:
       
       echo "✓ Setup complete. Data available in /tmp/gh-aw/release-data/"
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Release Highlights Generator

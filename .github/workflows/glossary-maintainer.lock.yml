@@ -29,7 +29,7 @@
 #     - ../skills/documentation/SKILL.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6be00c3b09c8b878bc763fb4b2d95a59f1458420d6c2d07c3c0b87b7186032f2"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"8b65d0886b83886a835dbd3786d619961e8cf4353066a6365a65ff1361745dab"}
 
 name: "Glossary Maintainer"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/skills/documentation/SKILL.md}}

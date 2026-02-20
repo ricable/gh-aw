@@ -37,7 +37,7 @@ tools:
 timeout-minutes: 15
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 {{#runtime-import? .github/shared-instructions.md}}

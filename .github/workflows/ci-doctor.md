@@ -52,7 +52,7 @@ timeout-minutes: 20
 
 source: githubnext/agentics/workflows/ci-doctor.md@ea350161ad5dcc9624cf510f134c6a9e39a6f94d
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 # CI Failure Doctor
 

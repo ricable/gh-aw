@@ -21,7 +21,7 @@ type ImportsResult struct {
 	MergedSafeOutputs   []string         // Merged safe-outputs configurations from all imports
 	MergedSafeInputs    []string         // Merged safe-inputs configurations from all imports
 	MergedMarkdown      string           // Only contains imports WITH inputs (for compile-time substitution)
-	ImportPaths         []string         // List of import file paths for runtime-import macro generation (replaces MergedMarkdown)
+	ImportPaths         []ImportPath     // List of import file paths for runtime-import macro generation (replaces MergedMarkdown)
 	MergedSteps         string           // Merged steps configuration from all imports (excluding copilot-setup-steps)
 	CopilotSetupSteps   string           // Steps from copilot-setup-steps.yml (inserted at start)
 	MergedRuntimes      string           // Merged runtimes configuration from all imports
@@ -67,7 +67,15 @@ type ImportSpec struct {
 	// Inputs uses map[string]any because input values can be different types (string, number, boolean).
 	// This is parsed from YAML frontmatter and validated against the imported workflow's input definitions.
 	// This is an appropriate use of 'any' for dynamic YAML data. See scratchpad/go-type-patterns.md.
-	Inputs map[string]any // Optional input values to pass to the imported workflow (values are string, number, or boolean)
+	Inputs   map[string]any // Optional input values to pass to the imported workflow (values are string, number, or boolean)
+	Optional bool           // Whether the import is optional (won't fail at runtime if file is not found)
+}
+
+// ImportPath represents a resolved import file path with an optional flag.
+// It is used to generate runtime-import macros in compiled workflows.
+type ImportPath struct {
+	Path     string // Resolved relative path (e.g., ".github/workflows/shared/mood.md")
+	Optional bool   // Whether the import is optional (generates {{#runtime-import? ...}} instead of {{#runtime-import ...}})
 }
 
 // ProcessImportsFromFrontmatter processes imports field from frontmatter
@@ -103,6 +111,7 @@ type importQueueItem struct {
 	baseDir      string              // Base directory for resolving nested imports
 	inputs       map[string]any      // Optional input values from parent import
 	remoteOrigin *remoteImportOrigin // Remote origin context (non-nil when imported from a remote repo)
+	optional     bool                // Whether the import is optional (won't fail at runtime if file is not found)
 }
 
 // parseRemoteOrigin extracts the remote origin (owner, repo, ref, basePath) from a workflowspec path.
@@ -192,10 +201,12 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 		for _, item := range v {
 			switch importItem := item.(type) {
 			case string:
-				// Simple string import
-				importSpecs = append(importSpecs, ImportSpec{Path: importItem})
+				// Simple string import; a trailing '?' marks the import as optional
+				optional := strings.HasSuffix(importItem, "?")
+				path := strings.TrimSuffix(importItem, "?")
+				importSpecs = append(importSpecs, ImportSpec{Path: path, Optional: optional})
 			case map[string]any:
-				// Object import with path and optional inputs
+				// Object import with path, optional inputs, and optional flag
 				pathValue, hasPath := importItem["path"]
 				if !hasPath {
 					return nil, fmt.Errorf("import object must have a 'path' field")
@@ -212,14 +223,22 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 						return nil, fmt.Errorf("import 'inputs' must be an object")
 					}
 				}
-				importSpecs = append(importSpecs, ImportSpec{Path: pathStr, Inputs: inputs})
+				optional := false
+				if optionalValue, hasOptional := importItem["optional"]; hasOptional {
+					if optBool, ok := optionalValue.(bool); ok {
+						optional = optBool
+					}
+				}
+				importSpecs = append(importSpecs, ImportSpec{Path: pathStr, Inputs: inputs, Optional: optional})
 			default:
 				return nil, fmt.Errorf("import item must be a string or an object with 'path' field")
 			}
 		}
 	case []string:
 		for _, s := range v {
-			importSpecs = append(importSpecs, ImportSpec{Path: s})
+			optional := strings.HasSuffix(s, "?")
+			path := strings.TrimSuffix(s, "?")
+			importSpecs = append(importSpecs, ImportSpec{Path: path, Optional: optional})
 		}
 	default:
 		return nil, fmt.Errorf("imports field must be an array of strings or objects")
@@ -240,7 +259,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 	var toolsBuilder strings.Builder
 	var mcpServersBuilder strings.Builder
 	var markdownBuilder strings.Builder // Only used for imports WITH inputs (compile-time substitution)
-	var importPaths []string            // NEW: Track import paths for runtime-import macro generation
+	var importPaths []ImportPath        // Track import paths for runtime-import macro generation
 	var stepsBuilder strings.Builder
 	var copilotSetupStepsBuilder strings.Builder // Track copilot-setup-steps.yml separately
 	var runtimesBuilder strings.Builder
@@ -347,6 +366,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 				baseDir:      baseDir,
 				inputs:       importSpec.Inputs,
 				remoteOrigin: origin,
+				optional:     importSpec.Optional,
 			})
 			log.Printf("Queued import: %s (resolved to %s)", importPath, fullPath)
 		} else {
@@ -399,7 +419,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 			// Imports with inputs must be inlined for compile-time substitution
 			if len(item.inputs) == 0 {
 				// No inputs - use runtime-import macro
-				importPaths = append(importPaths, importRelPath)
+				importPaths = append(importPaths, ImportPath{Path: importRelPath, Optional: item.optional})
 				log.Printf("Added agent import path for runtime-import: %s", importRelPath)
 			} else {
 				// Has inputs - must inline for compile-time substitution
@@ -606,7 +626,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 
 		if len(item.inputs) == 0 {
 			// No inputs - use runtime-import macro
-			importPaths = append(importPaths, importRelPath)
+			importPaths = append(importPaths, ImportPath{Path: importRelPath, Optional: item.optional})
 			log.Printf("Added import path for runtime-import: %s", importRelPath)
 		} else {
 			// Has inputs - must inline for compile-time substitution

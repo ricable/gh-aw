@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"cc1c94747da840c74962f07d39790a155b1e5db82cfdf90d68d66a08c88261bd"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"cb9744dde75af0cb30d5a397f2bd1120ff013860fc1486d35fe4a02505bf815f"}
 
 name: "Dependabot Dependency Checker"
 "on":
@@ -169,7 +169,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/dependabot-go-checker.md}}

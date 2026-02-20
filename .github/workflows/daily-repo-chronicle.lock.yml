@@ -30,7 +30,7 @@
 #     - shared/reporting.md
 #     - shared/trends.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d21247582c90694ba02e48d0848e944097f89cee7bb36bbae2ab756246b38218"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"1ddf772d2553fd42eac81bbc06f94dcd41958462fe43a7da98de96ced6466e38"}
 
 name: "The Daily Repository Chronicle"
 "on":
@@ -173,7 +173,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

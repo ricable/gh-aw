@@ -295,13 +295,17 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 			// inlinedImports mode: read import file content from disk and embed directly
 			compilerYamlLog.Printf("Inlining %d imports without inputs at compile time", len(data.ImportPaths))
 			workspaceRoot := resolveWorkspaceRoot(c.markdownPath)
-			for _, importPath := range data.ImportPaths {
-				importPath = filepath.ToSlash(importPath)
+			for _, ip := range data.ImportPaths {
+				importPath := filepath.ToSlash(ip.Path)
 				rawContent, err := os.ReadFile(filepath.Join(workspaceRoot, importPath))
 				if err != nil {
 					// Fall back to runtime-import macro if file cannot be read
 					compilerYamlLog.Printf("Warning: failed to read import file %s (%v), falling back to runtime-import", importPath, err)
-					userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import %s}}", importPath))
+					if ip.Optional {
+						userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import? %s}}", importPath))
+					} else {
+						userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import %s}}", importPath))
+					}
 					continue
 				}
 				importedBody, extractErr := parser.ExtractMarkdownContent(string(rawContent))
@@ -316,10 +320,14 @@ func (c *Compiler) generatePrompt(yaml *strings.Builder, data *WorkflowData) {
 		} else {
 			// Normal mode: generate runtime-import macros (loaded at workflow runtime)
 			compilerYamlLog.Printf("Generating runtime-import macros for %d imports without inputs", len(data.ImportPaths))
-			for _, importPath := range data.ImportPaths {
-				importPath = filepath.ToSlash(importPath)
-				userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import %s}}", importPath))
-				compilerYamlLog.Printf("Added runtime-import macro for: %s", importPath)
+			for _, ip := range data.ImportPaths {
+				importPath := filepath.ToSlash(ip.Path)
+				if ip.Optional {
+					userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import? %s}}", importPath))
+				} else {
+					userPromptChunks = append(userPromptChunks, fmt.Sprintf("{{#runtime-import %s}}", importPath))
+				}
+				compilerYamlLog.Printf("Added runtime-import macro for: %s (optional=%v)", importPath, ip.Optional)
 			}
 		}
 	}

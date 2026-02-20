@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d7ffc854b27bffb4edd06d2b7b04a3a8a1a94f914dad44da5d7f379733d6bed6"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"5d46eb30a3283b03e11205131fb6d8fa4ef3be4a533eaf4c3e1915823be853c2"}
 
 name: "Q"
 "on":
@@ -234,7 +234,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/q.md}}

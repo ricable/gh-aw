@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c13922bec3785215d9cdbb17ce40255c6e721fa53fa97f16951eb755efedda71"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"67383dfc38a0d737c0b7c1c7df0d410aac26e39e72823169d44f8412c6e3fed0"}
 
 name: "Repository Audit & Agentic Workflow Opportunity Analyzer"
 "on":
@@ -176,7 +176,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

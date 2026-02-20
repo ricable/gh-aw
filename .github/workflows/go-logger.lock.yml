@@ -28,7 +28,7 @@
 #     - shared/go-make.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"1b7a07ffb55ab7777d1b68f610f5787a6c7ec4e6cec45547deb6b87e0e75c5d9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4b2513561b842ba5f2d80db87aa12ae4ed739b41c525b2d99f44fe4156efa8ba"}
 
 name: "Go Logger Enhancement"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/go-make.md}}

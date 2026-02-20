@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4a20ced305fc13a621c88fcb860d2fd687bfdf76b64efca648bfe1a6cd0a901d"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d67d44b9ad2fe2fcd229ab15cd69682d9c40e2122135bf70b2b5df3a2f81a2c4"}
 
 name: "Codex GitHub Remote MCP Test"
 "on":
@@ -138,7 +138,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/codex-github-remote-mcp-test.md}}

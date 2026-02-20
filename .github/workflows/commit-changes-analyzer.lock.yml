@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4e6df452f0e9512538c4d63796bee8f915a0e25b266056e9b97c32b699efca07"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"48ee18ca6b90dc2c9d7a1eeab32d91683008635efee2c15caade7a43e5796a57"}
 
 name: "Commit Changes Analyzer"
 "on":
@@ -174,7 +174,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"539fce339b1d147f6bc4b1027bcaf931b6b380c3328ab9678aec5fe64741e654"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c5bee9a9b03b3e1124666102dc03869639bb5fb28a0dcf3ea2e88a6c16c494f4"}
 
 name: "Daily Choice Type Test"
 "on":
@@ -169,7 +169,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/daily-choice-test.md}}

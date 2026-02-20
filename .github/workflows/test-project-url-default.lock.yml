@@ -26,7 +26,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4b8eb1036171f89a3f37409cafdf433cf2dab9a4199718beb62624953b63c1a5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3bf0fb8520e425c4ee30adac830defaf8879427fbc68438e5c6ae1ce03417b23"}
 
 name: "Test Project URL Explicit Requirement"
 "on":
@@ -166,7 +166,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/test-project-url-default.md}}

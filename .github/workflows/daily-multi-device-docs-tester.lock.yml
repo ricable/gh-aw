@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"9e6110edfa7c964892ed77f2dc67f6ea1fc0d608c64f7bed5820fd1abd7c14a3"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f81e5c5cf61e5025faf6b08a69df6faeb5c24a7794c01408078c40afbf0ea701"}
 
 name: "Multi-Device Docs Tester"
 "on":
@@ -179,7 +179,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/docs-server-lifecycle.md}}

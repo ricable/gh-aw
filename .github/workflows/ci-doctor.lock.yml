@@ -29,7 +29,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f6f3ed85b8cc88a34b75b6b25dc64109e56e188dcafc2b09d8b578783c7cadc5","stop_time":"2026-03-03 16:27:58"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"0c1f8f1b59bd5bfe2f3dfbf0ec1f5164ec16bf0759437637e293b939b97055af","stop_time":"2026-03-03 16:27:58"}
 #
 # Effective stop-time: 2026-03-03 16:27:58
 
@@ -191,7 +191,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/ci-doctor.md}}

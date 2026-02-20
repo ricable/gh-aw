@@ -22,7 +22,7 @@ tools:
 
 timeout-minutes: 5
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Firewall Test Agent

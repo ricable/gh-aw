@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3a033f6c1d3cb3b98f326f5cbef7bd65bf5c65496c593df323570deaf055c140"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"eb9a98051c6b9c08ddd1758e56b90699679924e430c6d6ebfc6174179d9c7910"}
 
 name: "Documentation Unbloat"
 "on":
@@ -198,7 +198,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

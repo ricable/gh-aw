@@ -52,7 +52,7 @@ steps:
       .github/workflows/*.yml
       EOF
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Mergefest - Merge Main into Pull Request Branch

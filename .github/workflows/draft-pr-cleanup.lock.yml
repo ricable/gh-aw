@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3eb180640f80ddff447563d5c635ca11913c2cd790726258e0f4f6449c2f6ba1"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bbbc89b29aad906a1381f01f05d948c5b01e5860354e583b5336eecbf5f1ddad"}
 
 name: "Draft PR Cleanup"
 "on":
@@ -170,7 +170,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/draft-pr-cleanup.md}}

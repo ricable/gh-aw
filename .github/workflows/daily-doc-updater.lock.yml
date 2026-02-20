@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d1a2d516f7068ad1b5e4e6b7c3ab516b836f4ac88fa9ae382f618ba4a18a8f31"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3d39746c88280018be491c0d3756ed2f07cdd171e450164e8f71ae29c2aee0c8"}
 
 name: "Daily Documentation Updater"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/daily-doc-updater.md}}

@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"5ca7d98654eda20f8127f62bff3547e10253af296a8ca719f146f41cc44007ad"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"61f03c8fe7acb707c569eb6ffea90e8335e64117c8fd7e42e2ecba712315dcd4"}
 
 name: "Grumpy Code Reviewer 🔥"
 "on":
@@ -201,7 +201,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/grumpy-reviewer.md}}

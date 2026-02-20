@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"dc34e052a20e5b53d141cd9277e9497b52ffebc098737e1b728e4ed3bf5a71bc"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"72779fb122808b373d03b934ce54d7d70e462f2818c23e6c94a55724e9f9856a"}
 
 name: "Issue Monster"
 "on":
@@ -181,7 +181,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/issue-monster.md}}

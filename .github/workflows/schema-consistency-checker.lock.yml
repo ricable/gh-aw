@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"e0c0d60ffc976afffa787b28c44b95390d0d72d04a3845f11b62d8431ed03bf7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7cb137c09893cc0e43bf955c59946eae85d856cd57c044f70001de633d115bab"}
 
 name: "Schema Consistency Checker"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"430804aa2b800754e8433a813738ef7b49b0f94802c06aa4aba44839a68c6ee5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d6a4ae170b926070ee2edd25f75a42d883c64999251a6aea46fcbb9fa87e7f4c"}
 
 name: "Daily Malicious Code Scan Agent"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

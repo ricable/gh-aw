@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"aa7fce20f46c91d13365971033a86852d56ae8a3114035cb19c7bb0e038ad05d"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b893b3811d734af7059cb91f1ea5b6288cd1341bec43989c3086491ac0b75422"}
 
 name: "Tidy"
 "on":
@@ -207,7 +207,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/tidy.md}}

@@ -387,20 +387,20 @@ type SkipIfNoMatchConfig struct {
 // WorkflowData holds all the data needed to generate a GitHub Actions workflow
 type WorkflowData struct {
 	Name                  string
-	WorkflowID            string         // workflow identifier derived from markdown filename (basename without extension)
-	TrialMode             bool           // whether the workflow is running in trial mode
-	TrialLogicalRepo      string         // target repository slug for trial mode (owner/repo)
-	FrontmatterName       string         // name field from frontmatter (for code scanning alert driver default)
-	FrontmatterYAML       string         // raw frontmatter YAML content (rendered as comment in lock file for reference)
-	Description           string         // optional description rendered as comment in lock file
-	Source                string         // optional source field (owner/repo@ref/path) rendered as comment in lock file
-	TrackerID             string         // optional tracker identifier for created assets (min 8 chars, alphanumeric + hyphens/underscores)
-	ImportedFiles         []string       // list of files imported via imports field (rendered as comment in lock file)
-	ImportedMarkdown      string         // Only imports WITH inputs (for compile-time substitution)
-	ImportPaths           []string       // Import file paths for runtime-import macro generation (imports without inputs)
-	MainWorkflowMarkdown  string         // main workflow markdown without imports (for runtime-import)
-	IncludedFiles         []string       // list of files included via @include directives (rendered as comment in lock file)
-	ImportInputs          map[string]any // input values from imports with inputs (for github.aw.inputs.* substitution)
+	WorkflowID            string              // workflow identifier derived from markdown filename (basename without extension)
+	TrialMode             bool                // whether the workflow is running in trial mode
+	TrialLogicalRepo      string              // target repository slug for trial mode (owner/repo)
+	FrontmatterName       string              // name field from frontmatter (for code scanning alert driver default)
+	FrontmatterYAML       string              // raw frontmatter YAML content (rendered as comment in lock file for reference)
+	Description           string              // optional description rendered as comment in lock file
+	Source                string              // optional source field (owner/repo@ref/path) rendered as comment in lock file
+	TrackerID             string              // optional tracker identifier for created assets (min 8 chars, alphanumeric + hyphens/underscores)
+	ImportedFiles         []string            // list of files imported via imports field (rendered as comment in lock file)
+	ImportedMarkdown      string              // Only imports WITH inputs (for compile-time substitution)
+	ImportPaths           []parser.ImportPath // Import file paths for runtime-import macro generation (imports without inputs)
+	MainWorkflowMarkdown  string              // main workflow markdown without imports (for runtime-import)
+	IncludedFiles         []string            // list of files included via @include directives (rendered as comment in lock file)
+	ImportInputs          map[string]any      // input values from imports with inputs (for github.aw.inputs.* substitution)
 	On                    string
 	Permissions           string
 	Network               string // top-level network permissions configuration

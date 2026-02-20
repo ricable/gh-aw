@@ -22,9 +22,9 @@ type toolsProcessingResult struct {
 	toolsTimeout          int
 	toolsStartupTimeout   int
 	markdownContent       string
-	importedMarkdown      string   // Only imports WITH inputs (for compile-time substitution)
-	importPaths           []string // Import paths for runtime-import macro generation (imports without inputs)
-	mainWorkflowMarkdown  string   // main workflow markdown without imports (for runtime-import)
+	importedMarkdown      string              // Only imports WITH inputs (for compile-time substitution)
+	importPaths           []parser.ImportPath // Import paths for runtime-import macro generation (imports without inputs)
+	mainWorkflowMarkdown  string              // main workflow markdown without imports (for runtime-import)
 	allIncludedFiles      []string
 	workflowName          string
 	frontmatterName       string
@@ -248,7 +248,7 @@ func (c *Compiler) processToolsAndMarkdown(result *parser.FrontmatterResult, cle
 	orchestratorToolsLog.Printf("Main workflow markdown: %d bytes", len(mainWorkflowMarkdown))
 
 	// Get import paths for runtime-import macro generation
-	var importPaths []string
+	var importPaths []parser.ImportPath
 	if len(importsResult.ImportPaths) > 0 {
 		importPaths = importsResult.ImportPaths
 		orchestratorToolsLog.Printf("Found %d import paths for runtime-import macros", len(importPaths))

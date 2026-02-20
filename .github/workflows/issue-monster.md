@@ -376,7 +376,7 @@ safe-outputs:
     run-success: "🍪 YUMMY! [{workflow_name}]({run_url}) ate the issues! That was DELICIOUS! Me want MORE! 😋"
     run-failure: "🍪 Aww... [{workflow_name}]({run_url}) {status}. No cookie for monster today... 😢"
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 {{#runtime-import? .github/shared-instructions.md}}

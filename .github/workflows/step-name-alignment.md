@@ -40,7 +40,7 @@ tools:
 timeout-minutes: 30
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Step Name Alignment Agent

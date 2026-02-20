@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"dd5b1cf14d889cff1920700e1c5a7e21da34d3a24a65aa868baf56ae3ee545c5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"fead50de4d3883a68f28ab210d0445da40a0d9fa9d20296ebb3746f0336998b5"}
 
 name: "Code Refiner"
 "on":
@@ -195,7 +195,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/refiner.md}}

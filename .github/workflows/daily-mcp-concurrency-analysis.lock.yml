@@ -29,7 +29,7 @@
 #     - shared/reporting.md
 #     - shared/safe-output-app.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bc52631a37fe6785998fcb5a6400ebeb5b4d2da5c838d56fbc3fd624af8c782b"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"19dd762e174b0e816b6bf9c55a18c08317cc1991681f400974947cb346619f59"}
 
 name: "Daily MCP Tool Concurrency Analysis"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

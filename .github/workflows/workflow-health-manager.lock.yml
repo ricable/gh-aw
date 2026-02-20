@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"766a0d320d7f42f719cd210f29f2e5a5598c281d919a261a98aa039d8c567b4a"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"298ce64632c4fc349543ce07731397605462183a0f51f54187dd599efa302c52"}
 
 name: "Workflow Health Manager - Meta-Orchestrator"
 "on":
@@ -202,7 +202,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

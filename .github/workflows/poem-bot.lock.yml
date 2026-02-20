@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"81547dd4016c398ec096fdae259f7510c7cedd738270ca04908bfbed2afa1434"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6b07e5cbf0fc203ff2a10abab0c3caf324a4523a96e7c4d643002e0345d6cf6e"}
 
 name: "Poem Bot - A Creative Agentic Workflow"
 "on":
@@ -209,7 +209,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

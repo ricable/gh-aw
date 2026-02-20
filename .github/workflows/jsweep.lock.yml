@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"82e16b7b3a0ce0b39dfee5117a7c00bc1872067efe3ea45cd0114ff2165f04d5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"1aa39b19a5ef44e2cc8f4175987f9f08ca2e090e9af7868aad9e3f36ac6f32e0"}
 
 name: "jsweep - JavaScript Unbloater"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/jsweep.md}}

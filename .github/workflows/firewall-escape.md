@@ -82,7 +82,7 @@ jobs:
               labels: ['bug', 'firewall', 'automated']
             });
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # The Great Escapi

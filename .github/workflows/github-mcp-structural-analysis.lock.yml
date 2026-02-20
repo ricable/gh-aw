@@ -29,7 +29,7 @@
 #     - shared/python-dataviz.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"329406755679f6647c46ccab5fdddc915f5d0c0d8302a577d3a1d948d3507485"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b200855e46c75dd5e97ca6e6d55ba3bbd1f69b50247b5a4a5ec82cca0fec9f26"}
 
 name: "GitHub MCP Structural Analysis"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/python-dataviz.md}}

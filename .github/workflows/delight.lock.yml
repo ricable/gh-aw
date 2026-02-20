@@ -29,7 +29,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"5d3fa85ee78d735768e3eed71ff9938099cf307d5ce63783fccaaafc79cde722"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"92782064ffb81c4196f6b9d5ef1ada70a598a1ac86f358ea0aed71a3e15a443e"}
 
 name: "Delight"
 "on":
@@ -201,7 +201,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

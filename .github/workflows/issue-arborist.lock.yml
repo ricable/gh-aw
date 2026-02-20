@@ -28,7 +28,7 @@
 #     - shared/jqschema.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3e2e9592039edbceb3148d98dbe9956e03d8e43c76aede673d2bdb751af40cf9"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"6e160cc6ac911aa7799d84b132d6aa20a0154fbbe6180df9996736a40074c687"}
 
 name: "Issue Arborist"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/jqschema.md}}

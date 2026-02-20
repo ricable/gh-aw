@@ -32,7 +32,7 @@ safe-outputs:
     reviewers: [copilot]
 timeout-minutes: 20
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Code Scanning Alert Fixer Agent

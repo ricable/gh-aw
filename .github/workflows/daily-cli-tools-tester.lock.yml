@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"66142a570abd73c9369ad0914b9e623a277d6a57179415f8d89d3c3cedaf5fb5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"9f6cb18752be5a0afba8b4f37c456b471a2a696329770326f5347746e277f995"}
 
 name: "Daily CLI Tools Exploratory Tester"
 "on":
@@ -170,7 +170,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/daily-cli-tools-tester.md}}

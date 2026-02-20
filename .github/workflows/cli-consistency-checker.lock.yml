@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"8a1f53691b774ea3860e020e3178886bf3a66ba36e1f4fba919df4245ccd1187"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7cb92acc251956d88bf31bd416dbe243b775b2024a6ffe30ea7cc4f65ebbd8b1"}
 
 name: "CLI Consistency Checker"
 "on":
@@ -169,7 +169,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/cli-consistency-checker.md}}

@@ -40,7 +40,7 @@ tools:
     file-glob: "memory/campaigns/security-compliance-*/**"
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Security Compliance Campaign

@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"e2e438a39d00b81ff1620cdf156a2ac8bc069c0f48cce484f54df2b0889cb57a"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"876dc2cbc23f7700187986c22283db358be708d21e78ab1b853ce48514fcc736"}
 
 name: "Instructions Janitor"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/instructions-janitor.md}}

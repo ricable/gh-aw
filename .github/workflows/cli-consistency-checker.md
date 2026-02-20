@@ -26,7 +26,7 @@ safe-outputs:
     max: 1
 timeout-minutes: 20
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # CLI Consistency Checker

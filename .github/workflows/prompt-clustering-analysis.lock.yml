@@ -31,7 +31,7 @@
 #     - shared/reporting.md
 #     - shared/trending-charts-simple.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"5916161eaa3bed8bf2747c838309559e94337286bb6b11175d447c18e0f869a6"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"5d5038c54cc9ec4445c5f6c2ca2cdd5dc1152f4b54dd605727a536f000fcbf77"}
 
 name: "Copilot Agent Prompt Clustering Analysis"
 "on":
@@ -177,7 +177,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/jqschema.md}}

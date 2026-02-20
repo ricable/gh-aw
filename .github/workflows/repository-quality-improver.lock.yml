@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"f256013741f67e88eceefb25ee1850aaf8834415cb0f0c02033fe0a8b0c36268"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"bbf0e8455853db15efa64179660d9408f26bda136082aaae0ff74bc218bf9c04"}
 
 name: "Repository Quality Improvement Agent"
 "on":
@@ -171,7 +171,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

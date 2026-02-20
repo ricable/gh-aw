@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"425dcc69c8efb65234bbd88b64f3e34b3b27a8fdb63006bb869c96f654705bbd"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"89f89a8eb9a436a294278d06714f159af0ef75432857a7c39407c4424c69ba56"}
 
 name: "Daily Fact About gh-aw"
 "on":
@@ -155,7 +155,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/daily-fact.md}}

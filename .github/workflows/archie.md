@@ -32,7 +32,7 @@ safe-outputs:
     run-failure: "📐 Drafting interrupted! [{workflow_name}]({run_url}) {status}. The diagram remains incomplete..."
 timeout-minutes: 10
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Archie - Mermaid Diagram Generator

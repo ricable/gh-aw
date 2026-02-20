@@ -36,7 +36,7 @@ network:
     - api.github.com
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - shared/gh.md
   - shared/reporting.md
 

@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"cc633de64b97a33633f5e85772d3fe2f148d66772725296b8bd4b89f776febb3"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c9a87e0c10d47eded4203713b175133ff80eab25939f5959e9e7ed8a1964dacf"}
 
 name: "Daily Security Red Team Agent"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

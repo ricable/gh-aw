@@ -26,7 +26,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"16b742b68d92065e06d1612cf35998e5deadcd8b624ab48e2912fd1ca04cefaa"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"55f33e07c730dece29d5c8720e05c521c5c440b9ce57bb3a3f79c5d8b3cff411"}
 
 name: "Auto-Assign Issue"
 "on":
@@ -169,7 +169,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/daily-assign-issue-to-user.md}}

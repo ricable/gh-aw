@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ecdacefedd21b4c7137f4d517cbc6e88cffbcf923d831cf2fdfb11d2c073302a"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"fe1a0e0f4a0813ce4013a658dd7b5c4780e12813e27a82f46421a04161b34e50"}
 
 name: "Agent Performance Analyzer - Meta-Orchestrator"
 "on":
@@ -202,7 +202,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

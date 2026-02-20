@@ -30,7 +30,7 @@
 #     - shared/python-dataviz.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"deaabcb488823e11d1ab906ba9ac51c2aaab720c7e08fab115b541b522451fa5"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ae6bfb908defac3abccaecc2a0d9d6588d7492cf8f37628d500a3996c5d8e03d"}
 
 name: "Organization Health Report"
 "on":
@@ -174,7 +174,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/python-dataviz.md}}

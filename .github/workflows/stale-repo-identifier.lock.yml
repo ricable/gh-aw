@@ -30,7 +30,7 @@
 #     - shared/python-dataviz.md
 #     - shared/trending-charts-simple.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"7a74321b22eae8f487bc1a8a11c442b27eb59a58c5933ae6c2494ff9fd608a19"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"0adf010dcd4023b8bf3b08d5cf96d8860e49d5322b329e3554d7be5f1be56723"}
 
 name: "Stale Repository Identifier"
 "on":
@@ -183,7 +183,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/python-dataviz.md}}

@@ -29,7 +29,7 @@
 #     - ../skills/documentation/SKILL.md
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"b05af1a6909bac94686311648f15c297edc97293271f28e107ab0b16b3846ed3"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"dc12f3d0a75ea3e8e6087594e9bb1254517225f222c324d1f4d1a110f30053ec"}
 
 name: "Rebuild the documentation after making changes"
 "on":
@@ -176,7 +176,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/skills/documentation/SKILL.md}}

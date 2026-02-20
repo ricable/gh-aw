@@ -28,7 +28,7 @@
 #     - shared/mood.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"e7c02728269fcba4c4f71c4bfbbc8862e65bca98e381597bf3364acd6bc05399"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ab09483ec7e037b676cebb440c83de6ec7e1cfe868f18383584b6cecb43d2e63"}
 
 name: "Lockfile Statistics Analysis Agent"
 "on":
@@ -172,7 +172,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}

@@ -27,7 +27,7 @@
 #   Imports:
 #     - shared/mood.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c708e2e5820dca7c69da7bdc46db153754c7db5eff5ad659c01dc46a14f311d7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"d83f96da96daec9200efd89965f21c5e82a839c6da8abc866aab0bb1f82b1385"}
 
 name: "Plan Command"
 "on":
@@ -200,7 +200,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/plan.md}}

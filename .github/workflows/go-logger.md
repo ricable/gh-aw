@@ -52,7 +52,7 @@ tools:
   cache-memory:
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
   - shared/go-make.md
 
 timeout-minutes: 15

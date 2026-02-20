@@ -38,7 +38,7 @@ tools:
 timeout-minutes: 30
 
 imports:
-  - shared/mood.md
+  - shared/mood.md?
 ---
 
 # Claude Code User Documentation Review

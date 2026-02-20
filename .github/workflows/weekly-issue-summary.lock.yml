@@ -30,7 +30,7 @@
 #     - shared/reporting.md
 #     - shared/trends.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"8fa081d6f6a77d6b13ab6d803c03b43ddb3cedcacc697fe6db5cf6a2726f1cc2"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"eb070a18e758100e81566047638a186101187b75098c221b850bb474ace5b5f0"}
 
 name: "Weekly Issue Summary"
 "on":
@@ -165,7 +165,7 @@ jobs:
           </system>
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
-          {{#runtime-import .github/workflows/shared/mood.md}}
+          {{#runtime-import? .github/workflows/shared/mood.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF' >> "$GH_AW_PROMPT"
           {{#runtime-import .github/workflows/shared/reporting.md}}
