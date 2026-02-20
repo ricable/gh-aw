@@ -12,7 +12,9 @@
  * this module is a no-op.
  */
 
+// @ts-expect-error - global.core is not declared in TypeScript but is provided by github-script
 if (!global.core) {
+  // @ts-expect-error - Assigning to global properties that are declared as const
   global.core = {
     debug: /** @param {string} message */ message => console.debug(`[debug] ${message}`),
     info: /** @param {string} message */ message => console.info(`[info] ${message}`),
