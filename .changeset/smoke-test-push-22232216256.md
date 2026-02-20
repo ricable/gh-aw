@@ -1,1 +1,3 @@
-# Smoke Test Push\n\nSmoke test file for PR push - run 22232216256
+# Smoke Test Push
+
+Smoke test file for PR push - run 22232216256
