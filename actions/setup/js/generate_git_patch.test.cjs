@@ -1,9 +1,26 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
+// Mock the global objects that GitHub Actions provides
+const mockCore = {
+  debug: vi.fn(),
+  info: vi.fn(),
+  notice: vi.fn(),
+  warning: vi.fn(),
+  error: vi.fn(),
+  setFailed: vi.fn(),
+  setOutput: vi.fn(),
+};
+
+// Set up global mocks before importing the module
+global.core = mockCore;
 
 describe("generateGitPatch", () => {
   let originalEnv;
 
   beforeEach(() => {
+    // Reset mocks before each test
+    vi.clearAllMocks();
+
     // Save original environment
     originalEnv = {
       GITHUB_SHA: process.env.GITHUB_SHA,
