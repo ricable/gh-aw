@@ -613,6 +613,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 	completionCmd := cli.NewCompletionCommand()
 	hashCmd := cli.NewHashCommand()
 	projectCmd := cli.NewProjectCommand()
+	lspCmd := cli.NewLSPCommand()
 
 	// Assign commands to groups
 	// Setup Commands
@@ -648,6 +649,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 	completionCmd.GroupID = "utilities"
 	hashCmd.GroupID = "utilities"
 	projectCmd.GroupID = "utilities"
+	lspCmd.GroupID = "development"
 
 	// version command is intentionally left without a group (common practice)
 
@@ -677,6 +679,7 @@ Use "` + string(constants.CLIExtensionPrefix) + ` help all" to show help for all
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(hashCmd)
 	rootCmd.AddCommand(projectCmd)
+	rootCmd.AddCommand(lspCmd)
 }
 
 func main() {
