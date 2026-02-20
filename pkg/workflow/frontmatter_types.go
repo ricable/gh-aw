@@ -86,6 +86,28 @@ type RateLimitConfig struct {
 	IgnoredRoles []string `json:"ignored-roles,omitempty"` // Roles that are exempt from rate limiting (e.g., ["admin", "maintainer"])
 }
 
+// CheckoutConfig represents a single actions/checkout configuration.
+// Supports the same fields as the actions/checkout action.
+type CheckoutConfig struct {
+	Repository             string `json:"repository,omitempty"`                // Repository to check out (default: current repo)
+	Ref                    string `json:"ref,omitempty"`                       // Branch, tag, or SHA to check out
+	Token                  string `json:"token,omitempty"`                     // Personal access token or app token
+	SSHKey                 string `json:"ssh-key,omitempty"`                   // SSH key used to fetch the repository
+	Path                   string `json:"path,omitempty"`                      // Relative path under GITHUB_WORKSPACE to place the repository
+	PersistCredentials     *bool  `json:"persist-credentials,omitempty"`       // Whether to persist credentials after checkout (default: false for security)
+	Clean                  *bool  `json:"clean,omitempty"`                     // Whether to run git clean before fetching
+	Filter                 string `json:"filter,omitempty"`                    // Partial clone filter (e.g. "blob:none")
+	SparseCheckout         string `json:"sparse-checkout,omitempty"`           // List of patterns for sparse checkout
+	SparseCheckoutConeMode *bool  `json:"sparse-checkout-cone-mode,omitempty"` // Whether to use cone mode for sparse checkout
+	FetchDepth             *int   `json:"fetch-depth,omitempty"`               // Number of commits to fetch; 0 for all history
+	FetchTags              *bool  `json:"fetch-tags,omitempty"`                // Whether to fetch tags even when fetch-depth > 0
+	ShowProgress           *bool  `json:"show-progress,omitempty"`             // Whether to show progress while fetching
+	Lfs                    *bool  `json:"lfs,omitempty"`                       // Whether to download Git-LFS files
+	Submodules             string `json:"submodules,omitempty"`                // Whether to checkout submodules ("true", "false", "recursive")
+	SetSafeDirectory       *bool  `json:"set-safe-directory,omitempty"`        // Whether to add the workspace to the safe.directory git config
+	GitConfigURL           string `json:"github-server-url,omitempty"`         // URL of the GitHub server (for GHES)
+}
+
 // FrontmatterConfig represents the structured configuration from workflow frontmatter
 // This provides compile-time type safety and clearer error messages compared to map[string]any
 type FrontmatterConfig struct {
@@ -142,6 +164,12 @@ type FrontmatterConfig struct {
 	Container   map[string]any `json:"container,omitempty"`
 	Services    map[string]any `json:"services,omitempty"`
 	Cache       map[string]any `json:"cache,omitempty"`
+
+	// Checkout configuration - supports single object or array of objects.
+	// Each object accepts the same fields as actions/checkout.
+	// When an array is provided, each checkout is created in its own subfolder.
+	Checkout      any              `json:"checkout,omitempty"` // Can be CheckoutConfig or []CheckoutConfig
+	CheckoutTyped []CheckoutConfig `json:"-"`                  // Parsed checkout configurations (not in JSON)
 
 	// Import and inclusion
 	Imports any `json:"imports,omitempty"` // Can be string or array
@@ -243,6 +271,15 @@ func ParseFrontmatterConfig(frontmatter map[string]any) (*FrontmatterConfig, err
 			if len(repos) > 0 {
 				frontmatterTypesLog.Printf("Parsed plugins config: %d repos, custom_token=%v", len(repos), token != "")
 			}
+		}
+	}
+
+	// Parse checkout field - supports single object or array of objects
+	if config.Checkout != nil {
+		checkouts, err := parseCheckoutConfig(config.Checkout)
+		if err == nil {
+			config.CheckoutTyped = checkouts
+			frontmatterTypesLog.Printf("Parsed checkout config: %d checkouts", len(checkouts))
 		}
 	}
 
@@ -417,6 +454,30 @@ func parsePluginsConfig(plugins any) ([]string, string, error) {
 	}
 
 	return nil, "", fmt.Errorf("plugins must be either an array of strings or an object with 'repos' field")
+}
+
+// parseCheckoutConfig parses the checkout field which can be either:
+// 1. Single object format: { "ref": "main", "token": "..." }
+// 2. Array format: [{ "repository": "org/repo1", "path": "repo1" }, { ... }]
+// Returns a slice of CheckoutConfig (single object becomes a 1-element slice).
+func parseCheckoutConfig(checkout any) ([]CheckoutConfig, error) {
+	jsonBytes, err := json.Marshal(checkout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal checkout to JSON: %w", err)
+	}
+
+	// Try array format first
+	var checkouts []CheckoutConfig
+	if err := json.Unmarshal(jsonBytes, &checkouts); err == nil {
+		return checkouts, nil
+	}
+
+	// Try single object format
+	var single CheckoutConfig
+	if err := json.Unmarshal(jsonBytes, &single); err != nil {
+		return nil, fmt.Errorf("checkout must be either an object or an array of objects: %w", err)
+	}
+	return []CheckoutConfig{single}, nil
 }
 
 // countRuntimes counts the number of non-nil runtimes in RuntimesConfig
@@ -648,6 +709,17 @@ func (fc *FrontmatterConfig) ToMap() map[string]any {
 	}
 	if fc.Cache != nil {
 		result["cache"] = fc.Cache
+	}
+
+	// Checkout - use typed if available, otherwise fall back to original
+	if len(fc.CheckoutTyped) > 0 {
+		if len(fc.CheckoutTyped) == 1 {
+			result["checkout"] = fc.CheckoutTyped[0]
+		} else {
+			result["checkout"] = fc.CheckoutTyped
+		}
+	} else if fc.Checkout != nil {
+		result["checkout"] = fc.Checkout
 	}
 
 	// Import and inclusion

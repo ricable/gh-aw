@@ -17,22 +17,16 @@ func (c *Compiler) generateMainJobSteps(yaml *strings.Builder, data *WorkflowDat
 
 	// Add checkout step first if needed
 	if needsCheckout {
-		yaml.WriteString("      - name: Checkout repository\n")
-		fmt.Fprintf(yaml, "        uses: %s\n", GetActionPin("actions/checkout"))
-		// Always add with section for persist-credentials
-		yaml.WriteString("        with:\n")
-		yaml.WriteString("          persist-credentials: false\n")
-		// In trial mode without cloning, checkout the logical repo if specified
-		if c.trialMode {
-			if c.trialLogicalRepoSlug != "" {
-				fmt.Fprintf(yaml, "          repository: %s\n", c.trialLogicalRepoSlug)
-				// trialTargetRepoName := strings.Split(c.trialLogicalRepoSlug, "/")
-				// if len(trialTargetRepoName) == 2 {
-				// 	yaml.WriteString(fmt.Sprintf("          path: %s\n", trialTargetRepoName[1]))
-				// }
-			}
-			effectiveToken := getEffectiveGitHubToken("")
-			fmt.Fprintf(yaml, "          token: %s\n", effectiveToken)
+		// Use the checkout manager to generate the main checkout step,
+		// merging any user-specified checkout config from frontmatter.
+		checkoutMgr := NewCheckoutManager(data.CustomCheckouts, c.trialMode, c.trialLogicalRepoSlug)
+		for _, line := range checkoutMgr.GenerateMainCheckoutStep() {
+			yaml.WriteString(line)
+		}
+
+		// Add additional checkout steps (when checkout is an array with multiple entries).
+		for _, line := range checkoutMgr.GenerateAdditionalCheckoutSteps() {
+			yaml.WriteString(line)
 		}
 
 		// Add CLI build steps in dev mode (after automatic checkout, before other steps)

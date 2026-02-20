@@ -176,6 +176,17 @@ func (c *Compiler) extractYAMLSections(frontmatter map[string]any, workflowData 
 	workflowData.Environment = c.extractTopLevelYAMLSection(frontmatter, "environment")
 	workflowData.Container = c.extractTopLevelYAMLSection(frontmatter, "container")
 	workflowData.Cache = c.extractTopLevelYAMLSection(frontmatter, "cache")
+
+	// Extract checkout configuration (single object or array)
+	if checkoutRaw, hasCheckout := frontmatter["checkout"]; hasCheckout && checkoutRaw != nil {
+		checkouts, err := parseCheckoutConfig(checkoutRaw)
+		if err == nil {
+			workflowData.CustomCheckouts = checkouts
+			orchestratorWorkflowLog.Printf("Extracted %d custom checkout(s) from frontmatter", len(checkouts))
+		} else {
+			orchestratorWorkflowLog.Printf("Failed to parse checkout config: %v", err)
+		}
+	}
 }
 
 // processAndMergeSteps handles the merging of imported steps with main workflow steps

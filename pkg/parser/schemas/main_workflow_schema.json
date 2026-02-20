@@ -1381,12 +1381,12 @@
               "description": "Skip workflow execution for specific GitHub users. Useful for preventing workflows from running for specific accounts (e.g., bots, specific team members)."
             },
             "roles": {
-              "description": "Repository access roles required to trigger agentic workflows. Defaults to ['admin', 'maintainer', 'write'] for security. Use 'all' to allow any authenticated user (⚠️ security consideration).",
+              "description": "Repository access roles required to trigger agentic workflows. Defaults to ['admin', 'maintainer', 'write'] for security. Use 'all' to allow any authenticated user (\u26a0\ufe0f security consideration).",
               "oneOf": [
                 {
                   "type": "string",
                   "enum": ["all"],
-                  "description": "Allow any authenticated user to trigger the workflow (⚠️ disables permission checking entirely - use with caution)"
+                  "description": "Allow any authenticated user to trigger the workflow (\u26a0\ufe0f disables permission checking entirely - use with caution)"
                 },
                 {
                   "type": "array",
@@ -6747,6 +6747,202 @@
         }
       },
       "additionalProperties": false
+    },
+    "checkout": {
+      "description": "Custom checkout configuration. Accepts the same fields as actions/checkout. Can be a single object (overrides the main repository checkout) or an array of objects (multiple checkouts, each placed in its own subfolder).",
+      "examples": [
+        {
+          "ref": "my-branch"
+        },
+        {
+          "ref": "my-branch",
+          "token": "${{ secrets.MY_TOKEN }}",
+          "fetch-depth": 0
+        },
+        [
+          {
+            "ref": "my-branch"
+          },
+          {
+            "repository": "org/other-repo",
+            "ref": "main",
+            "path": "other-repo"
+          }
+        ]
+      ],
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Configuration for a single actions/checkout step.",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Repository to check out. Defaults to the current repository."
+            },
+            "ref": {
+              "type": "string",
+              "description": "The branch, tag or SHA to check out."
+            },
+            "token": {
+              "type": "string",
+              "description": "Personal access token or app installation token used to clone the repository."
+            },
+            "ssh-key": {
+              "type": "string",
+              "description": "SSH key used to fetch the repository."
+            },
+            "path": {
+              "type": "string",
+              "description": "Relative path under GITHUB_WORKSPACE to place the repository."
+            },
+            "persist-credentials": {
+              "type": "boolean",
+              "description": "Whether to configure the token or SSH key with the local git config. Default: false."
+            },
+            "clean": {
+              "type": "boolean",
+              "description": "Whether to execute git clean -ffdx and git reset --hard HEAD before fetching."
+            },
+            "filter": {
+              "type": "string",
+              "description": "Partially clone the repository using a partial clone filter."
+            },
+            "sparse-checkout": {
+              "type": "string",
+              "description": "Newline-separated list of patterns used for sparse-checkout."
+            },
+            "sparse-checkout-cone-mode": {
+              "type": "boolean",
+              "description": "Whether to use cone-mode for sparse-checkout."
+            },
+            "fetch-depth": {
+              "type": "integer",
+              "description": "Number of commits to fetch. 0 indicates all history."
+            },
+            "fetch-tags": {
+              "type": "boolean",
+              "description": "Whether to fetch tags, even if fetch-depth > 0."
+            },
+            "show-progress": {
+              "type": "boolean",
+              "description": "Whether to show progress status output when fetching."
+            },
+            "lfs": {
+              "type": "boolean",
+              "description": "Whether to download Git-LFS files."
+            },
+            "submodules": {
+              "oneOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string",
+                  "enum": ["true", "false", "recursive"]
+                }
+              ],
+              "description": "Whether to checkout submodules."
+            },
+            "set-safe-directory": {
+              "type": "boolean",
+              "description": "Whether to add the workspace to the safe.directory git config."
+            },
+            "github-server-url": {
+              "type": "string",
+              "description": "The base URL for the GitHub instance that you are trying to clone from."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "array",
+          "description": "Multiple checkout configurations. Each checkout is placed in its own subfolder (use the 'path' field to specify the folder).",
+          "items": {
+            "type": "object",
+            "description": "Configuration for a single actions/checkout step.",
+            "properties": {
+              "repository": {
+                "type": "string",
+                "description": "Repository to check out. Defaults to the current repository."
+              },
+              "ref": {
+                "type": "string",
+                "description": "The branch, tag or SHA to check out."
+              },
+              "token": {
+                "type": "string",
+                "description": "Personal access token or app installation token used to clone the repository."
+              },
+              "ssh-key": {
+                "type": "string",
+                "description": "SSH key used to fetch the repository."
+              },
+              "path": {
+                "type": "string",
+                "description": "Relative path under GITHUB_WORKSPACE to place the repository."
+              },
+              "persist-credentials": {
+                "type": "boolean",
+                "description": "Whether to configure the token or SSH key with the local git config. Default: false."
+              },
+              "clean": {
+                "type": "boolean",
+                "description": "Whether to execute git clean -ffdx and git reset --hard HEAD before fetching."
+              },
+              "filter": {
+                "type": "string",
+                "description": "Partially clone the repository using a partial clone filter."
+              },
+              "sparse-checkout": {
+                "type": "string",
+                "description": "Newline-separated list of patterns used for sparse-checkout."
+              },
+              "sparse-checkout-cone-mode": {
+                "type": "boolean",
+                "description": "Whether to use cone-mode for sparse-checkout."
+              },
+              "fetch-depth": {
+                "type": "integer",
+                "description": "Number of commits to fetch. 0 indicates all history."
+              },
+              "fetch-tags": {
+                "type": "boolean",
+                "description": "Whether to fetch tags, even if fetch-depth > 0."
+              },
+              "show-progress": {
+                "type": "boolean",
+                "description": "Whether to show progress status output when fetching."
+              },
+              "lfs": {
+                "type": "boolean",
+                "description": "Whether to download Git-LFS files."
+              },
+              "submodules": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": ["true", "false", "recursive"]
+                  }
+                ],
+                "description": "Whether to checkout submodules."
+              },
+              "set-safe-directory": {
+                "type": "boolean",
+                "description": "Whether to add the workspace to the safe.directory git config."
+              },
+              "github-server-url": {
+                "type": "string",
+                "description": "The base URL for the GitHub instance that you are trying to clone from."
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      ]
     }
   },
   "additionalProperties": false,
