@@ -17,25 +17,27 @@ type Server struct {
 	writer io.Writer
 	stderr io.Writer
 
-	docs   *DocumentStore
-	schema *SchemaProvider
+	docs    *DocumentStore
+	schema  *SchemaProvider
+	version string
 
 	shutdown bool
 }
 
 // NewServer creates a new LSP server.
-func NewServer(stdin io.Reader, stdout io.Writer, stderr io.Writer) (*Server, error) {
+func NewServer(stdin io.Reader, stdout io.Writer, stderr io.Writer, version string) (*Server, error) {
 	sp, err := NewSchemaProvider()
 	if err != nil {
 		return nil, fmt.Errorf("initializing schema provider: %w", err)
 	}
 
 	return &Server{
-		reader: bufio.NewReader(stdin),
-		writer: stdout,
-		stderr: stderr,
-		docs:   NewDocumentStore(),
-		schema: sp,
+		reader:  bufio.NewReader(stdin),
+		writer:  stdout,
+		stderr:  stderr,
+		docs:    NewDocumentStore(),
+		schema:  sp,
+		version: version,
 	}, nil
 }
 
@@ -105,8 +107,8 @@ func (s *Server) handleInitialize(msg *JSONRPCMessage) error {
 			},
 		},
 		ServerInfo: &ServerInfo{
-			Name:    "gh-aw-lsp",
-			Version: "0.1.0",
+			Name:    "gh-aw",
+			Version: s.version,
 		},
 	}
 

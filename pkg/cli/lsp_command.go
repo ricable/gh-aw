@@ -28,15 +28,12 @@ The LSP server communicates over stdio using JSON-RPC 2.0 and provides:
 The server is stateless (session-only memory, no daemon, no disk state).
 
 Examples:
-  gh aw lsp --stdio                   # Start LSP server on stdio
-  gh aw lsp                           # Same as --stdio (default)
-  echo '...' | gh aw lsp --stdio      # Pipe LSP messages`,
+  gh aw lsp                           # Start LSP server on stdio
+  echo '...' | gh aw lsp              # Pipe LSP messages`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return RunLSP()
 		},
 	}
-
-	cmd.Flags().Bool("stdio", true, "Use stdio transport (default, only supported mode)")
 
 	return cmd
 }
