@@ -255,10 +255,15 @@ COPILOT_CLI_INSTRUCTION="$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"
 	}
 
 	if hasGitHubTool(workflowData.ParsedTools) {
-		customGitHubToken := getGitHubToken(workflowData.Tools["github"])
-		// Use effective token with precedence: custom > default
-		effectiveToken := getEffectiveGitHubToken(customGitHubToken)
-		env["GITHUB_MCP_SERVER_TOKEN"] = effectiveToken
+		// Check if GitHub App is configured for token minting (overrides other tokens)
+		if hasGitHubAppConfig(workflowData.ParsedTools) {
+			env["GITHUB_MCP_SERVER_TOKEN"] = "${{ steps.github-mcp-app-token.outputs.token }}"
+		} else {
+			customGitHubToken := getGitHubToken(workflowData.Tools["github"])
+			// Use effective token with precedence: custom > default
+			effectiveToken := getEffectiveGitHubToken(customGitHubToken)
+			env["GITHUB_MCP_SERVER_TOKEN"] = effectiveToken
+		}
 	}
 
 	// Add GH_AW_SAFE_OUTPUTS if output is needed

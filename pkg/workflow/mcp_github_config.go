@@ -80,6 +80,11 @@ func hasGitHubTool(parsedTools *Tools) bool {
 	return parsedTools.GitHub != nil
 }
 
+// hasGitHubAppConfig checks if a GitHub App configuration is present in the parsed tools
+func hasGitHubAppConfig(parsedTools *Tools) bool {
+	return parsedTools != nil && parsedTools.GitHub != nil && parsedTools.GitHub.App != nil
+}
+
 // getGitHubType extracts the mode from GitHub tool configuration (local or remote)
 func getGitHubType(githubTool any) string {
 	if toolConfig, ok := githubTool.(map[string]any); ok {
