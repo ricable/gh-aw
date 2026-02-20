@@ -23,7 +23,7 @@ if (!global.core) {
     error: /** @param {string} message */ message => console.error(`[error] ${message}`),
     setFailed: /** @param {string} message */ message => {
       console.error(`[error] ${message}`);
-      if (typeof process !== 'undefined') {
+      if (typeof process !== "undefined") {
         if (process.exitCode == null || process.exitCode === 0) {
           process.exitCode = 1;
         }
