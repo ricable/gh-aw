@@ -1,0 +1,24 @@
+---
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+	/** Path to the prompt markdown file, relative to `docs/src/`. */
+	src: string;
+	/** URL that will be embedded in the first sentence of the prompt. */
+	address: string;
+	/** Optional title shown as a header above the code block. */
+	title?: string;
+}
+
+const { src, address, title } = Astro.props;
+
+// process.cwd() is the docs project root during `astro build` / `astro dev`
+const filePath = resolve(process.cwd(), 'src', src);
+const fileContent = readFileSync(filePath, 'utf-8').trim();
+
+const code = `Create an agentic workflow using the address ${address}\n\n${fileContent}`;
+---
+
+<Code code={code} lang="text" wrap title={title} />

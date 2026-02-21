@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import CopyEntireFileButton from '../../../components/CopyEntireFileButton.astro';
+import PromptCode from '../../../components/PromptCode.astro';
 import Video from '../../../components/Video.astro';
 
 **⏱️ Estimated time: 5-15 minutes** depending on complexity
@@ -24,11 +25,10 @@ For a more fine grained, interactive experience we recommend using a coding agen
 
 Use this Agent Session task in your repository.
 
-```markdown wrap
-Create a workflow for GitHub Agentic Workflows using https://raw.githubusercontent.com/github/gh-aw/main/create.md
-
-The purpose of the workflow is triage issues.
-```
+<PromptCode
+  src="prompts/issue-triage.md"
+  address="https://raw.githubusercontent.com/github/gh-aw/main/create.md"
+/>
 
 <Video
    src="/gh-aw/videos/create-workflow-on-github.mp4"
