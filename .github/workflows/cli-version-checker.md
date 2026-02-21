@@ -227,8 +227,9 @@ For each CLI tool update:
 ### Update Process
 1. Edit `./pkg/constants/constants.go` with new version(s)
 2. **REQUIRED**: Run `make recompile` to update workflows (MUST be run after any constant changes)
-3. Verify changes with `git status`
-4. **REQUIRED**: Create issue via safe-outputs with detailed analysis (do NOT skip this step)
+3. **REQUIRED**: Run `make update-wasm-golden` to update wasm golden test files (MUST be run after recompile, since version constants are embedded in the compiled output and golden tests compare exact output)
+4. Verify changes with `git status`
+5. **REQUIRED**: Create issue via safe-outputs with detailed analysis (do NOT skip this step)
 
 ## Issue Format
 
@@ -339,6 +340,7 @@ Legacy template reference (adapt to use Report Structure Pattern above):
 - Compare help output between old and new versions (both main help and subcommand help)
 - **SAVE TO CACHE**: Store help outputs (main and all subcommands) and version check results in cache-memory
 - **REQUIRED**: Always run `make recompile` after updating constants to regenerate workflow lock files
+- **REQUIRED**: Always run `make update-wasm-golden` after `make recompile` to update wasm golden test files
 - **DO NOT COMMIT** `*.lock.yml` or `pkg/workflow/js/*.js` files directly
 
 ## Common JSON Parsing Issues
