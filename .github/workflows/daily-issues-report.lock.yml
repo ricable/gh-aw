@@ -836,6 +836,7 @@ jobs:
           startup_timeout_sec = 120
           tool_timeout_sec = 60
           container = "ghcr.io/github/github-mcp-server:v0.31.0"
+          entrypointArgs = ["stdio", "--lockdown-mode"]
           env = { "GITHUB_LOCKDOWN_MODE" = "1", "GITHUB_PERSONAL_ACCESS_TOKEN" = "$GH_AW_GITHUB_TOKEN", "GITHUB_READ_ONLY" = "1", "GITHUB_TOOLSETS" = "context,repos,issues,pull_requests,discussions" }
           env_vars = ["GITHUB_LOCKDOWN_MODE", "GITHUB_PERSONAL_ACCESS_TOKEN", "GITHUB_READ_ONLY", "GITHUB_TOOLSETS"]
           
@@ -853,6 +854,7 @@ jobs:
             "mcpServers": {
               "github": {
                 "container": "ghcr.io/github/github-mcp-server:v0.31.0",
+                "entrypointArgs": ["stdio", "--lockdown-mode"],
                 "env": {
                   "GITHUB_LOCKDOWN_MODE": "1",
                   "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_MCP_SERVER_TOKEN",

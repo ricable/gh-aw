@@ -557,6 +557,11 @@ func (r *MCPConfigRendererUnified) renderGitHubTOML(yaml *strings.Builder, githu
 			yaml.WriteString("]\n")
 		}
 
+		// Add entrypointArgs for lockdown mode
+		if lockdown {
+			yaml.WriteString("          entrypointArgs = [\"stdio\", \"--lockdown-mode\"]\n")
+		}
+
 		// Build environment variables
 		envVars := make(map[string]string)
 		envVars["GITHUB_PERSONAL_ACCESS_TOKEN"] = "$GH_AW_GITHUB_TOKEN"
@@ -728,6 +733,11 @@ func RenderGitHubMCPDockerConfig(yaml *strings.Builder, options GitHubMCPDockerO
 	// Note: tools field is NOT included here - the converter script adds it back
 	// for Copilot (see convert_gateway_config_copilot.sh). This keeps the gateway
 	// config compatible with the schema which doesn't have the tools field.
+
+	// Add entrypointArgs for explicit lockdown mode (not applicable when lockdown is determined at runtime)
+	if options.Lockdown && !options.LockdownFromStep {
+		yaml.WriteString("                \"entrypointArgs\": [\"stdio\", \"--lockdown-mode\"],\n")
+	}
 
 	// Add env section for GitHub MCP server environment variables
 	yaml.WriteString("                \"env\": {\n")

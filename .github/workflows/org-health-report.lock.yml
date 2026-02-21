@@ -742,6 +742,7 @@ jobs:
               "github": {
                 "type": "stdio",
                 "container": "ghcr.io/github/github-mcp-server:v0.31.0",
+                "entrypointArgs": ["stdio", "--lockdown-mode"],
                 "env": {
                   "GITHUB_LOCKDOWN_MODE": "1",
                   "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_MCP_SERVER_TOKEN}",

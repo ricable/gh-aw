@@ -123,6 +123,7 @@ func TestRenderGitHubMCPDockerConfigWithLockdown(t *testing.T) {
 			},
 			expected: []string{
 				`"type": "stdio"`,
+				`"entrypointArgs": ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE": "1"`,
 				`"GITHUB_TOOLSETS": "default"`,
 				`"container": "ghcr.io/github/github-mcp-server:latest"`,
@@ -146,6 +147,7 @@ func TestRenderGitHubMCPDockerConfigWithLockdown(t *testing.T) {
 			},
 			notFound: []string{
 				`"GITHUB_LOCKDOWN_MODE"`,
+				`"entrypointArgs"`,
 			},
 		},
 		{
@@ -160,6 +162,7 @@ func TestRenderGitHubMCPDockerConfigWithLockdown(t *testing.T) {
 			},
 			expected: []string{
 				`"GITHUB_READ_ONLY": "1"`,
+				`"entrypointArgs": ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE": "1"`,
 				`"container": "ghcr.io/github/github-mcp-server:v1.0.0"`,
 			},

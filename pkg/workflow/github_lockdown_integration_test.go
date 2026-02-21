@@ -39,11 +39,12 @@ Test lockdown mode with local GitHub MCP.
 `,
 			expected: []string{
 				`"type": "stdio"`,
+				`"entrypointArgs": ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE": "1"`,
 				`"ghcr.io/github/github-mcp-server:`,
 			},
 			notExpected: []string{},
-			description: "Copilot with local mode and lockdown should render GITHUB_LOCKDOWN_MODE=1",
+			description: "Copilot with local mode and lockdown should render entrypointArgs with --lockdown-mode and GITHUB_LOCKDOWN_MODE=1",
 		},
 		{
 			name:   "copilot engine with lockdown enabled in remote mode",
@@ -90,13 +91,14 @@ tools:
 Test lockdown mode with Claude engine.
 `,
 			expected: []string{
+				`"entrypointArgs": ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE": "1"`,
 				`"ghcr.io/github/github-mcp-server:`,
 			},
 			notExpected: []string{
 				`"type": "stdio"`, // Claude doesn't include type field
 			},
-			description: "Claude with lockdown should render GITHUB_LOCKDOWN_MODE=1",
+			description: "Claude with lockdown should render entrypointArgs with --lockdown-mode and GITHUB_LOCKDOWN_MODE=1",
 		},
 		{
 			name:   "codex engine with lockdown enabled",
@@ -116,11 +118,12 @@ tools:
 Test lockdown mode with Codex engine.
 `,
 			expected: []string{
+				`entrypointArgs = ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE" = "1"`,
 				`ghcr.io/github/github-mcp-server:`,
 			},
 			notExpected: []string{},
-			description: "Codex (TOML) with lockdown should render GITHUB_LOCKDOWN_MODE=1",
+			description: "Codex (TOML) with lockdown should render entrypointArgs with --lockdown-mode and GITHUB_LOCKDOWN_MODE=1",
 		},
 		{
 			name:   "lockdown with read-only both enabled",
@@ -141,6 +144,7 @@ tools:
 Test lockdown and read-only modes together.
 `,
 			expected: []string{
+				`"entrypointArgs": ["stdio", "--lockdown-mode"]`,
 				`"GITHUB_LOCKDOWN_MODE": "1"`,
 				`"GITHUB_READ_ONLY": "1"`,
 			},
