@@ -177,6 +177,31 @@ func parseAllowedLabelsFromConfig(configMap map[string]any) []string {
 	return ParseStringArrayFromConfig(configMap, "allowed-labels", configHelpersLog)
 }
 
+// preprocessBoolFieldAsString converts the value of a boolean config field to a string
+// representation before YAML unmarshaling. This allows struct fields typed as *string to accept
+// both literal boolean values (true/false) and GitHub Actions expression strings
+// (e.g. "${{ inputs.draft-prs }}") without validation errors.
+//
+// If the value is already a string (expression), it is left unchanged.
+// If the value is a bool, it is converted to "true" or "false".
+func preprocessBoolFieldAsString(configData map[string]any, fieldName string, log *logger.Logger) {
+	if configData == nil {
+		return
+	}
+	if val, exists := configData[fieldName]; exists {
+		if boolVal, ok := val.(bool); ok {
+			if boolVal {
+				configData[fieldName] = "true"
+			} else {
+				configData[fieldName] = "false"
+			}
+			if log != nil {
+				log.Printf("Converted %s bool to string before unmarshaling", fieldName)
+			}
+		}
+	}
+}
+
 // NOTE: parseExpiresFromConfig and parseRelativeTimeSpec have been moved to time_delta.go
 // to consolidate all time parsing logic in a single location. These functions are used
 // for parsing expiration configurations in safe output jobs.

@@ -462,7 +462,7 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 			},
 			checkField: "create_pull_request",
 			checkKey:   "draft",
-			expected:   "true", // draft is *string, so JSON value is a string
+			expected:   true, // AddTemplatableBool converts "true" string to JSON boolean
 		},
 	}
 

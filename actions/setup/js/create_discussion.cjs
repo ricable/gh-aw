@@ -305,7 +305,7 @@ async function main(config = {}) {
   const configCategory = config.category || "";
   const maxCount = config.max || 10;
   const expiresHours = config.expires ? parseInt(String(config.expires), 10) : 0;
-  const fallbackToIssue = config.fallback_to_issue !== false; // Default to true
+  const fallbackToIssue = config.fallback_to_issue !== undefined ? String(config.fallback_to_issue) !== "false" : true; // Default to true
   const closeOlderDiscussions = config.close_older_discussions === true || config.close_older_discussions === "true";
   const includeFooter = config.footer !== false; // Default to true (include footer)
 

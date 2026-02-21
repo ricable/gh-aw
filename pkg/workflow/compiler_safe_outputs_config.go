@@ -108,6 +108,29 @@ func (b *handlerConfigBuilder) AddStringPtr(key string, value *string) *handlerC
 	return b
 }
 
+// AddTemplatableBool adds a field whose value can be either a literal boolean or a
+// GitHub Actions expression string (e.g. "${{ inputs.draft-prs }}").
+//
+//   - "true"  → stored as JSON boolean true
+//   - "false" → stored as JSON boolean false
+//   - any other string (expression) → stored as a JSON string so GitHub Actions can
+//     evaluate it at runtime when the env var containing the JSON is expanded
+//   - nil    → field is omitted
+func (b *handlerConfigBuilder) AddTemplatableBool(key string, value *string) *handlerConfigBuilder {
+	if value == nil {
+		return b
+	}
+	switch *value {
+	case "true":
+		b.config[key] = true
+	case "false":
+		b.config[key] = false
+	default:
+		b.config[key] = *value // expression string – evaluated at runtime by GitHub Actions
+	}
+	return b
+}
+
 // AddDefault adds a field with a default value unconditionally
 func (b *handlerConfigBuilder) AddDefault(key string, value any) *handlerConfigBuilder {
 	b.config[key] = value
@@ -171,7 +194,7 @@ var handlerRegistry = map[string]handlerBuilder{
 			AddIfTrue("close_older_discussions", c.CloseOlderDiscussions).
 			AddIfNotEmpty("required_category", c.RequiredCategory).
 			AddIfPositive("expires", c.Expires).
-			AddBoolPtr("fallback_to_issue", c.FallbackToIssue).
+			AddTemplatableBool("fallback_to_issue", c.FallbackToIssue).
 			AddIfNotEmpty("target-repo", c.TargetRepoSlug).
 			AddBoolPtr("footer", getEffectiveFooter(c.Footer, cfg.Footer)).
 			Build()
@@ -436,7 +459,7 @@ var handlerRegistry = map[string]handlerBuilder{
 			AddIfNotEmpty("title_prefix", c.TitlePrefix).
 			AddStringSlice("labels", c.Labels).
 			AddStringSlice("reviewers", c.Reviewers).
-			AddStringPtr("draft", c.Draft).
+			AddTemplatableBool("draft", c.Draft).
 			AddIfNotEmpty("if_no_changes", c.IfNoChanges).
 			AddIfTrue("allow_empty", c.AllowEmpty).
 			AddIfTrue("auto_merge", c.AutoMerge).
@@ -445,7 +468,7 @@ var handlerRegistry = map[string]handlerBuilder{
 			AddStringSlice("allowed_repos", c.AllowedRepos).
 			AddDefault("max_patch_size", maxPatchSize).
 			AddBoolPtr("footer", getEffectiveFooter(c.Footer, cfg.Footer)).
-			AddBoolPtr("fallback_as_issue", c.FallbackAsIssue)
+			AddTemplatableBool("fallback_as_issue", c.FallbackAsIssue)
 		// Add base_branch - use custom value if specified, otherwise use github.base_ref || github.ref_name
 		// This handles PR contexts where github.ref_name is "123/merge" which is invalid as a target branch
 		if c.BaseBranch != "" {

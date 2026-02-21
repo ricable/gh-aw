@@ -22,7 +22,7 @@ type CreateDiscussionsConfig struct {
 	CloseOlderDiscussions bool     `yaml:"close-older-discussions,omitempty"` // When true, close older discussions with same title prefix or labels as outdated
 	RequiredCategory      string   `yaml:"required-category,omitempty"`       // Required category for matching when close-older-discussions is enabled
 	Expires               int      `yaml:"expires,omitempty"`                 // Hours until the discussion expires and should be automatically closed
-	FallbackToIssue       *bool    `yaml:"fallback-to-issue,omitempty"`       // When true (default), fallback to create-issue if discussion creation fails due to permissions
+	FallbackToIssue       *string  `yaml:"fallback-to-issue,omitempty"`       // When true (default), fallback to create-issue if discussion creation fails due to permissions. Accepts a boolean or a GitHub Actions expression.
 	Footer                *bool    `yaml:"footer,omitempty"`                  // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
 }
 
@@ -40,6 +40,10 @@ func (c *Compiler) parseDiscussionsConfig(outputMap map[string]any) *CreateDiscu
 
 	// Pre-process the expires field (convert to hours before unmarshaling)
 	expiresDisabled := preprocessExpiresField(configData, discussionLog)
+
+	// Pre-process the fallback-to-issue field: convert literal booleans to strings so that
+	// GitHub Actions expression strings are also accepted by the *string field.
+	preprocessBoolFieldAsString(configData, "fallback-to-issue", discussionLog)
 
 	// Unmarshal into typed config struct
 	var config CreateDiscussionsConfig
@@ -65,8 +69,8 @@ func (c *Compiler) parseDiscussionsConfig(outputMap map[string]any) *CreateDiscu
 
 	// Set default fallback-to-issue to true if not specified
 	if config.FallbackToIssue == nil {
-		trueValue := true
-		config.FallbackToIssue = &trueValue
+		trueStr := "true"
+		config.FallbackToIssue = &trueStr
 		discussionLog.Print("Using default fallback-to-issue: true")
 	}
 
@@ -107,7 +111,7 @@ func (c *Compiler) parseDiscussionsConfig(outputMap map[string]any) *CreateDiscu
 		discussionLog.Printf("Discussion expiration configured: %d hours", config.Expires)
 	}
 	if config.FallbackToIssue != nil {
-		discussionLog.Printf("Fallback to issue configured: %t", *config.FallbackToIssue)
+		discussionLog.Printf("Fallback to issue configured: %s", *config.FallbackToIssue)
 	}
 
 	return &config
@@ -140,7 +144,14 @@ func (c *Compiler) buildCreateOutputDiscussionJob(data *WorkflowData, mainJobNam
 	}
 
 	// Add fallback-to-issue flag
-	if data.SafeOutputs.CreateDiscussions.FallbackToIssue != nil && *data.SafeOutputs.CreateDiscussions.FallbackToIssue {
+	ftiVal := data.SafeOutputs.CreateDiscussions.FallbackToIssue
+	if ftiVal != nil {
+		if strings.HasPrefix(*ftiVal, "${{") {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_DISCUSSION_FALLBACK_TO_ISSUE: %s\n", *ftiVal))
+		} else {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_DISCUSSION_FALLBACK_TO_ISSUE: %q\n", *ftiVal))
+		}
+	} else {
 		customEnvVars = append(customEnvVars, "          GH_AW_DISCUSSION_FALLBACK_TO_ISSUE: \"true\"\n")
 	}
 

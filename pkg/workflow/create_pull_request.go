@@ -10,12 +10,17 @@ import (
 
 var createPRLog = logger.New("workflow:create_pull_request")
 
-// getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true)
+// getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true).
+// When the value is exactly "false", returns false.
+// For any other value — including "true", GitHub Actions expressions like
+// "${{ inputs.fallback }}", or nil — returns true. This ensures the required
+// issues:write permission is always requested at compile time when the value is
+// dynamic.
 func getFallbackAsIssue(config *CreatePullRequestsConfig) bool {
 	if config == nil || config.FallbackAsIssue == nil {
 		return true // Default
 	}
-	return *config.FallbackAsIssue
+	return *config.FallbackAsIssue != "false"
 }
 
 // CreatePullRequestsConfig holds configuration for creating GitHub pull requests from agent output
@@ -34,7 +39,7 @@ type CreatePullRequestsConfig struct {
 	AutoMerge            bool     `yaml:"auto-merge,omitempty"`        // Enable auto-merge for the pull request when all required checks pass
 	BaseBranch           string   `yaml:"base-branch,omitempty"`       // Base branch for the pull request (defaults to github.ref_name if not specified)
 	Footer               *bool    `yaml:"footer,omitempty"`            // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
-	FallbackAsIssue      *bool    `yaml:"fallback-as-issue,omitempty"` // When true (default), creates an issue if PR creation fails. When false, no fallback occurs and issues: write permission is not requested.
+	FallbackAsIssue      *string  `yaml:"fallback-as-issue,omitempty"` // When true (default), creates an issue if PR creation fails. When false, no fallback occurs and issues: write permission is not requested. Accepts a boolean or a GitHub Actions expression.
 }
 
 // buildCreateOutputPullRequestJob creates the create_pull_request job
@@ -131,8 +136,16 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_AUTO_MERGE: %q\n", fmt.Sprintf("%t", data.SafeOutputs.CreatePullRequests.AutoMerge)))
 
 	// Pass the fallback-as-issue configuration - default to true for backwards compatibility
-	fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
-	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %q\n", fmt.Sprintf("%t", fallbackAsIssue)))
+	if data.SafeOutputs.CreatePullRequests.FallbackAsIssue != nil {
+		faiVal := *data.SafeOutputs.CreatePullRequests.FallbackAsIssue
+		if strings.HasPrefix(faiVal, "${{") {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %s\n", faiVal))
+		} else {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %q\n", faiVal))
+		}
+	} else {
+		customEnvVars = append(customEnvVars, "          GH_AW_PR_FALLBACK_AS_ISSUE: \"true\"\n")
+	}
 
 	// Pass the maximum patch size configuration
 	maxPatchSize := 1024 // Default value
@@ -193,6 +206,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	}
 
 	// Choose permissions based on fallback-as-issue setting
+	fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
 	var permissions *Permissions
 	if fallbackAsIssue {
 		// Default: include issues: write for fallback behavior
@@ -260,20 +274,10 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 		}
 	}
 
-	// Pre-process the draft field: convert bool to string so that expressions
-	// (e.g. "${{ inputs.draft-prs }}") are also accepted by the *string field.
-	if configData != nil {
-		if draft, exists := configData["draft"]; exists {
-			if draftBool, ok := draft.(bool); ok {
-				if draftBool {
-					configData["draft"] = "true"
-				} else {
-					configData["draft"] = "false"
-				}
-				createPRLog.Printf("Converted draft bool to string before unmarshaling")
-			}
-		}
-	}
+	// Pre-process templatable bool fields: convert literal booleans to strings so that
+	// GitHub Actions expression strings (e.g. "${{ inputs.draft-prs }}") are also accepted.
+	preprocessBoolFieldAsString(configData, "draft", createPRLog)
+	preprocessBoolFieldAsString(configData, "fallback-as-issue", createPRLog)
 
 	// Unmarshal into typed config struct
 	var config CreatePullRequestsConfig
