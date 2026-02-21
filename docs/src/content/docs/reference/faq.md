@@ -318,7 +318,7 @@ This approach maintains security while allowing CI to run after PR creation. See
 
 ## Platform Support
 
-### Why don't agentic workflows support macOS runners?
+### Why are macOS runners not supported?
 
 Agentic workflows require Docker for the [Agent Workflow Firewall](/gh-aw/reference/sandbox/) (Squid proxy + agent containers), the MCP Gateway, and containerized MCP servers. GitHub-hosted macOS runners are themselves virtual machines (`Apple M1 (Virtual)`) that do not support nested virtualization, making it impossible to run Docker — Docker Desktop, colima, and QEMU all fail with `Virtualization is not available on this hardware`. Until GitHub offers macOS runners with Docker support or a non-Docker container runtime becomes viable, agentic workflows require Linux (`ubuntu-*`) runners.
 
