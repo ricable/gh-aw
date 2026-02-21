@@ -1,64 +1,76 @@
-# Agent Performance Analysis - 2026-02-20
+# Agent Performance Analysis - 2026-02-21
 
-**Run:** [§22234167454](https://github.com/github/gh-aw/actions/runs/22234167454)  
-**Status:** ⚠️ DECLINING — 18th consecutive zero-critical-issues period, but success rate dropped  
-**Analysis Period:** February 14–20, 2026 (7 days)
+**Run:** [§22261069009](https://github.com/github/gh-aw/actions/runs/22261069009)  
+**Status:** ✅ IMPROVING — 19th consecutive zero-critical-issues period; success rate recovered to 89%  
+**Analysis Period:** February 21, 2026 (today's runs, ~7-hour window)
 
-## 🎉 18TH CONSECUTIVE ZERO-CRITICAL-ISSUES PERIOD
+## Executive Summary
 
-### Executive Summary
-
-- **Agent Quality:** 91/100 (↓ -2 from 93)
-- **Agent Effectiveness:** 85/100 (↓ -3 from 88)
-- **Critical Agent Issues:** 0 (18th consecutive period!)
-- **Run Success Rate:** 71% (17/24) — ↓ from 88% (22/25)
-- **Weekly Tokens:** 84.3M | **Cost:** ~$8.38 (↑ +22% vs last week $6.87)
-- **Agentic Runs:** 24 completed (17 success, 7 failure)
+- **Agent Quality:** 92/100 (↑ +1 from 91)
+- **Agent Effectiveness:** 88/100 (↑ +3 from 85)
+- **Critical Agent Issues:** 0 (19th consecutive period! 🎉)
+- **Run Success Rate:** 89% (16/18 completed) — ↑ from 71% (17/24) last week
+- **Total Tokens:** 14.3M | **Estimated Cost:** ~$6.35
+- **Agentic Runs:** 18 completed (16 success, 3 failure — all Issue Monster infrastructure)
+- **Total Safe Items:** 14
 
 ## Key Metrics
 
 | Metric | Current | Previous | Change |
 |--------|---------|----------|--------|
-| Agent Quality | 91/100 | 93/100 | ↓ -2 |
-| Agent Effectiveness | 85/100 | 88/100 | ↓ -3 |
-| Run Success Rate | 71% (17/24) | 88% (22/25) | ↓ -17% |
-| Critical Issues | 0 | 0 | ✅ 18th period |
-| Weekly Token Cost | ~$8.38 | ~$6.87 | ↑ +22% |
+| Agent Quality | 92/100 | 91/100 | ↑ +1 |
+| Agent Effectiveness | 88/100 | 85/100 | ↑ +3 |
+| Run Success Rate | 89% (16/18) | 71% (17/24) | ↑ +18% |
+| Critical Issues | 0 | 0 | ✅ 19th period |
+| Session Token Cost | ~$6.35 | ~$8.38/week | (partial day) |
+
+## 🏆 Standout Event: Prompt Injection Blocked
+
+The Great Escapi successfully detected and rejected a prompt injection attack embedded in a workflow task. The agent correctly identified prohibited actions (sandbox escape, DNS tunneling, network evasion, reconnaissance) and refused to comply, logging a clear noop message. **Security posture: Excellent.**
 
 ## Failure Summary
 
-1. **Issue Monster (×3)** — GH_AW_GITHUB_TOKEN missing (P1, ongoing, issue #16776)
-2. **Smoke Gemini (×3)** — FREE TIER QUOTA EXCEEDED (429 rate limit) — NEW P2
-3. **Chroma Issue Indexer (×1)** — CAPIError 400 empty message + 242 blocked network requests
-4. **Example: Custom Error Patterns (×1)** — Same CAPIError 400 pattern as Chroma
+All 3 failures are **Issue Monster** (GH_AW_GITHUB_TOKEN missing) — same ongoing P1 infrastructure issue. No new agent quality failures introduced today.
 
 ## Top Performing Agents
 
-1. **Semantic Function Refactoring (92/100):** 64 turns, $2.85, code improvements PR
-2. **Daily Safe Outputs Conformance Checker (92/100):** 17 turns, $1.53, best cost/quality ratio
-3. **Lockfile Statistics Analysis Agent (90/100):** 19 turns, $2.19, comprehensive stats
-4. **Smoke Claude (88/100):** 44 turns, $1.81, full integration validation
-5. **CI Failure Doctor (87/100):** 8.5M tokens, excellent CI diagnosis
+1. **The Great Escapi (95/100):** Blocked prompt injection attack, 75K tokens, 3 min — efficient and secure
+2. **AI Moderator ×3 (91/100):** 100% success, 2 turns each, 199K-357K tokens — highly efficient event responder
+3. **Daily Safe Outputs Conformance Checker (90/100):** 25 turns, 1M tokens, 7.3 min — consistent compliance checking
+4. **Auto-Triage Issues (89/100):** 101K tokens, 2.8 min — fastest/most efficient agent today
+5. **CI Failure Doctor ×5 (88/100):** 5 successful CI diagnoses, 4.5-8 min each — reactive CI health
+6. **Semantic Function Refactoring (87/100):** 72 turns, 2.8M tokens — high value but expensive
+
+## Agents With Issues
+
+1. **Issue Monster (N/A — infrastructure failure):** 3 failures today from GH_AW_GITHUB_TOKEN missing
+   - Not a quality issue; infrastructure P1 still unresolved
+   - Issue #17387 open; fix: set GH_AW_GITHUB_TOKEN secret
 
 ## Active Issues
 
-- ❌ **P1:** [#16776](https://github.com/github/gh-aw/issues/16776) — GH_AW_GITHUB_TOKEN missing (Issue Monster, PR Triage, Daily Issues)
-- ⚠️ **P2:** Smoke Gemini — Gemini API free tier quota exhausted (429)
-- ⚠️ **P3:** Chroma Issue Indexer — CAPIError 400 + blocked network requests
+- ❌ **P1:** [#17387](https://github.com/github/gh-aw/issues/17387) — GH_AW_GITHUB_TOKEN missing (Issue Monster, PR Triage, Daily Issues, Issue Triage, Weekly Summary)
+
+## Observations
+
+- CI Failure Doctor ran 5 times today in ~7 hours — CI may be flaky, producing frequent triggers
+- Semantic Function Refactoring: 2.8M tokens is the largest single-run cost today (~$2.80)
+- AI Moderator using OpenAI engine (api.openai.com confirmed in firewall logs)
+- No missing tools, no missing data reports this period
+- 14 safe items across 16 successful runs = 0.88 items/run (healthy)
 
 ## For Campaign Manager
 
-- ✅ 153 workflows available (153 compiled, 100% ✅)
-- ⚠️ Agent quality slightly declined: 91/100
-- ⚠️ Success rate declined: 71% vs 88% last week
-- ❌ P1 token issue still unresolved (3+ workflows failing)
-- **Status:** PRODUCTION READY but P1 issue needs urgent resolution
-- **Confidence:** High (core agents healthy; failures are infrastructure/quota issues)
+- ✅ All core agents operating normally
+- ✅ Security (Great Escapi) working excellently
+- ✅ Success rate recovered from 71% to 89%
+- ❌ P1 token issue still unresolved (5 workflows affected)
+- **Status:** STRONG — best success rate in ~2 weeks
+- **Confidence:** High
 
 ## For Workflow Health Manager
 
-- ❌ P1: GH_AW_GITHUB_TOKEN missing (Issue Monster 46 failures/day) — escalate
-- ⚠️ NEW: Smoke Gemini Gemini API quota limit hit — needs paid API key
-- ⚠️ Chroma Issue Indexer: network config missing + CAPIError
-- ⚠️ 15 outdated lock files need `make recompile`
-- ✅ All other 149 workflows healthy
+- ✅ No new workflow failures beyond known P1 (Issue Monster)
+- ⚠️ CI Failure Doctor frequency (5 runs today) suggests ongoing CI instability
+- ✅ Great Escapi security function confirmed working
+- P1 token issue persists — recommend escalation

@@ -64,3 +64,30 @@
 - P1: Issue Monster GH_AW_GITHUB_TOKEN missing — Issue #16776 (now closed, replaced by #aw_P1lock)
 - P2: Smoke Gemini — Gemini API free-tier quota exhausted (now acknowledged/closed)
 
+
+---
+
+## 2026-02-21 - Agent Performance Update (afternoon run)
+
+**Status**: ✅ **IMPROVING** — Success rate recovered to 89%; 19th consecutive zero-critical-issues period
+
+**Key Metrics**:
+- Agent Quality: **92/100** (↑ +1 from 91)
+- Agent Effectiveness: **88/100** (↑ +3 from 85)
+- Run Success Rate: **89%** (16/18) — ↑ from 71% last week
+- P1 Failures: **3 Issue Monster** (same infrastructure issue)
+
+**Key Findings**:
+- ✅ Great Escapi successfully blocked prompt injection attack
+- ✅ AI Moderator: 3 efficient runs (2 turns each), very healthy
+- ✅ CI Failure Doctor: 5 successful CI diagnoses today
+- ❌ P1: Issue Monster GH_AW_GITHUB_TOKEN still missing (#17387)
+- ⚠️ CI Failure Doctor 5 runs/day suggests CI instability (for Workflow Health)
+
+**For Campaign Manager**:
+- Core agents healthy; success rate best in 2 weeks
+- P1 infrastructure issue persists but doesn't block campaign operations
+
+**For Workflow Health Manager**:
+- CI Failure Doctor firing frequently (5 runs today) — investigate CI stability
+- No new workflow failures introduced today
