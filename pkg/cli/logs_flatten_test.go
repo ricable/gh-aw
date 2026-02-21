@@ -3,6 +3,7 @@
 package cli
 
 import (
+	"archive/zip"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -480,4 +481,110 @@ func TestFlattenUnifiedArtifact(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestFlattenUnifiedArtifactZipFile tests the case where the agent-artifacts artifact
+// is downloaded as a ZIP file without a .zip extension. This happens when gh run download
+// delivers the artifact as a raw bundle rather than extracting it to a directory.
+func TestFlattenUnifiedArtifactZipFile(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "test-flatten-zip-*")
+
+	// Create a ZIP archive at outputDir/agent-artifacts (no .zip extension)
+	// containing the typical agent artifact files
+	zipPath := filepath.Join(tmpDir, "agent-artifacts")
+	if err := createTestZip(zipPath, map[string]string{
+		"aw_info.json":          `{"engine_id":"copilot","workflow_name":"test"}`,
+		"safe_output.jsonl":     `{"action":"create_issue","title":"test"}`,
+		"aw-prompts/prompt.txt": "Test prompt content",
+	}); err != nil {
+		t.Fatalf("Failed to create test ZIP: %v", err)
+	}
+
+	// Verify the file exists and is not a directory
+	info, err := os.Stat(zipPath)
+	if err != nil {
+		t.Fatalf("Failed to stat ZIP file: %v", err)
+	}
+	if info.IsDir() {
+		t.Fatalf("Expected a file, got a directory")
+	}
+
+	// Run flattenUnifiedArtifact - it should detect the ZIP file and extract it
+	if err := flattenUnifiedArtifact(tmpDir, true); err != nil {
+		t.Fatalf("flattenUnifiedArtifact failed: %v", err)
+	}
+
+	// Verify the ZIP file was extracted and the original file was removed
+	if _, err := os.Stat(zipPath); err == nil {
+		t.Error("agent-artifacts ZIP file should be removed after extraction")
+	}
+
+	// Verify extracted files exist at the root level
+	expectedFiles := []string{
+		"aw_info.json",
+		"safe_output.jsonl",
+		"aw-prompts/prompt.txt",
+	}
+	for _, file := range expectedFiles {
+		path := filepath.Join(tmpDir, file)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("Expected extracted file %s not found", file)
+		}
+	}
+
+	// Verify the content of aw_info.json is intact
+	content, err := os.ReadFile(filepath.Join(tmpDir, "aw_info.json"))
+	if err != nil {
+		t.Fatalf("Failed to read extracted aw_info.json: %v", err)
+	}
+	if string(content) != `{"engine_id":"copilot","workflow_name":"test"}` {
+		t.Errorf("aw_info.json content mismatch: %s", string(content))
+	}
+}
+
+// TestFlattenUnifiedArtifactZipFileInvalidZip tests that when agent-artifacts is a file
+// but not a valid ZIP, it is left intact (not deleted) and no error is returned.
+func TestFlattenUnifiedArtifactZipFileInvalidZip(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "test-flatten-invalid-zip-*")
+
+	// Create a non-ZIP file at outputDir/agent-artifacts
+	zipPath := filepath.Join(tmpDir, "agent-artifacts")
+	if err := os.WriteFile(zipPath, []byte("not a zip file"), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// flattenUnifiedArtifact should not fail and should leave the file intact
+	if err := flattenUnifiedArtifact(tmpDir, false); err != nil {
+		t.Fatalf("flattenUnifiedArtifact should not fail for invalid ZIP: %v", err)
+	}
+
+	// The file should still exist (not deleted)
+	if _, err := os.Stat(zipPath); os.IsNotExist(err) {
+		t.Error("agent-artifacts file should be preserved when it's not a valid ZIP")
+	}
+}
+
+// createTestZip creates a ZIP archive at the given path with the provided files.
+// Keys are file paths (relative), values are file contents.
+func createTestZip(zipPath string, files map[string]string) error {
+	f, err := os.Create(zipPath)
+	if err != nil {
+		return fmt.Errorf("failed to create zip file: %w", err)
+	}
+	defer f.Close()
+
+	w := zip.NewWriter(f)
+	defer w.Close()
+
+	for name, content := range files {
+		fw, err := w.Create(name)
+		if err != nil {
+			return fmt.Errorf("failed to create zip entry %s: %w", name, err)
+		}
+		if _, err := fw.Write([]byte(content)); err != nil {
+			return fmt.Errorf("failed to write zip entry %s: %w", name, err)
+		}
+	}
+
+	return nil
 }

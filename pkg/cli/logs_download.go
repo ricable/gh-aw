@@ -111,12 +111,42 @@ func flattenSingleFileArtifacts(outputDir string, verbose bool) error {
 // After artifact refactoring, files are stored directly in agent-artifacts/ without the tmp/gh-aw/ prefix
 // This function moves those files to the root output directory and removes the nested structure
 // For backward compatibility, it also handles the old structure (agent-artifacts/tmp/gh-aw/...)
+// It also handles the case where agent-artifacts is a ZIP file without a .zip extension,
+// which occurs when gh run download delivers the artifact bundle without extracting it.
 func flattenUnifiedArtifact(outputDir string, verbose bool) error {
 	agentArtifactsDir := filepath.Join(outputDir, "agent-artifacts")
 
-	// Check if agent-artifacts directory exists
-	if _, err := os.Stat(agentArtifactsDir); os.IsNotExist(err) {
+	// Check if agent-artifacts exists (as file or directory)
+	info, err := os.Stat(agentArtifactsDir)
+	if os.IsNotExist(err) {
 		// No unified artifact, nothing to flatten
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to stat agent-artifacts: %w", err)
+	}
+
+	// Handle the case where agent-artifacts is a ZIP file without .zip extension.
+	// This happens when gh run download delivers the artifact as a raw bundle.
+	if !info.IsDir() {
+		logsDownloadLog.Printf("agent-artifacts is a file (not a directory), attempting ZIP extraction: %s", agentArtifactsDir)
+		if err := unzipFile(agentArtifactsDir, outputDir, verbose); err != nil {
+			logsDownloadLog.Printf("Failed to extract agent-artifacts as ZIP: %v", err)
+			if verbose {
+				fmt.Fprintln(os.Stderr, console.FormatWarningMessage(fmt.Sprintf("agent-artifacts is not a valid ZIP archive: %v", err)))
+			}
+			// Leave the file intact for manual inspection rather than silently deleting it
+			return nil
+		}
+		// Remove the original ZIP file after successful extraction
+		if err := os.Remove(agentArtifactsDir); err != nil {
+			logsDownloadLog.Printf("Failed to remove agent-artifacts ZIP file: %v", err)
+		} else {
+			logsDownloadLog.Printf("Removed agent-artifacts ZIP file after extraction: %s", agentArtifactsDir)
+		}
+		if verbose {
+			fmt.Fprintln(os.Stderr, console.FormatVerboseMessage("Extracted agent-artifacts ZIP file (no .zip extension) to output directory"))
+		}
 		return nil
 	}
 
@@ -142,7 +172,7 @@ func flattenUnifiedArtifact(outputDir string, verbose bool) error {
 	}
 
 	// Walk through source path and move all files to root output directory
-	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
