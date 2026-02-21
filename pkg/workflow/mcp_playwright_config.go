@@ -31,26 +31,26 @@ func getPlaywrightMCPPackageVersion(playwrightConfig *PlaywrightToolConfig) stri
 }
 
 // generatePlaywrightAllowedDomains extracts domain list from Playwright tool configuration with bundle resolution
-// Uses the same domain bundle resolution as top-level network configuration, defaulting to localhost only
+// Uses the same domain bundle resolution as top-level network configuration.
+// Returns nil when no allowed_domains are specified, which omits --allowed-hosts from the Playwright MCP server.
+// In that case, the network-level firewall (network.allowed) controls domain access instead.
 func generatePlaywrightAllowedDomains(playwrightConfig *PlaywrightToolConfig) []string {
-	// Default to localhost with all port variations (same as Copilot coding agent default)
-	allowedDomains := constants.DefaultAllowedDomains
-
-	// Extract allowed_domains from Playwright tool configuration
-	if playwrightConfig != nil && len(playwrightConfig.AllowedDomains) > 0 {
-		// Create a mock NetworkPermissions structure to use the same domain resolution logic
-		playwrightNetwork := &NetworkPermissions{
-			Allowed: playwrightConfig.AllowedDomains.ToStringSlice(),
-		}
-
-		// Use the same domain bundle resolution as the top-level network configuration
-		resolvedDomains := GetAllowedDomains(playwrightNetwork)
-
-		// Ensure localhost domains are always included
-		allowedDomains = parser.EnsureLocalhostDomains(resolvedDomains)
+	// Return nil when no allowed_domains configured - no browser-level host restriction
+	// The network firewall handles access control at the OS level
+	if playwrightConfig == nil || len(playwrightConfig.AllowedDomains) == 0 {
+		return nil
 	}
 
-	return allowedDomains
+	// Create a mock NetworkPermissions structure to use the same domain resolution logic
+	playwrightNetwork := &NetworkPermissions{
+		Allowed: playwrightConfig.AllowedDomains.ToStringSlice(),
+	}
+
+	// Use the same domain bundle resolution as the top-level network configuration
+	resolvedDomains := GetAllowedDomains(playwrightNetwork)
+
+	// Ensure localhost domains are always included
+	return parser.EnsureLocalhostDomains(resolvedDomains)
 }
 
 // generatePlaywrightDockerArgs creates the common Docker arguments for Playwright MCP server

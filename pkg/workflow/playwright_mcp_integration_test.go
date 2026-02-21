@@ -28,6 +28,7 @@ func TestPlaywrightMCPIntegration(t *testing.T) {
 		name                 string
 		workflowContent      string
 		expectedFlags        []string
+		unexpectedFlags      []string
 		expectedDomains      []string
 		shouldContainPackage bool
 	}{
@@ -52,7 +53,7 @@ Test playwright with custom domains.
 			shouldContainPackage: true,
 		},
 		{
-			name: "Claude engine with playwright default domains",
+			name: "Claude engine with playwright no domains",
 			workflowContent: `---
 on: push
 engine: claude
@@ -62,10 +63,11 @@ tools:
 
 # Test Workflow
 
-Test playwright with default domains only.
+Test playwright with no allowed_domains (network firewall controls access).
 `,
-			expectedFlags:        []string{"--allowed-hosts", "--allowed-origins"},
-			expectedDomains:      []string{"localhost", "127.0.0.1"},
+			expectedFlags:        []string{},
+			expectedDomains:      []string{},
+			unexpectedFlags:      []string{"--allowed-hosts", "--allowed-origins"},
 			shouldContainPackage: true,
 		},
 		{
@@ -124,6 +126,13 @@ Test playwright with copilot engine.
 			for _, flag := range tt.expectedFlags {
 				if !strings.Contains(lockStr, flag) {
 					t.Errorf("Expected lock file to contain flag %s\nActual content:\n%s", flag, lockStr)
+				}
+			}
+
+			// Verify unexpected flags are NOT present
+			for _, flag := range tt.unexpectedFlags {
+				if strings.Contains(lockStr, flag) {
+					t.Errorf("Expected lock file NOT to contain flag %s\nActual content:\n%s", flag, lockStr)
 				}
 			}
 
