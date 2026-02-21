@@ -31,9 +31,9 @@ permissions:
   issues: write
 tools:
   playwright:
-    allowed_domains: ["defaults", "example.com"]
   bash:
     - "mkdir*"
+    - "npm*"
 safe-outputs:
   upload-asset:
   create-issue:
@@ -42,11 +42,12 @@ safe-outputs:
 network:
   allowed:
     - defaults
+    - node
 ---
 
 # Take Website Screenshots
 
-Take a screenshot of https://example.com and post the result in a GitHub issue.
+Build and serve the site locally, then take a screenshot and post the result in a GitHub issue.
 
 ## Step 1: Create output directory
 
@@ -56,19 +57,29 @@ Use the bash tool to create a directory for screenshots:
 mkdir -p /tmp/screenshots
 ```
 
-## Step 2: Take screenshots
+## Step 2: Build and serve
+
+```bash
+npm install
+npm run build
+npm run preview &
+```
+
+Wait a few seconds for the server to start on `http://localhost:4321`.
+
+## Step 3: Take screenshots
 
 Use the Playwright MCP tools to navigate to the site and take a screenshot:
 
-1. Navigate to `https://example.com`
+1. Navigate to `http://localhost:4321`
 2. Take a full-page screenshot and save it to `/tmp/screenshots/homepage.png`
 
-## Step 3: Upload the screenshot
+## Step 4: Upload the screenshot
 
 Use the `upload_asset` tool to upload `/tmp/screenshots/homepage.png`.
 Collect the returned URL.
 
-## Step 4: Create issue
+## Step 5: Create issue
 
 Create a GitHub issue titled "Website Screenshot" with the screenshot embedded:
 
@@ -81,7 +92,9 @@ Create a GitHub issue titled "Website Screenshot" with the screenshot embedded:
 
 ## Network Configuration
 
-By default, Playwright can only access `localhost` and `127.0.0.1`. To allow access to an external site, add it to `allowed_domains` inside the `playwright:` tool configuration:
+By default, Playwright can access `localhost` and `127.0.0.1` without any additional configuration. This covers the common case of taking screenshots of a local development server started during the workflow.
+
+To allow access to an external site, add it to `allowed_domains` inside the `playwright:` tool configuration:
 
 ```yaml wrap
 tools:
@@ -92,7 +105,7 @@ tools:
 The `allowed_domains` list accepts ecosystem bundle names (`defaults`, `github`, `node`, etc.) and individual domain patterns. Subdomains are included automatically.
 
 > [!TIP]
-> If you are testing a local server started during the workflow (for example with `npm run preview`), `localhost` is included by default and no additional configuration is required.
+> When testing a local server started during the workflow (for example with `npm run preview`), `localhost` is included by default and no `allowed_domains` configuration is required.
 
 For sites outside of known ecosystems, also add the domain to the top-level `network:` block so the agent's own network traffic is allowed:
 
@@ -152,13 +165,13 @@ Body:
 ![Screenshot]({{ URL from upload_asset }})
 
 ### Details
-- URL: https://example.com
+- URL: http://localhost:4321
 - Captured: {{ current date }}
 ```
 
 ## Complete Example
 
-The following workflow triggers on `workflow_dispatch` and on issue creation, takes a screenshot of a site, and opens a report issue with the image embedded.
+The following workflow triggers on `workflow_dispatch` and on issue creation, builds and serves the site locally, takes a screenshot, and opens a report issue with the image embedded.
 
 ```aw wrap
 ---
@@ -172,9 +185,9 @@ permissions:
   issues: write
 tools:
   playwright:
-    allowed_domains: ["defaults", "example.com"]
   bash:
     - "mkdir*"
+    - "npm*"
 safe-outputs:
   upload-asset:
   create-issue:
@@ -183,24 +196,30 @@ safe-outputs:
 network:
   allowed:
     - defaults
-    - "example.com"
+    - node
 ---
 
 # Website Screenshot Report
 
-Take a screenshot of https://example.com and create a GitHub issue with the results.
+Build and serve the site locally, take a screenshot, and create a GitHub issue with the results.
 
 ## Steps
 
 1. Run `mkdir -p /tmp/screenshots` using the bash tool.
 
-2. Use Playwright to navigate to `https://example.com` and save a full-page
+2. Build and start the local server:
+   ```bash
+   npm install && npm run build && npm run preview &
+   ```
+   Wait a few seconds for the server to be ready.
+
+3. Use Playwright to navigate to `http://localhost:4321` and save a full-page
    screenshot to `/tmp/screenshots/homepage.png`.
 
-3. Upload `/tmp/screenshots/homepage.png` using the `upload_asset` tool.
+4. Upload `/tmp/screenshots/homepage.png` using the `upload_asset` tool.
    Save the returned URL as `SCREENSHOT_URL`.
 
-4. Create a GitHub issue using `create_issue` with the following body:
+5. Create a GitHub issue using `create_issue` with the following body:
 
 ```markdown
 ### Screenshot
@@ -208,7 +227,7 @@ Take a screenshot of https://example.com and create a GitHub issue with the resu
 ![Homepage](SCREENSHOT_URL)
 
 ### Details
-- URL: https://example.com
+- URL: http://localhost:4321
 ```
 ```
 
