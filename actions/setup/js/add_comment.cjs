@@ -187,20 +187,18 @@ async function hideOlderComments(github, owner, repo, itemNumber, workflowId, is
 
   core.info(`Found ${comments.length} previous comment(s) to hide with reason: ${normalizedReason}`);
 
-  let hiddenCount = 0;
   for (const comment of comments) {
     // TypeScript can't narrow the union type here, but we know it's safe due to isDiscussion check
     // @ts-expect-error - comment has node_id when not a discussion
     const nodeId = isDiscussion ? String(comment.id) : comment.node_id;
     core.info(`Hiding comment: ${nodeId}`);
 
-    const result = await minimizeComment(github, nodeId, normalizedReason);
-    hiddenCount++;
+    await minimizeComment(github, nodeId, normalizedReason);
     core.info(`✓ Hidden comment: ${nodeId}`);
   }
 
-  core.info(`Successfully hidden ${hiddenCount} comment(s)`);
-  return hiddenCount;
+  core.info(`Successfully hidden ${comments.length} comment(s)`);
+  return comments.length;
 }
 
 /**
@@ -305,18 +303,17 @@ async function main(config = {}) {
   // Track state
   let processedCount = 0;
   const temporaryIdMap = new Map();
-  const createdComments = [];
 
   // Get workflow ID for hiding older comments
   const workflowId = process.env.GH_AW_WORKFLOW_ID || "";
 
   /**
    * Message handler function
-   * @param {Object} message - The add_comment message
+   * @param {Object} item - The add_comment message
    * @param {Object} resolvedTemporaryIds - Resolved temporary IDs
    * @returns {Promise<Object>} Result
    */
-  return async function handleAddComment(message, resolvedTemporaryIds) {
+  return async function handleAddComment(item, resolvedTemporaryIds) {
     // Check max limit
     if (processedCount >= maxCount) {
       core.warning(`Skipping add_comment: max count of ${maxCount} reached`);
@@ -327,8 +324,6 @@ async function main(config = {}) {
     }
 
     processedCount++;
-
-    const item = message;
 
     // Merge resolved temp IDs
     if (resolvedTemporaryIds) {
@@ -504,27 +499,7 @@ async function main(config = {}) {
       /** @type {{ id: string | number, html_url: string }} */
       let comment;
       if (isDiscussion) {
-        // Use GraphQL for discussions
-        const discussionQuery = `
-          query($owner: String!, $repo: String!, $number: Int!) {
-            repository(owner: $owner, name: $repo) {
-              discussion(number: $number) {
-                id
-              }
-            }
-          }
-        `;
-        const queryResult = await github.graphql(discussionQuery, {
-          owner: repoParts.owner,
-          repo: repoParts.repo,
-          number: itemNumber,
-        });
-
-        const discussionId = queryResult?.repository?.discussion?.id;
-        if (!discussionId) {
-          throw new Error(`Discussion #${itemNumber} not found in ${itemRepo}`);
-        }
-
+        // Use GraphQL for discussions - commentOnDiscussion handles fetching the discussion node ID
         comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, processedBody, null);
       } else {
         // Use REST API for issues/PRs
@@ -538,20 +513,6 @@ async function main(config = {}) {
       }
 
       core.info(`Created comment: ${comment.html_url}`);
-
-      // Add tracking metadata
-      const commentResult = {
-        id: comment.id,
-        html_url: comment.html_url,
-        _tracking: {
-          commentId: comment.id,
-          itemNumber: itemNumber,
-          repo: itemRepo,
-          isDiscussion: isDiscussion,
-        },
-      };
-
-      createdComments.push(commentResult);
 
       return {
         success: true,
@@ -574,45 +535,10 @@ async function main(config = {}) {
         core.info(`Item #${itemNumber} not found as issue/PR, retrying as discussion...`);
 
         try {
-          // Try to find and comment on the discussion
-          const discussionQuery = `
-            query($owner: String!, $repo: String!, $number: Int!) {
-              repository(owner: $owner, name: $repo) {
-                discussion(number: $number) {
-                  id
-                }
-              }
-            }
-          `;
-          const queryResult = await github.graphql(discussionQuery, {
-            owner: repoParts.owner,
-            repo: repoParts.repo,
-            number: itemNumber,
-          });
-
-          const discussionId = queryResult?.repository?.discussion?.id;
-          if (!discussionId) {
-            throw new Error(`Discussion #${itemNumber} not found in ${itemRepo}`);
-          }
-
           core.info(`Found discussion #${itemNumber}, adding comment...`);
           const comment = await commentOnDiscussion(github, repoParts.owner, repoParts.repo, itemNumber, processedBody, null);
 
           core.info(`Created comment on discussion: ${comment.html_url}`);
-
-          // Add tracking metadata
-          const commentResult = {
-            id: comment.id,
-            html_url: comment.html_url,
-            _tracking: {
-              commentId: comment.id,
-              itemNumber: itemNumber,
-              repo: itemRepo,
-              isDiscussion: true,
-            },
-          };
-
-          createdComments.push(commentResult);
 
           return {
             success: true,
