@@ -165,6 +165,58 @@ on: workflow_dispatch
 	assert.True(t, fileSet[baseSharedPath], "Should include base-shared.md file")
 }
 
+func TestCollectWorkflowFiles_NestedImportsUseWorkflowBasePath(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	sharedDir := filepath.Join(tmpDir, "shared")
+	err := os.MkdirAll(sharedDir, 0755)
+	require.NoError(t, err)
+
+	formattingPath := filepath.Join(sharedDir, "formatting.md")
+	err = os.WriteFile(formattingPath, []byte("# Formatting\n"), 0644)
+	require.NoError(t, err)
+
+	reportingPath := filepath.Join(sharedDir, "reporting.md")
+	reportingContent := `---
+imports:
+  - shared/formatting.md
+---
+# Reporting
+`
+	err = os.WriteFile(reportingPath, []byte(reportingContent), 0644)
+	require.NoError(t, err)
+
+	workflowPath := filepath.Join(tmpDir, "test-workflow.md")
+	workflowContent := `---
+name: Test Workflow
+on: workflow_dispatch
+imports:
+  - shared/reporting.md
+---
+# Test Workflow
+`
+	err = os.WriteFile(workflowPath, []byte(workflowContent), 0644)
+	require.NoError(t, err)
+
+	lockFilePath := filepath.Join(tmpDir, "test-workflow.lock.yml")
+	err = os.WriteFile(lockFilePath, []byte("name: Test Workflow\n"), 0644)
+	require.NoError(t, err)
+
+	files, err := collectWorkflowFiles(context.Background(), workflowPath, false)
+	require.NoError(t, err)
+	assert.Len(t, files, 4, "Should include nested import at shared/formatting.md")
+
+	fileSet := make(map[string]bool)
+	for _, file := range files {
+		fileSet[file] = true
+	}
+
+	assert.True(t, fileSet[workflowPath], "Should include workflow .md file")
+	assert.True(t, fileSet[lockFilePath], "Should include lock .yml file")
+	assert.True(t, fileSet[reportingPath], "Should include shared/reporting.md")
+	assert.True(t, fileSet[formattingPath], "Should include shared/formatting.md")
+}
+
 func TestIsWorkflowSpecFormatLocal(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -106,7 +106,7 @@ func collectWorkflowFiles(ctx context.Context, workflowPath string, verbose bool
 
 	// Collect transitive closure of imported files
 	runPushLog.Printf("Starting import collection for %s", absWorkflowPath)
-	if err := collectImports(absWorkflowPath, files, visited, verbose); err != nil {
+	if err := collectImports(absWorkflowPath, filepath.Dir(absWorkflowPath), files, visited, verbose); err != nil {
 		runPushLog.Printf("Failed to collect imports: %v", err)
 		return nil, fmt.Errorf("failed to collect imports: %w", err)
 	}
@@ -224,7 +224,7 @@ func checkLockFileStatus(workflowPath string) (*LockFileStatus, error) {
 }
 
 // collectImports recursively collects all imported files (transitive closure)
-func collectImports(workflowPath string, files map[string]bool, visited map[string]bool, verbose bool) error {
+func collectImports(workflowPath, importBaseDir string, files map[string]bool, visited map[string]bool, verbose bool) error {
 	// Avoid processing the same file multiple times
 	if visited[workflowPath] {
 		runPushLog.Printf("Skipping already visited file: %s", workflowPath)
@@ -261,7 +261,7 @@ func collectImports(workflowPath string, files map[string]bool, visited map[stri
 
 	// Parse imports field - can be array of strings or objects with path
 	workflowDir := filepath.Dir(workflowPath)
-	runPushLog.Printf("Workflow directory: %s", workflowDir)
+	runPushLog.Printf("Workflow directory: %s (import base: %s)", workflowDir, importBaseDir)
 	var imports []string
 
 	switch v := importsField.(type) {
@@ -303,7 +303,7 @@ func collectImports(workflowPath string, files map[string]bool, visited map[stri
 		runPushLog.Printf("Processing import %d/%d: %s", i+1, len(imports), importPath)
 
 		// Resolve the import path
-		resolvedPath := resolveImportPathLocal(importPath, workflowDir)
+		resolvedPath := resolveImportPathLocal(importPath, importBaseDir)
 		if resolvedPath == "" {
 			runPushLog.Printf("Could not resolve import path: %s", importPath)
 			if verbose {
@@ -339,7 +339,7 @@ func collectImports(workflowPath string, files map[string]bool, visited map[stri
 
 		// Recursively collect imports from this file
 		runPushLog.Printf("Recursively collecting imports from: %s", absImportPath)
-		if err := collectImports(absImportPath, files, visited, verbose); err != nil {
+		if err := collectImports(absImportPath, importBaseDir, files, visited, verbose); err != nil {
 			runPushLog.Printf("Failed to recursively collect imports from %s: %v", absImportPath, err)
 			return err
 		}
