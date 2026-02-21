@@ -297,18 +297,11 @@ The gh CLI is NOT authenticated. Do NOT use gh commands for GitHub operations.
 <instructions>
 To create or modify GitHub resources (issues, discussions, pull requests, etc.), you MUST call the appropriate safe output tool. Simply writing content will NOT work - the workflow requires actual tool calls.
 
-Temporary IDs: Some safe output tools support a temporary ID field (usually named temporary_id) so you can reference newly-created items elsewhere in the SAME agent output (for example, using #aw_abc1 in a later body). 
-
-**IMPORTANT - temporary_id format rules:**
-- If you DON'T need to reference the item later, OMIT the temporary_id field entirely (it will be auto-generated if needed)
-- If you DO need cross-references/chaining, you MUST match this EXACT validation regex: /^aw_[A-Za-z0-9]{3,8}$/i
-- Format: aw_ prefix followed by 3 to 8 alphanumeric characters (A-Z, a-z, 0-9, case-insensitive)
-- Valid alphanumeric characters: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
-- INVALID examples: aw_ab (too short), aw_123456789 (too long), aw_test-id (contains hyphen), aw_id_123 (contains underscore)
-- VALID examples: aw_abc, aw_abc1, aw_Test123, aw_A1B2C3D4, aw_12345678
-- To generate valid IDs: use 3-8 random alphanumeric characters or omit the field to let the system auto-generate
-
-Do NOT invent other aw_* formats — downstream steps will reject them with validation errors matching against /^aw_[A-Za-z0-9]{3,8}$/i.
+**temporary_id**: Some tools support a temporary_id field so you can reference newly-created items within the same agent output (e.g., #aw_abc1 in a later body).
+- Omit if you don't need to cross-reference the item (auto-generated if needed)
+- If needed, use format /^aw_[A-Za-z0-9]{3,8}$/i: aw_ prefix + 3-8 alphanumeric chars
+- Invalid: aw_ab (too short), aw_test-id (hyphen not allowed)
+- Valid: aw_abc1, aw_A1B2C3
 
 Discover available tools from the safeoutputs MCP server.
 
@@ -653,133 +646,31 @@ func generateSafeOutputsPromptSection(b *strings.Builder, safeOutputs *SafeOutpu
 
 	safeOutputsPromptLog.Print("Generating safe outputs prompt section")
 
-	// Build heading that lists every enabled capability
-	b.WriteString("\n---\n\n## ")
-	written := false
-	write := func(label string) {
-		if written {
-			b.WriteString(", ")
-		}
-		b.WriteString(label)
-		written = true
-	}
+	// Check that at least one capability is enabled before writing per-tool sections
+	hasIssueOps := safeOutputs.CreateIssues != nil || safeOutputs.CloseIssues != nil ||
+		safeOutputs.UpdateIssues != nil || safeOutputs.AddComments != nil || safeOutputs.LinkSubIssue != nil
+	hasDiscussionOps := safeOutputs.CreateDiscussions != nil || safeOutputs.UpdateDiscussions != nil ||
+		safeOutputs.CloseDiscussions != nil
+	hasPROps := safeOutputs.CreatePullRequests != nil || safeOutputs.ClosePullRequests != nil ||
+		safeOutputs.UpdatePullRequests != nil || safeOutputs.MarkPullRequestAsReadyForReview != nil ||
+		safeOutputs.PushToPullRequestBranch != nil || safeOutputs.AddReviewer != nil ||
+		safeOutputs.CreatePullRequestReviewComments != nil || safeOutputs.SubmitPullRequestReview != nil ||
+		safeOutputs.ReplyToPullRequestReviewComment != nil || safeOutputs.ResolvePullRequestReviewThread != nil
+	hasLabelOps := safeOutputs.AddLabels != nil || safeOutputs.RemoveLabels != nil
+	hasAssignOps := safeOutputs.AssignMilestone != nil || safeOutputs.AssignToAgent != nil ||
+		safeOutputs.AssignToUser != nil || safeOutputs.UnassignFromUser != nil || safeOutputs.CreateAgentSessions != nil
+	hasOtherOps := safeOutputs.CreateCodeScanningAlerts != nil || safeOutputs.AutofixCodeScanningAlert != nil ||
+		safeOutputs.UploadAssets != nil || safeOutputs.UpdateRelease != nil ||
+		safeOutputs.UpdateProjects != nil || safeOutputs.CreateProjects != nil ||
+		safeOutputs.CreateProjectStatusUpdates != nil || safeOutputs.HideComment != nil ||
+		safeOutputs.DispatchWorkflow != nil || safeOutputs.MissingTool != nil || safeOutputs.MissingData != nil
 
-	if safeOutputs.AddComments != nil {
-		write("Adding a Comment to an Issue or Pull Request")
-	}
-	if safeOutputs.CreateIssues != nil {
-		write("Creating an Issue")
-	}
-	if safeOutputs.CloseIssues != nil {
-		write("Closing an Issue")
-	}
-	if safeOutputs.UpdateIssues != nil {
-		write("Updating Issues")
-	}
-	if safeOutputs.CreateDiscussions != nil {
-		write("Creating a Discussion")
-	}
-	if safeOutputs.UpdateDiscussions != nil {
-		write("Updating a Discussion")
-	}
-	if safeOutputs.CloseDiscussions != nil {
-		write("Closing a Discussion")
-	}
-	if safeOutputs.CreateAgentSessions != nil {
-		write("Creating an Agent Session")
-	}
-	if safeOutputs.CreatePullRequests != nil {
-		write("Creating a Pull Request")
-	}
-	if safeOutputs.ClosePullRequests != nil {
-		write("Closing a Pull Request")
-	}
-	if safeOutputs.UpdatePullRequests != nil {
-		write("Updating a Pull Request")
-	}
-	if safeOutputs.MarkPullRequestAsReadyForReview != nil {
-		write("Marking a Pull Request as Ready for Review")
-	}
-	if safeOutputs.CreatePullRequestReviewComments != nil {
-		write("Creating a Pull Request Review Comment")
-	}
-	if safeOutputs.SubmitPullRequestReview != nil {
-		write("Submitting a Pull Request Review")
-	}
-	if safeOutputs.ReplyToPullRequestReviewComment != nil {
-		write("Replying to a Pull Request Review Comment")
-	}
-	if safeOutputs.ResolvePullRequestReviewThread != nil {
-		write("Resolving a Pull Request Review Thread")
-	}
-	if safeOutputs.AddLabels != nil {
-		write("Adding Labels to Issues or Pull Requests")
-	}
-	if safeOutputs.RemoveLabels != nil {
-		write("Removing Labels from Issues or Pull Requests")
-	}
-	if safeOutputs.AddReviewer != nil {
-		write("Adding a Reviewer to a Pull Request")
-	}
-	if safeOutputs.AssignMilestone != nil {
-		write("Assigning a Milestone")
-	}
-	if safeOutputs.AssignToAgent != nil {
-		write("Assigning to an Agent")
-	}
-	if safeOutputs.AssignToUser != nil {
-		write("Assigning to a User")
-	}
-	if safeOutputs.UnassignFromUser != nil {
-		write("Unassigning from a User")
-	}
-	if safeOutputs.PushToPullRequestBranch != nil {
-		write("Pushing Changes to Branch")
-	}
-	if safeOutputs.CreateCodeScanningAlerts != nil {
-		write("Creating a Code Scanning Alert")
-	}
-	if safeOutputs.AutofixCodeScanningAlert != nil {
-		write("Autofixing a Code Scanning Alert")
-	}
-	if safeOutputs.UploadAssets != nil {
-		write("Uploading Assets")
-	}
-	if safeOutputs.UpdateRelease != nil {
-		write("Updating a Release")
-	}
-	if safeOutputs.UpdateProjects != nil {
-		write("Updating a Project")
-	}
-	if safeOutputs.CreateProjects != nil {
-		write("Creating a Project")
-	}
-	if safeOutputs.CreateProjectStatusUpdates != nil {
-		write("Creating a Project Status Update")
-	}
-	if safeOutputs.LinkSubIssue != nil {
-		write("Linking a Sub-Issue")
-	}
-	if safeOutputs.HideComment != nil {
-		write("Hiding a Comment")
-	}
-	if safeOutputs.DispatchWorkflow != nil {
-		write("Dispatching a Workflow")
-	}
-	if safeOutputs.MissingTool != nil {
-		write("Reporting Missing Tools or Functionality")
-	}
-	if safeOutputs.MissingData != nil {
-		write("Reporting Missing Data")
-	}
-
-	if !written {
+	if !hasIssueOps && !hasDiscussionOps && !hasPROps && !hasLabelOps && !hasAssignOps && !hasOtherOps {
 		// No specific capabilities listed – nothing more to add.
 		return
 	}
 
-	b.WriteString("\n\n")
-	fmt.Fprintf(b, "**IMPORTANT**: To perform the actions listed above, use the **%s** tools. Do NOT use `gh`, do NOT call the GitHub API directly. You do not have write access to the GitHub repository.\n\n", constants.SafeOutputsMCPServerID)
+	fmt.Fprintf(b, "\n---\n\n**IMPORTANT**: Use the **%s** tools for all actions below. Do NOT use `gh` or call the GitHub API directly.\n\n", constants.SafeOutputsMCPServerID)
 
 	if safeOutputs.AddComments != nil {
 		b.WriteString("**Adding a Comment to an Issue or Pull Request**\n\n")
