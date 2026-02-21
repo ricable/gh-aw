@@ -108,29 +108,6 @@ func (b *handlerConfigBuilder) AddStringPtr(key string, value *string) *handlerC
 	return b
 }
 
-// AddTemplatableBool adds a field whose value can be either a literal boolean or a
-// GitHub Actions expression string (e.g. "${{ inputs.draft-prs }}").
-//
-//   - "true"  → stored as JSON boolean true
-//   - "false" → stored as JSON boolean false
-//   - any other string (expression) → stored as a JSON string so GitHub Actions can
-//     evaluate it at runtime when the env var containing the JSON is expanded
-//   - nil    → field is omitted
-func (b *handlerConfigBuilder) AddTemplatableBool(key string, value *string) *handlerConfigBuilder {
-	if value == nil {
-		return b
-	}
-	switch *value {
-	case "true":
-		b.config[key] = true
-	case "false":
-		b.config[key] = false
-	default:
-		b.config[key] = *value // expression string – evaluated at runtime by GitHub Actions
-	}
-	return b
-}
-
 // AddDefault adds a field with a default value unconditionally
 func (b *handlerConfigBuilder) AddDefault(key string, value any) *handlerConfigBuilder {
 	b.config[key] = value

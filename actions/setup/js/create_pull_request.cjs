@@ -15,6 +15,7 @@ const { replaceTemporaryIdReferences, isTemporaryId } = require("./temporary_id.
 const { resolveTargetRepoConfig, resolveAndValidateRepo } = require("./repo_helpers.cjs");
 const { addExpirationToFooter } = require("./ephemerals.cjs");
 const { generateWorkflowIdMarker } = require("./generate_footer.cjs");
+const { parseBoolTemplatable } = require("./templatable.cjs");
 const { generateFooterWithMessages } = require("./messages_footer.cjs");
 const { normalizeBranchName } = require("./normalize_branch_name.cjs");
 
@@ -92,7 +93,7 @@ async function main(config = {}) {
   // Extract configuration
   const titlePrefix = config.title_prefix || "";
   const envLabels = config.labels ? (Array.isArray(config.labels) ? config.labels : config.labels.split(",")).map(label => String(label).trim()).filter(label => label) : [];
-  const draftDefault = config.draft !== undefined ? String(config.draft) !== "false" : true;
+  const draftDefault = parseBoolTemplatable(config.draft, true);
   const ifNoChanges = config.if_no_changes || "warn";
   const allowEmpty = config.allow_empty || false;
   const autoMerge = config.auto_merge || false;
@@ -102,7 +103,7 @@ async function main(config = {}) {
   const maxSizeKb = config.max_patch_size ? parseInt(String(config.max_patch_size), 10) : 1024;
   const { defaultTargetRepo, allowedRepos } = resolveTargetRepoConfig(config);
   const includeFooter = config.footer !== false; // Default to true (include footer)
-  const fallbackAsIssue = config.fallback_as_issue !== undefined ? String(config.fallback_as_issue) !== "false" : true; // Default to true (fallback enabled)
+  const fallbackAsIssue = parseBoolTemplatable(config.fallback_as_issue, true); // Default to true (fallback enabled)
 
   // Environment validation - fail early if required variables are missing
   const workflowId = process.env.GH_AW_WORKFLOW_ID;
