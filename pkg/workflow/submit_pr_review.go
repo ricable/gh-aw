@@ -1,6 +1,10 @@
 package workflow
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/github/gh-aw/pkg/console"
 	"github.com/github/gh-aw/pkg/logger"
 )
 
@@ -31,6 +35,15 @@ func (c *Compiler) parseSubmitPullRequestReviewConfig(outputMap map[string]any) 
 	if configMap, ok := configData.(map[string]any); ok {
 		// Parse common base fields with default max of 1
 		c.parseBaseSafeOutputConfig(configMap, &config.BaseSafeOutputConfig, 1)
+
+		// submit-pull-request-review has a fixed max of 1; only one review can be
+		// submitted per run. Warn if the user configured a higher value and reset to 1.
+		if config.Max > 1 {
+			fmt.Fprintln(os.Stderr, console.FormatWarningMessage(
+				fmt.Sprintf("submit-pull-request-review: max is fixed at 1 (configured: %d). Only one review can be submitted per run. Resetting max to 1.", config.Max),
+			))
+			config.Max = 1
+		}
 
 		// Parse target (same semantics as add-comment / create-pull-request-review-comment)
 		if target, exists := configMap["target"]; exists {

@@ -30,6 +30,7 @@ type FieldValidation struct {
 // TypeValidationConfig defines validation configuration for a safe output type
 type TypeValidationConfig struct {
 	DefaultMax       int                        `json:"defaultMax"`
+	FixedMax         bool                       `json:"fixedMax,omitempty"` // When true, max is fixed at DefaultMax and user-configured values above it are warned and clamped. When false (default), users can configure any positive max value.
 	Fields           map[string]FieldValidation `json:"fields"`
 	CustomValidation string                     `json:"customValidation,omitempty"`
 }
@@ -173,6 +174,7 @@ var ValidationConfig = map[string]TypeValidationConfig{
 	},
 	"submit_pull_request_review": {
 		DefaultMax: 1,
+		FixedMax:   true, // Only one review can be submitted per run; multiple reviews on the same PR in one run is not supported
 		Fields: map[string]FieldValidation{
 			"body":  {Type: "string", Sanitize: true, MaxLength: MaxBodyLength},
 			"event": {Type: "string", Enum: []string{"APPROVE", "REQUEST_CHANGES", "COMMENT"}},
@@ -409,4 +411,13 @@ func GetDefaultMaxForType(typeName string) int {
 		return config.DefaultMax
 	}
 	return 1
+}
+
+// IsFixedMaxType returns true if the type has a fixed max that cannot be changed by the user.
+// Fixed-limit types always operate at DefaultMax regardless of user-configured values.
+func IsFixedMaxType(typeName string) bool {
+	if config, ok := ValidationConfig[typeName]; ok {
+		return config.FixedMax
+	}
+	return false
 }

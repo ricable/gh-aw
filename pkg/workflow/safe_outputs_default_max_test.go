@@ -206,3 +206,130 @@ func TestGenerateAssignToAgentConfigDefaultMax(t *testing.T) {
 	assert.Equal(t, "issues", config["target"], "Should have target")
 	assert.Equal(t, []string{"copilot", "custom"}, config["allowed"], "Should have allowed list")
 }
+
+// TestCreatePullRequestDefaultMax tests that create-pull-request has a default max of 1
+func TestCreatePullRequestDefaultMax(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "create-pr-default-max-test")
+
+	workflow := `---
+on: issues
+engine: copilot
+permissions:
+  contents: read
+safe-outputs:
+  create-pull-request:
+---
+
+# Test Workflow
+
+This workflow tests the default max for create-pull-request.
+`
+	testFile := filepath.Join(tmpDir, "test-create-pr.md")
+	err := os.WriteFile(testFile, []byte(workflow), 0644)
+	require.NoError(t, err, "Failed to write test workflow")
+
+	compiler := NewCompilerWithVersion("1.0.0")
+	workflowData, err := compiler.ParseWorkflowFile(testFile)
+	require.NoError(t, err, "Failed to parse workflow")
+
+	require.NotNil(t, workflowData.SafeOutputs, "SafeOutputs should not be nil")
+	require.NotNil(t, workflowData.SafeOutputs.CreatePullRequests, "CreatePullRequests should not be nil")
+	assert.Equal(t, 1, workflowData.SafeOutputs.CreatePullRequests.Max, "Default max should be 1")
+}
+
+// TestCreatePullRequestConfigurableMax tests that create-pull-request accepts max > 1 (configurable)
+func TestCreatePullRequestConfigurableMax(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "create-pr-configurable-max-test")
+
+	workflow := `---
+on: issues
+engine: copilot
+permissions:
+  contents: read
+safe-outputs:
+  create-pull-request:
+    max: 3
+---
+
+# Test Workflow
+
+This workflow tests that create-pull-request accepts configurable max.
+`
+	testFile := filepath.Join(tmpDir, "test-create-pr.md")
+	err := os.WriteFile(testFile, []byte(workflow), 0644)
+	require.NoError(t, err, "Failed to write test workflow")
+
+	compiler := NewCompilerWithVersion("1.0.0")
+	workflowData, err := compiler.ParseWorkflowFile(testFile)
+	require.NoError(t, err, "Failed to parse workflow")
+
+	require.NotNil(t, workflowData.SafeOutputs, "SafeOutputs should not be nil")
+	require.NotNil(t, workflowData.SafeOutputs.CreatePullRequests, "CreatePullRequests should not be nil")
+	assert.Equal(t, 3, workflowData.SafeOutputs.CreatePullRequests.Max, "User-configured max of 3 should be accepted")
+}
+
+// TestSubmitPullRequestReviewDefaultMax tests that submit-pull-request-review has a default max of 1
+func TestSubmitPullRequestReviewDefaultMax(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "submit-pr-review-default-max-test")
+
+	workflow := `---
+on: pull_request
+engine: copilot
+permissions:
+  contents: read
+safe-outputs:
+  create-pull-request-review-comment:
+  submit-pull-request-review:
+---
+
+# Test Workflow
+
+This workflow tests the default max for submit-pull-request-review.
+`
+	testFile := filepath.Join(tmpDir, "test-submit-pr-review.md")
+	err := os.WriteFile(testFile, []byte(workflow), 0644)
+	require.NoError(t, err, "Failed to write test workflow")
+
+	compiler := NewCompilerWithVersion("1.0.0")
+	workflowData, err := compiler.ParseWorkflowFile(testFile)
+	require.NoError(t, err, "Failed to parse workflow")
+
+	require.NotNil(t, workflowData.SafeOutputs, "SafeOutputs should not be nil")
+	require.NotNil(t, workflowData.SafeOutputs.SubmitPullRequestReview, "SubmitPullRequestReview should not be nil")
+	assert.Equal(t, 1, workflowData.SafeOutputs.SubmitPullRequestReview.Max, "Default max should be 1")
+}
+
+// TestSubmitPullRequestReviewFixedMax tests that submit-pull-request-review clamps max to 1
+// even when a higher value is configured (it is a fixed-limit type)
+func TestSubmitPullRequestReviewFixedMax(t *testing.T) {
+	tmpDir := testutil.TempDir(t, "submit-pr-review-fixed-max-test")
+
+	workflow := `---
+on: pull_request
+engine: copilot
+permissions:
+  contents: read
+safe-outputs:
+  create-pull-request-review-comment:
+  submit-pull-request-review:
+    max: 5
+---
+
+# Test Workflow
+
+This workflow tests that submit-pull-request-review clamps max to 1 (fixed-limit type).
+`
+	testFile := filepath.Join(tmpDir, "test-submit-pr-review-fixed.md")
+	err := os.WriteFile(testFile, []byte(workflow), 0644)
+	require.NoError(t, err, "Failed to write test workflow")
+
+	compiler := NewCompilerWithVersion("1.0.0")
+	workflowData, err := compiler.ParseWorkflowFile(testFile)
+	require.NoError(t, err, "Failed to parse workflow")
+
+	require.NotNil(t, workflowData.SafeOutputs, "SafeOutputs should not be nil")
+	require.NotNil(t, workflowData.SafeOutputs.SubmitPullRequestReview, "SubmitPullRequestReview should not be nil")
+	// Fixed-limit type: max must be clamped to 1 even if user configured 5
+	assert.Equal(t, 1, workflowData.SafeOutputs.SubmitPullRequestReview.Max,
+		"submit-pull-request-review is a fixed-limit type; max must be clamped to 1 regardless of user configuration")
+}

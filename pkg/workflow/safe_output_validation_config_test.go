@@ -312,3 +312,67 @@ func TestMissingToolFieldOptional(t *testing.T) {
 		t.Error("alternatives field should be optional")
 	}
 }
+
+func TestIsFixedMaxType(t *testing.T) {
+	tests := []struct {
+		typeName string
+		want     bool
+	}{
+		// Fixed-limit types: max is enforced at DefaultMax; user-configured values above it are warned and clamped
+		{"submit_pull_request_review", true},
+		// Configurable types: users can set max to any positive value
+		{"create_pull_request", false},
+		{"create_issue", false},
+		{"add_comment", false},
+		{"add_labels", false},
+		{"create_pull_request_review_comment", false},
+		{"reply_to_pull_request_review_comment", false},
+		{"resolve_pull_request_review_thread", false},
+		{"push_to_pull_request_branch", false},
+		// Unknown type returns false (not fixed)
+		{"unknown_type", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.typeName, func(t *testing.T) {
+			got := IsFixedMaxType(tt.typeName)
+			if got != tt.want {
+				t.Errorf("IsFixedMaxType(%q) = %v, want %v", tt.typeName, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFixedMaxTypesHaveDefaultMaxOne(t *testing.T) {
+	// All fixed-max types must have DefaultMax of 1
+	for typeName, config := range ValidationConfig {
+		if config.FixedMax && config.DefaultMax != 1 {
+			t.Errorf("Fixed-max type %q has DefaultMax=%d, expected 1", typeName, config.DefaultMax)
+		}
+	}
+}
+
+func TestOnlyExpectedTypesAreFixed(t *testing.T) {
+	// Explicitly verify which types are fixed to prevent accidental additions
+	expectedFixed := map[string]bool{
+		"submit_pull_request_review": true,
+	}
+
+	for typeName, config := range ValidationConfig {
+		if config.FixedMax && !expectedFixed[typeName] {
+			t.Errorf("Unexpected fixed-max type %q: if intentional, add it to expectedFixed in this test", typeName)
+		}
+	}
+
+	// Verify all expected fixed types are actually marked as fixed
+	for typeName := range expectedFixed {
+		config, found := GetValidationConfigForType(typeName)
+		if !found {
+			t.Errorf("Expected fixed type %q not found in ValidationConfig", typeName)
+			continue
+		}
+		if !config.FixedMax {
+			t.Errorf("Expected type %q to be fixed but FixedMax is false", typeName)
+		}
+	}
+}

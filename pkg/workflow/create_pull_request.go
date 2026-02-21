@@ -271,7 +271,9 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 		createPRLog.Printf("Pull request expiration configured: %d hours", config.Expires)
 	}
 
-	// Set default max if not explicitly configured (default is 1)
+	// Set default max if not explicitly configured (default is 1).
+	// create-pull-request supports max > 1: each PR is created from its own branch
+	// with an independent patch, so multiple PRs can be created in a single run.
 	if config.Max == 0 {
 		config.Max = 1
 		createPRLog.Print("Using default max count: 1")

@@ -33,11 +33,12 @@ The agent requests issue creation; a separate job with `issues: write` creates i
 ### Pull Requests
 
 - [**Create PR**](#pull-request-creation-create-pull-request) (`create-pull-request`) - Create pull requests with code changes (default max: 1, configurable)
-- [**Update PR**](#pull-request-updates-update-pull-request) (`update-pull-request`) - Update PR title or body (max: 1)
-- [**Close PR**](#close-pull-request-close-pull-request) (`close-pull-request`) - Close pull requests without merging (max: 10)
-- [**PR Review Comments**](#pr-review-comments-create-pull-request-review-comment) (`create-pull-request-review-comment`) - Create review comments on code lines (max: 10)
-- [**Reply to PR Review Comment**](#reply-to-pr-review-comment-reply-to-pull-request-review-comment) (`reply-to-pull-request-review-comment`) - Reply to existing review comments (max: 10)
-- [**Resolve PR Review Thread**](#resolve-pr-review-thread-resolve-pull-request-review-thread) (`resolve-pull-request-review-thread`) - Resolve review threads after addressing feedback (max: 10)
+- [**Update PR**](#pull-request-updates-update-pull-request) (`update-pull-request`) - Update PR title or body (default max: 1, configurable)
+- [**Close PR**](#close-pull-request-close-pull-request) (`close-pull-request`) - Close pull requests without merging (default max: 1, configurable)
+- [**PR Review Comments**](#pr-review-comments-create-pull-request-review-comment) (`create-pull-request-review-comment`) - Create review comments on code lines (default max: 10, configurable)
+- [**Submit PR Review**](#submit-pr-review-submit-pull-request-review) (`submit-pull-request-review`) - Submit a consolidated review with status decision (**max: 1, fixed**)
+- [**Reply to PR Review Comment**](#reply-to-pr-review-comment-reply-to-pull-request-review-comment) (`reply-to-pull-request-review-comment`) - Reply to existing review comments (default max: 10, configurable)
+- [**Resolve PR Review Thread**](#resolve-pr-review-thread-resolve-pull-request-review-thread) (`resolve-pull-request-review-thread`) - Resolve review threads after addressing feedback (default max: 10, configurable)
 - [**Push to PR Branch**](#push-to-pr-branch-push-to-pull-request-branch) (`push-to-pull-request-branch`) - Push changes to PR branch (default max: 1, configurable, same-repo only)
 
 ### Labels, Assignments & Reviews
@@ -757,6 +758,9 @@ With `footer: "if-body"`, approval reviews without body text appear clean withou
 ### Submit PR Review (`submit-pull-request-review:`)
 
 Submits a consolidated pull request review with a status decision. All `create-pull-request-review-comment` outputs are automatically collected and included as inline comments in the review.
+
+> [!NOTE]
+> **Max behavior: fixed at 1.** Only one review can be submitted per run. Setting `max` to a value greater than 1 produces a warning at compile time and the value is clamped to 1.
 
 If the agent calls `submit_pull_request_review`, it can specify a review `body` and `event` (APPROVE, REQUEST_CHANGES, or COMMENT). Both fields are optional — `event` defaults to COMMENT when omitted, and `body` is only required for REQUEST_CHANGES. The agent can also submit a body-only review (e.g., APPROVE) without any inline comments.
 
