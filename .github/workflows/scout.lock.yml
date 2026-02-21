@@ -33,7 +33,7 @@
 #     - shared/mcp/tavily.md
 #     - shared/reporting.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"3ecc8e8ef5dd3dc2f232da0e4c2254673b255194cf825d28901ba12ce9c41aab"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"90f6ce6934e7f6210ef0e0a9d0b63e57c1f1ceb37e466f61db390885e493a5dd"}
 
 name: "Scout"
 "on":
@@ -69,6 +69,14 @@ name: "Scout"
   # - write # Roles processed as role check in pre-activation job
   workflow_dispatch:
     inputs:
+      history:
+        default: shallow
+        description: "Git history to fetch: shallow (default) or full"
+        options:
+        - shallow
+        - full
+        required: false
+        type: choice
       topic:
         description: Research topic or question
         required: true

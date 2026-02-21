@@ -5,15 +5,6 @@ on:
   roles: [admin, maintainer, write]
   slash_command:
     name: scout
-    inputs:
-      topic:
-        description: "Research topic or question"
-        required: false
-      history:
-        description: "Git history to fetch: shallow (default) or full"
-        required: false
-        default: "shallow"
-        choices: ["shallow", "full"]
   workflow_dispatch:
     inputs:
       topic:
