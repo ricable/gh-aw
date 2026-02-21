@@ -4474,15 +4474,7 @@
                   "default": false
                 },
                 "fallback-to-issue": {
-                  "oneOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "string",
-                      "description": "GitHub Actions expression (e.g. '${{ inputs.fallback-to-issue }}')"
-                    }
-                  ],
+                  "allOf": [{ "$ref": "#/$defs/templatable_boolean" }],
                   "description": "When true (default), fallback to creating an issue if discussion creation fails due to permissions. The fallback issue will include a note indicating it was intended to be a discussion. If close-older-discussions is enabled, the close-older-issues logic will be applied to the fallback issue. Accepts a boolean or a GitHub Actions expression.",
                   "default": true
                 },
@@ -4943,15 +4935,7 @@
                   "description": "Optional reviewer(s) to assign to the pull request. Accepts either a single string or an array of usernames. Use 'copilot' to request a code review from GitHub Copilot."
                 },
                 "draft": {
-                  "oneOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "string",
-                      "description": "GitHub Actions expression (e.g. '${{ inputs.draft-prs }}')"
-                    }
-                  ],
+                  "allOf": [{ "$ref": "#/$defs/templatable_boolean" }],
                   "description": "Whether to create pull request as draft (defaults to true). Accepts a boolean or a GitHub Actions expression.",
                   "default": true
                 },
@@ -5009,15 +4993,7 @@
                   "default": true
                 },
                 "fallback-as-issue": {
-                  "oneOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "string",
-                      "description": "GitHub Actions expression (e.g. '${{ inputs.fallback-as-issue }}')"
-                    }
-                  ],
+                  "allOf": [{ "$ref": "#/$defs/templatable_boolean" }],
                   "description": "Controls the fallback behavior when pull request creation fails. When true (default), an issue is created as a fallback with the patch content. When false, no issue is created and the workflow fails with an error. Setting to false also removes the issues:write permission requirement. Accepts a boolean or a GitHub Actions expression.",
                   "default": true
                 }
@@ -6901,6 +6877,18 @@
     }
   ],
   "$defs": {
+    "templatable_boolean": {
+      "description": "A boolean value that may also be specified as a GitHub Actions expression string that resolves to a boolean at runtime (e.g. '${{ inputs.my-flag }}').",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "description": "GitHub Actions expression that resolves to a boolean at runtime"
+        }
+      ]
+    },
     "engine_config": {
       "examples": [
         "claude",
