@@ -37,6 +37,7 @@ The agent requests issue creation; a separate job with `issues: write` creates i
 - [**Close PR**](#close-pull-request-close-pull-request) (`close-pull-request`) - Close pull requests without merging (max: 10)
 - [**PR Review Comments**](#pr-review-comments-create-pull-request-review-comment) (`create-pull-request-review-comment`) - Create review comments on code lines (max: 10)
 - [**Reply to PR Review Comment**](#reply-to-pr-review-comment-reply-to-pull-request-review-comment) (`reply-to-pull-request-review-comment`) - Reply to existing review comments (max: 10)
+- [**Submit PR Review**](#submit-pr-review-submit-pull-request-review) (`submit-pull-request-review`) - Submit a consolidated review with a status decision (max: 1)
 - [**Resolve PR Review Thread**](#resolve-pr-review-thread-resolve-pull-request-review-thread) (`resolve-pull-request-review-thread`) - Resolve review threads after addressing feedback (max: 10)
 - [**Push to PR Branch**](#push-to-pr-branch-push-to-pull-request-branch) (`push-to-pull-request-branch`) - Push changes to PR branch (default max: 1, configurable, same-repo only)
 
@@ -76,6 +77,69 @@ The agent requests issue creation; a separate job with `issues: write` creates i
 ### Custom Safe Output Jobs (`jobs:`)
 
 Create custom post-processing jobs registered as Model Context Protocol (MCP) tools. Support standard GitHub Actions properties and auto-access agent output via `$GH_AW_AGENT_OUTPUT`. See [Custom Safe Output Jobs](/gh-aw/reference/custom-safe-outputs/).
+
+## Option Taxonomy
+
+The table below provides a single reference for the configuration options supported by each safe output type, enabling at-a-glance comparison of capabilities.
+
+**Legend**: ✅ Supported · ❌ Not supported · — Not applicable
+
+| Safe Output Type | [`target`](#targeting) | [`target-repo`](#cross-repository-operations) | [`allowed-repos`](#cross-repository-operations) | Filters | `max` (default) | Fallback / Expires |
+|---|:---:|:---:|:---:|---|:---:|---|
+| **Issues & Discussions** | | | | | | |
+| [`create-issue`](#issue-creation-create-issue) | ❌ | ✅ | ✅ | `allowed-labels` | 1 | `expires`, `close-older-issues` |
+| [`update-issue`](#issue-updates-update-issue) | ✅ | ✅ | ✅ | — | 1 | — |
+| [`close-issue`](#close-issue-close-issue) | ✅ | ✅ | ✅ | `required-labels`, `required-title-prefix` | 1 | — |
+| [`link-sub-issue`](#link-sub-issue-link-sub-issue) | ❌ | ✅ | ✅ | `parent/sub-required-labels`, `parent/sub-title-prefix` | 1 | — |
+| [`create-discussion`](#discussion-creation-create-discussion) | ❌ | ✅ | ✅ | — | 1 | `expires`, `fallback-to-issue` |
+| [`update-discussion`](#discussion-updates-update-discussion) | ✅ | ✅ | ✅ | `allowed-labels` | 1 | — |
+| [`close-discussion`](#close-discussion-close-discussion) | ✅ | ✅ | ✅ | `required-category`, `required-labels`, `required-title-prefix` | 1 | — |
+| **Pull Requests** | | | | | | |
+| [`create-pull-request`](#pull-request-creation-create-pull-request) | ❌ | ✅ | ✅ | — | 1 | `expires`, `fallback-as-issue` |
+| [`update-pull-request`](#pull-request-updates-update-pull-request) | ✅ | ✅ | ✅ | — | 1 | — |
+| [`close-pull-request`](#close-pull-request-close-pull-request) | ✅ | ✅ | ✅ | `required-labels`, `required-title-prefix` | 10 | — |
+| [`create-pull-request-review-comment`](#pr-review-comments-create-pull-request-review-comment) | ✅ | ✅ | ✅ | — | 10 | — |
+| [`reply-to-pull-request-review-comment`](#reply-to-pr-review-comment-reply-to-pull-request-review-comment) | ✅ | ✅ | ✅ | — | 10 | — |
+| [`submit-pull-request-review`](#submit-pr-review-submit-pull-request-review) | ✅ | ❌ | ❌ | — | 1 | — |
+| [`resolve-pull-request-review-thread`](#resolve-pr-review-thread-resolve-pull-request-review-thread) | ❌ | ❌ | ❌ | — | 10 | — |
+| [`push-to-pull-request-branch`](#push-to-pr-branch-push-to-pull-request-branch) | ✅ | ❌ | ❌ | `title-prefix`, `labels` | 1 | — |
+| **Labels, Assignments & Reviews** | | | | | | |
+| [`add-comment`](#comment-creation-add-comment) | ✅ | ✅ | ✅ | `allowed-reasons` | 1 | — |
+| [`hide-comment`](#hide-comment-hide-comment) | ❌ | ✅ | ✅ | — | 5 | — |
+| [`add-labels`](#add-labels-add-labels) | ✅ | ✅ | ✅ | `allowed`, `blocked` | 3 | — |
+| [`remove-labels`](#remove-labels-remove-labels) | ✅ | ✅ | ✅ | `allowed`, `blocked` | 3 | — |
+| [`add-reviewer`](#add-reviewer-add-reviewer) | ✅ | ✅ | ✅ | — | 3 | — |
+| [`assign-milestone`](#assign-milestone-assign-milestone) | ✅ | ✅ | ✅ | `allowed` | 1 | — |
+| [`assign-to-agent`](#assign-to-agent-assign-to-agent) | ✅ | ✅ | ✅ | `allowed` | 1 | — |
+| [`assign-to-user`](#assign-to-user-assign-to-user) | ✅ | ✅ | ✅ | `allowed` | 1 | — |
+| [`unassign-from-user`](#unassign-from-user-unassign-from-user) | ✅ | ✅ | ✅ | `allowed` | 1 | — |
+| **Projects, Releases & Assets** | | | | | | |
+| [`create-project`](#project-creation-create-project) | ❌ | ❌ | ❌ | — | 1 | — |
+| [`update-project`](#project-board-updates-update-project) | ❌ | ❌ | ❌ | — | 10 | — |
+| [`create-project-status-update`](#project-status-updates-create-project-status-update) | ❌ | ❌ | ❌ | — | 1 | — |
+| [`update-release`](#release-updates-update-release) | ❌ | ✅ | ❌ | — | 1 | — |
+| [`upload-asset`](#asset-uploads-upload-asset) | ❌ | ❌ | ❌ | `allowed-exts` | 10 | — |
+| **Security & Agent Tasks** | | | | | | |
+| [`dispatch-workflow`](#workflow-dispatch-dispatch-workflow) | ❌ | ❌ | ❌ | — | 3 (fixed) | — |
+| [`create-code-scanning-alert`](#code-scanning-alerts-create-code-scanning-alert) | ❌ | ❌ | ❌ | — | unlimited | — |
+| [`autofix-code-scanning-alert`](#autofix-code-scanning-alerts-autofix-code-scanning-alert) | ❌ | ❌ | ❌ | — | 10 | — |
+| [`create-agent-session`](#agent-session-creation-create-agent-session) | ❌ | ✅ | ✅ | — | 1 | — |
+| **System Types** | | | | | | |
+| [`noop`](#no-op-logging-noop) | ❌ | ❌ | ❌ | — | 1 (fixed) | — |
+| [`missing-tool`](#missing-tool-reporting-missing-tool) | ❌ | ❌ | ❌ | — | unlimited | — |
+| [`missing-data`](#missing-data-reporting-missing-data) | ❌ | ❌ | ❌ | — | unlimited | — |
+
+**Column notes:**
+
+- **`target`**: Controls which item receives the operation — `"triggering"` (default, uses event context), `"*"` (agent specifies item), or an explicit number/expression.
+- **`target-repo`**: Enables cross-repository operations in `"owner/repo"` format. Most types require an auth option (`github-token` or `app:`). Types without ✅ are same-repo only.
+- **`allowed-repos`**: Extends the target repo allowlist with additional repositories. Requires `target-repo` to be set.
+- **Filters**: Options that restrict which items can be targeted or which values the agent can provide. Filter categories: `required-*` (items must match), `allowed-*` / `allowed` (only these values permitted), `blocked` (glob patterns that are always denied).
+- **`max` (default)**: Default maximum number of operations per workflow run. Configurable unless noted as "fixed". System types default to `unlimited` (no cap unless set).
+- **Fallback / Expires**: `expires` sets time-based auto-close (days or `2h`/`7d`/`2w`/`1m`/`1y`). `close-older-issues` closes previous issues from the same workflow. `fallback-as-issue` / `fallback-to-issue` falls back to issue creation when the primary operation is unavailable.
+
+> [!NOTE]
+> `create-project` uses `target-owner` instead of `target-repo` for cross-organization targeting. `push-to-pull-request-branch`, `upload-asset`, `dispatch-workflow`, and system types (`noop`, `missing-tool`, `missing-data`) are restricted to the same repository.
 
 ### Issue Creation (`create-issue:`)
 

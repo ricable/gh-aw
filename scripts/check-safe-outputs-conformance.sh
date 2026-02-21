@@ -396,6 +396,64 @@ check_schema_consistency() {
 }
 check_schema_consistency
 
+# DOC-001: Option Taxonomy Matrix Completeness
+echo "Running DOC-001: Option Taxonomy Matrix Completeness..."
+check_taxonomy_matrix() {
+    local docs_file="docs/src/content/docs/reference/safe-outputs.md"
+    local failed=0
+
+    if [ ! -f "$docs_file" ]; then
+        log_high "DOC-001: Safe outputs documentation file not found: $docs_file"
+        return
+    fi
+
+    # Extract all safe output types listed in the "Available Safe Output Types" section.
+    # Use awk to collect lines from the section header until the next same-level (##) heading,
+    # then match backtick-quoted identifiers inside parentheses: (`type-name`).
+    local listed_types
+    listed_types=$(awk 'f && /^## /{exit} f{print} /^## Available Safe Output Types/{f=1}' "$docs_file" \
+        | grep -oP '\(`[a-z][a-z0-9-]*`\)' \
+        | tr -d '(`)' \
+        | sort -u)
+
+    if [ -z "$listed_types" ]; then
+        log_medium "DOC-001: No safe output types found in 'Available Safe Output Types' section"
+        return
+    fi
+
+    # Extract all safe output types present in the Option Taxonomy table.
+    # Match only the first-column entries of data rows (lines starting with | [`).
+    local matrix_types
+    matrix_types=$(awk 'f && /^## /{exit} f{print} /^## Option Taxonomy/{f=1}' "$docs_file" \
+        | grep -oP '(?<=^\| \[`)[a-z][a-z0-9-]*(?=`\])' \
+        | sort -u)
+
+    if [ -z "$matrix_types" ]; then
+        log_high "DOC-001: No types found in 'Option Taxonomy' matrix — matrix may be missing"
+        return
+    fi
+
+    # Check that every listed type appears in the matrix
+    while IFS= read -r type; do
+        if ! echo "$matrix_types" | grep -qx "$type"; then
+            log_medium "DOC-001: Type '$type' is listed in Available Safe Output Types but missing from Option Taxonomy matrix"
+            failed=1
+        fi
+    done <<< "$listed_types"
+
+    # Check that every matrix type appears in the listed types (no phantom entries)
+    while IFS= read -r type; do
+        if ! echo "$listed_types" | grep -qx "$type"; then
+            log_low "DOC-001: Type '$type' is in Option Taxonomy matrix but not listed in Available Safe Output Types"
+        fi
+    done <<< "$matrix_types"
+
+    if [ $failed -eq 0 ]; then
+        log_pass "DOC-001: All safe output types in Available Safe Output Types appear in Option Taxonomy matrix"
+    fi
+}
+check_taxonomy_matrix
+
 # Summary
 echo ""
 echo "=================================================="

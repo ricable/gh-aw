@@ -71,6 +71,12 @@ The checker uses color-coded output:
 | IMP-002 | Permission Computation Accuracy | HIGH | Checks permission computation function exists |
 | IMP-003 | Schema Validation Consistency | MEDIUM | Validates schema generation is implemented |
 
+### Documentation Checks
+
+| ID | Name | Severity | Description |
+|----|------|----------|-------------|
+| DOC-001 | Option Taxonomy Matrix Completeness | MEDIUM | Verifies every type listed in "Available Safe Output Types" appears in the "Option Taxonomy" matrix, and flags any phantom entries in the matrix not listed in the index |
+
 ## Adding New Checks
 
 To add a new conformance check:
