@@ -176,6 +176,7 @@ export default defineConfig({
 						{ label: 'Reusing Workflows', link: '/guides/packaging-imports/' },
 						{ label: 'Using MCPs', link: '/guides/mcps/' },
 						{ label: 'Web Search', link: '/guides/web-search/' },
+						{ label: 'Playwright Screenshots', link: '/guides/playwright-screenshots/' },
 					],
 				},
 				{
