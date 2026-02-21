@@ -339,6 +339,77 @@ This workflow tests the create_pull_request job generation with draft: true.
 	// t.Logf("Generated workflow content:\n%s", lockContentStr)
 }
 
+func TestOutputPullRequestDraftExpression(t *testing.T) {
+	// Create temporary directory for test files
+	tmpDir := testutil.TempDir(t, "output-pr-draft-expr-test")
+
+	// Test case with create-pull-request configuration with draft as an expression
+	testContent := `---
+on:
+  workflow_dispatch:
+    inputs:
+      draft-prs:
+        type: boolean
+        default: true
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+tools:
+  github:
+    allowed: [list_issues]
+engine: claude
+features:
+  dangerous-permissions-write: true
+strict: false
+safe-outputs:
+  create-pull-request:
+    title-prefix: "[agent] "
+    labels: [automation]
+    draft: ${{ inputs.draft-prs }}
+---
+
+# Test Output Pull Request with Draft Expression
+
+This workflow tests the create_pull_request job generation with draft as an expression.
+`
+
+	testFile := filepath.Join(tmpDir, "test-output-pr-draft-expr.md")
+	if err := os.WriteFile(testFile, []byte(testContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	compiler := NewCompiler()
+
+	// Compile the workflow
+	if err := compiler.CompileWorkflow(testFile); err != nil {
+		t.Fatalf("Unexpected error compiling workflow with draft expression: %v", err)
+	}
+
+	// Read the generated lock file
+	lockFile := stringutil.MarkdownToLockFile(testFile)
+	lockContent, err := os.ReadFile(lockFile)
+	if err != nil {
+		t.Fatalf("Failed to read generated lock file: %v", err)
+	}
+
+	lockContentStr := string(lockContent)
+
+	// Verify GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG is present and contains the draft expression
+	if !strings.Contains(lockContentStr, "GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG") {
+		t.Error("Expected handler manager config environment variable")
+	}
+
+	if !strings.Contains(lockContentStr, "draft") {
+		t.Error("Expected 'draft' field in handler manager config")
+	}
+
+	// The expression should be preserved in the handler config
+	if !strings.Contains(lockContentStr, "inputs.draft-prs") {
+		t.Error("Expected expression '${{ inputs.draft-prs }}' to be preserved in the handler config")
+	}
+}
+
 func TestCreatePullRequestIfNoChangesConfig(t *testing.T) {
 	// Create temporary directory for test files
 	tmpDir := testutil.TempDir(t, "create-pr-if-no-changes-test")

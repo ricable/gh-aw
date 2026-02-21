@@ -92,7 +92,7 @@ async function main(config = {}) {
   // Extract configuration
   const titlePrefix = config.title_prefix || "";
   const envLabels = config.labels ? (Array.isArray(config.labels) ? config.labels : config.labels.split(",")).map(label => String(label).trim()).filter(label => label) : [];
-  const draftDefault = config.draft !== undefined ? config.draft : true;
+  const draftDefault = config.draft !== undefined ? String(config.draft) !== "false" : true;
   const ifNoChanges = config.if_no_changes || "warn";
   const allowEmpty = config.allow_empty || false;
   const autoMerge = config.auto_merge || false;

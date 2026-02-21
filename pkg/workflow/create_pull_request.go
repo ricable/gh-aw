@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
@@ -24,7 +25,7 @@ type CreatePullRequestsConfig struct {
 	Labels               []string `yaml:"labels,omitempty"`
 	AllowedLabels        []string `yaml:"allowed-labels,omitempty"`    // Optional list of allowed labels. If omitted, any labels are allowed (including creating new ones).
 	Reviewers            []string `yaml:"reviewers,omitempty"`         // List of users/bots to assign as reviewers to the pull request
-	Draft                *bool    `yaml:"draft,omitempty"`             // Pointer to distinguish between unset (nil) and explicitly false
+	Draft                *string  `yaml:"draft,omitempty"`             // Pointer to distinguish between unset (nil), literal bool, and expression values
 	IfNoChanges          string   `yaml:"if-no-changes,omitempty"`     // Behavior when no changes to push: "warn" (default), "error", or "ignore"
 	AllowEmpty           bool     `yaml:"allow-empty,omitempty"`       // Allow creating PR without patch file or with empty patch (useful for preparing feature branches)
 	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`       // Target repository in format "owner/repo" for cross-repository pull requests
@@ -43,7 +44,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	}
 
 	if createPRLog.Enabled() {
-		draftValue := true // Default
+		draftValue := "true" // Default
 		if data.SafeOutputs.CreatePullRequests.Draft != nil {
 			draftValue = *data.SafeOutputs.CreatePullRequests.Draft
 		}
@@ -104,11 +105,17 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	customEnvVars = append(customEnvVars, buildLabelsEnvVar("GH_AW_PR_LABELS", data.SafeOutputs.CreatePullRequests.Labels)...)
 	customEnvVars = append(customEnvVars, buildLabelsEnvVar("GH_AW_PR_ALLOWED_LABELS", data.SafeOutputs.CreatePullRequests.AllowedLabels)...)
 	// Pass draft setting - default to true for backwards compatibility
-	draftValue := true // Default value
 	if data.SafeOutputs.CreatePullRequests.Draft != nil {
-		draftValue = *data.SafeOutputs.CreatePullRequests.Draft
+		draftVal := *data.SafeOutputs.CreatePullRequests.Draft
+		if strings.HasPrefix(draftVal, "${{") {
+			// Expression value - embed unquoted so GitHub Actions evaluates it
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %s\n", draftVal))
+		} else {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %q\n", draftVal))
+		}
+	} else {
+		customEnvVars = append(customEnvVars, "          GH_AW_PR_DRAFT: \"true\"\n")
 	}
-	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %q\n", fmt.Sprintf("%t", draftValue)))
 
 	// Pass the if-no-changes configuration
 	ifNoChanges := data.SafeOutputs.CreatePullRequests.IfNoChanges
@@ -249,6 +256,21 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 					configData["expires"] = expiresInt
 					createPRLog.Printf("Converted expires from relative time format to hours: %d", expiresInt)
 				}
+			}
+		}
+	}
+
+	// Pre-process the draft field: convert bool to string so that expressions
+	// (e.g. "${{ inputs.draft-prs }}") are also accepted by the *string field.
+	if configData != nil {
+		if draft, exists := configData["draft"]; exists {
+			if draftBool, ok := draft.(bool); ok {
+				if draftBool {
+					configData["draft"] = "true"
+				} else {
+					configData["draft"] = "false"
+				}
+				createPRLog.Printf("Converted draft bool to string before unmarshaling")
 			}
 		}
 	}

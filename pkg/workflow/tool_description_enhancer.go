@@ -143,7 +143,7 @@ func enhanceToolDescription(toolName, baseDescription string, safeOutputs *SafeO
 			if len(config.AllowedLabels) > 0 {
 				constraints = append(constraints, fmt.Sprintf("Only these labels are allowed: %v.", config.AllowedLabels))
 			}
-			if config.Draft != nil && *config.Draft {
+			if config.Draft != nil && *config.Draft == "true" {
 				constraints = append(constraints, "PRs will be created as drafts.")
 			}
 			if len(config.Reviewers) > 0 {

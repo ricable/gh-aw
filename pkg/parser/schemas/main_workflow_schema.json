@@ -4935,8 +4935,16 @@
                   "description": "Optional reviewer(s) to assign to the pull request. Accepts either a single string or an array of usernames. Use 'copilot' to request a code review from GitHub Copilot."
                 },
                 "draft": {
-                  "type": "boolean",
-                  "description": "Whether to create pull request as draft (defaults to true)",
+                  "oneOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string",
+                      "description": "GitHub Actions expression (e.g. '${{ inputs.draft-prs }}')"
+                    }
+                  ],
+                  "description": "Whether to create pull request as draft (defaults to true). Accepts a boolean or a GitHub Actions expression.",
                   "default": true
                 },
                 "if-no-changes": {
