@@ -39,6 +39,7 @@ type ImportsResult struct {
 	MergedJobs          string           // Merged jobs from imported YAML workflows (JSON format)
 	MergedFeatures      []map[string]any // Merged features configuration from all imports (parsed YAML structures)
 	ImportedFiles       []string         // List of imported file paths (for manifest)
+	ImportedFullPaths   []string         // List of resolved imported file paths on disk (for compile-time security scanning)
 	AgentFile           string           // Path to custom agent file (if imported)
 	AgentImportSpec     string           // Original import specification for agent file (e.g., "owner/repo/path@ref")
 	RepositoryImports   []string         // List of repository imports (format: "owner/repo@ref") for .github folder merging
@@ -162,6 +163,34 @@ func parseRemoteOrigin(spec string) *remoteImportOrigin {
 	}
 }
 
+// buildRemoteNestedResolutionCandidates builds workflowspec candidates for a nested
+// remote import path. The first candidate preserves current behavior (basePath + cleanPath).
+// A second fallback candidate is added when the nested path repeats the basePath leaf,
+// which can happen with imports like "shared/x.md" from ".../workflows/shared/file.md".
+func buildRemoteNestedResolutionCandidates(origin *remoteImportOrigin, cleanPath string) []string {
+	basePath := origin.BasePath
+	if basePath == "" {
+		basePath = ".github/workflows"
+	}
+	basePath = path.Clean(basePath)
+
+	primary := fmt.Sprintf("%s/%s/%s/%s@%s",
+		origin.Owner, origin.Repo, basePath, cleanPath, origin.Ref)
+	candidates := []string{primary}
+
+	baseLeaf := path.Base(basePath)
+	parentBase := path.Dir(basePath)
+	if baseLeaf != "." && parentBase != "." && parentBase != "/" && strings.HasPrefix(cleanPath, baseLeaf+"/") {
+		fallback := fmt.Sprintf("%s/%s/%s/%s@%s",
+			origin.Owner, origin.Repo, parentBase, cleanPath, origin.Ref)
+		if fallback != primary {
+			candidates = append(candidates, fallback)
+		}
+	}
+
+	return candidates
+}
+
 // ProcessImportsFromFrontmatterWithManifest processes imports field from frontmatter
 // Returns result containing merged tools, engines, markdown content, and list of imported files
 // Uses BFS traversal with queues for deterministic ordering and cycle detection
@@ -235,6 +264,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 	var queue []importQueueItem
 	visited := make(map[string]bool)
 	processedOrder := []string{} // Track processing order for manifest
+	processedFullPaths := []string{}
 
 	// Initialize result accumulators
 	var toolsBuilder strings.Builder
@@ -369,6 +399,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 
 		// Add to processing order
 		processedOrder = append(processedOrder, item.importPath)
+		processedFullPaths = append(processedFullPaths, item.fullPath)
 
 		// Check if this is a custom agent file (any markdown file under .github/agents)
 		isAgentFile := strings.Contains(item.fullPath, "/.github/agents/") && strings.HasSuffix(strings.ToLower(item.fullPath), ".md")
@@ -515,6 +546,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 
 					// Determine the resolution path and propagate remote origin context
 					resolvedPath := nestedFilePath
+					resolutionCandidates := []string{resolvedPath}
 					var nestedRemoteOrigin *remoteImportOrigin
 
 					if item.remoteOrigin != nil && !isWorkflowSpec(nestedFilePath) {
@@ -528,18 +560,10 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 							return nil, fmt.Errorf("nested import '%s' from remote file '%s' escapes base directory", nestedFilePath, item.importPath)
 						}
 
-						// Use the parent's BasePath if available, otherwise default to .github/workflows
-						basePath := item.remoteOrigin.BasePath
-						if basePath == "" {
-							basePath = ".github/workflows"
-						}
-						// Clean the basePath to ensure it's normalized
-						basePath = path.Clean(basePath)
-
-						resolvedPath = fmt.Sprintf("%s/%s/%s/%s@%s",
-							item.remoteOrigin.Owner, item.remoteOrigin.Repo, basePath, cleanPath, item.remoteOrigin.Ref)
+						resolutionCandidates = buildRemoteNestedResolutionCandidates(item.remoteOrigin, cleanPath)
+						resolvedPath = resolutionCandidates[0]
 						nestedRemoteOrigin = item.remoteOrigin
-						importLog.Printf("Resolving nested import as remote workflowspec: %s -> %s (basePath=%s)", nestedFilePath, resolvedPath, basePath)
+						importLog.Printf("Resolving nested import as remote workflowspec: %s -> %s", nestedFilePath, resolvedPath)
 					} else if isWorkflowSpec(nestedFilePath) {
 						// Nested import is itself a workflowspec - parse its remote origin
 						nestedRemoteOrigin = parseRemoteOrigin(nestedFilePath)
@@ -548,7 +572,17 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 						}
 					}
 
-					nestedFullPath, err := ResolveIncludePath(resolvedPath, baseDir, cache)
+					var nestedFullPath string
+					var err error
+					for idx, candidate := range resolutionCandidates {
+						nestedFullPath, err = ResolveIncludePath(candidate, baseDir, cache)
+						if err == nil {
+							if idx > 0 {
+								importLog.Printf("Resolved nested import with fallback candidate: %s -> %s", nestedFilePath, candidate)
+							}
+							break
+						}
+					}
 					if err != nil {
 						// If we have source information for the parent workflow, create a structured error
 						if workflowFilePath != "" && yamlContent != "" {
@@ -838,6 +872,7 @@ func processImportsFromFrontmatterWithManifestAndSource(frontmatter map[string]a
 		MergedJobs:          jobsBuilder.String(),
 		MergedFeatures:      features,
 		ImportedFiles:       topologicalOrder,
+		ImportedFullPaths:   processedFullPaths,
 		AgentFile:           agentFile,
 		AgentImportSpec:     agentImportSpec,
 		RepositoryImports:   repositoryImports,

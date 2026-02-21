@@ -112,33 +112,22 @@ func (c *Compiler) setupEngineAndImports(result *parser.FrontmatterResult, clean
 		return nil, err // Error is already formatted with source location
 	}
 
-	// Security scan imported markdown files' content (skip non-markdown imports like .yml)
-	for _, importedFile := range importsResult.ImportedFiles {
-		// Strip section references (e.g., "shared/foo.md#Section")
-		importFilePath := importedFile
-		if idx := strings.Index(importFilePath, "#"); idx >= 0 {
-			importFilePath = importFilePath[:idx]
-		}
-		// Only scan markdown files — .yml imports are YAML config, not markdown content
-		if !strings.HasSuffix(importFilePath, ".md") {
-			continue
-		}
-		// Resolve the import path to a full filesystem path
-		fullPath, resolveErr := parser.ResolveIncludePath(importFilePath, markdownDir, importCache)
-		if resolveErr != nil {
-			orchestratorEngineLog.Printf("Skipping security scan for unresolvable import: %s: %v", importedFile, resolveErr)
-			fmt.Fprintf(os.Stderr, "WARNING: Skipping security scan for unresolvable import '%s': %v\n", importedFile, resolveErr)
+	// Security scan imported markdown files' content (skip non-markdown imports like .yml).
+	// Use resolved file paths from import processing so nested remote imports are scanned
+	// consistently with compile-time resolution.
+	for _, fullPath := range importsResult.ImportedFullPaths {
+		if !strings.HasSuffix(strings.ToLower(fullPath), ".md") {
 			continue
 		}
 		importContent, readErr := parser.ReadFile(fullPath)
 		if readErr != nil {
 			orchestratorEngineLog.Printf("Skipping security scan for unreadable import: %s: %v", fullPath, readErr)
-			fmt.Fprintf(os.Stderr, "WARNING: Skipping security scan for unreadable import '%s' (resolved path: %s): %v\n", importedFile, fullPath, readErr)
+			fmt.Fprintf(os.Stderr, "WARNING: Skipping security scan for unreadable import '%s': %v\n", fullPath, readErr)
 			continue
 		}
 		if findings := ScanMarkdownSecurity(string(importContent)); len(findings) > 0 {
-			orchestratorEngineLog.Printf("Security scan failed for imported file: %s (%d findings)", importedFile, len(findings))
-			return nil, fmt.Errorf("imported workflow '%s' failed security scan: %s", importedFile, FormatSecurityFindings(findings, importedFile))
+			orchestratorEngineLog.Printf("Security scan failed for imported file: %s (%d findings)", fullPath, len(findings))
+			return nil, fmt.Errorf("imported workflow '%s' failed security scan: %s", fullPath, FormatSecurityFindings(findings, fullPath))
 		}
 	}
 

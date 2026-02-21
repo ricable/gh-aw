@@ -563,3 +563,44 @@ func TestParseRemoteOriginWithURLFormats(t *testing.T) {
 		assert.Equal(t, "workflows", result.BasePath)
 	})
 }
+
+func TestBuildRemoteNestedResolutionCandidates(t *testing.T) {
+	t.Run("adds fallback when nested path repeats base leaf", func(t *testing.T) {
+		origin := &remoteImportOrigin{
+			Owner:    "githubnext",
+			Repo:     "agentics",
+			Ref:      "abc123",
+			BasePath: "workflows/shared",
+		}
+
+		candidates := buildRemoteNestedResolutionCandidates(origin, "shared/formatting.md")
+		require.Len(t, candidates, 2, "Expected primary and fallback candidates")
+		assert.Equal(t,
+			"githubnext/agentics/workflows/shared/shared/formatting.md@abc123",
+			candidates[0],
+			"Primary candidate should preserve basePath + nestedPath behavior",
+		)
+		assert.Equal(t,
+			"githubnext/agentics/workflows/shared/formatting.md@abc123",
+			candidates[1],
+			"Fallback candidate should use parent basePath to avoid duplicated segment",
+		)
+	})
+
+	t.Run("does not add fallback when nested path does not repeat base leaf", func(t *testing.T) {
+		origin := &remoteImportOrigin{
+			Owner:    "githubnext",
+			Repo:     "agentics",
+			Ref:      "abc123",
+			BasePath: "workflows/shared",
+		}
+
+		candidates := buildRemoteNestedResolutionCandidates(origin, "alerts/formatting.md")
+		require.Len(t, candidates, 1, "Expected only primary candidate")
+		assert.Equal(t,
+			"githubnext/agentics/workflows/shared/alerts/formatting.md@abc123",
+			candidates[0],
+			"Primary candidate should use configured basePath",
+		)
+	})
+}
