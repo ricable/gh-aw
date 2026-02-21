@@ -1,0 +1,129 @@
+---
+name: Weekly Editors Health Check
+description: Checks that the workflow editors listed in the documentation are still valid, takes Playwright screenshots, and opens a PR to update the docs with preview images
+on:
+  schedule: weekly
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+strict: true
+tracker-id: weekly-editors-health-check
+engine: copilot
+timeout-minutes: 30
+
+network:
+  allowed:
+    - defaults
+    - playwright
+
+tools:
+  playwright:
+    allowed_domains:
+      - ashleywolf.github.io
+      - mossaka.github.io
+      - github.github.com
+  web-fetch:
+  bash:
+    - "curl*"
+    - "cat*"
+  edit:
+
+safe-outputs:
+  upload-asset:
+  create-pull-request:
+    title-prefix: "[docs] "
+    labels: [documentation, automation]
+    reviewers: [copilot]
+    expires: 7d
+---
+
+# Weekly Editors Health Check
+
+Monitor the health of all workflow editors listed in the documentation and keep their preview screenshots up to date.
+
+**Repository**: ${{ github.repository }} | **Run**: ${{ github.run_id }}
+
+## Editors to Check
+
+The editors are documented in `docs/src/content/docs/reference/editors.mdx`. Check each of the following URLs:
+
+| Editor | URL |
+|--------|-----|
+| Compiler Playground | https://github.github.com/gh-aw/editor/ |
+| Agentic Prompt Generator | https://ashleywolf.github.io/agentic-prompt-generator/ |
+| Graphical Workflow Editor | https://mossaka.github.io/gh-aw-editor-visualizer/ |
+
+## Process
+
+### Step 1: URL Availability Check
+
+For each URL in the table above, verify that the page is reachable:
+
+1. Use `web_fetch` (or `curl -sS -o /dev/null -w "%{http_code}" <url>`) to perform an HTTP GET request.
+2. Record the HTTP status code for each URL.
+3. A status code of **200** means the editor is available.
+4. Any other status code (or a connection error) means the editor is unavailable.
+
+### Step 2: Take Playwright Screenshots
+
+For each editor URL that responded with HTTP 200 in Step 1:
+
+1. Use the Playwright MCP tool to navigate to the URL.
+2. Wait for the page to fully load (wait for network idle).
+3. Take a full-page screenshot and save it to `/tmp/gh-aw/editors/<editor-id>-screenshot.png` where `<editor-id>` is one of:
+   - `compiler-playground`
+   - `agentic-prompt-generator`
+   - `graphical-workflow-editor`
+
+### Step 3: Upload Screenshots as Assets
+
+For each screenshot file saved in Step 2:
+
+1. Use the `upload-asset` safe output to upload the PNG file.
+2. Record the returned asset URL for each uploaded screenshot.
+
+### Step 4: Update the Documentation
+
+1. Read the current content of `docs/src/content/docs/reference/editors.mdx`.
+2. For each editor section, add or replace an image tag that renders the screenshot as a preview. The image should be placed **below the `<LinkButton>` component** for that editor. Use this format:
+
+   ```mdx
+   ![Screenshot of <Editor Name>](<asset-url>)
+   ```
+
+   - Place the image after the closing `</LinkButton>` tag (or after the `<LinkButton ... />` self-closing tag) for the corresponding editor section.
+   - If an image tag already exists for a given editor, replace its URL with the newly uploaded asset URL so the preview stays fresh.
+   - Only add an image for editors whose URL was reachable in Step 1.
+
+3. Save the updated file with the `edit` tool.
+
+### Step 5: Create a Pull Request
+
+After updating the documentation file, use the `create-pull-request` safe output to open a pull request with:
+
+- **Title**: `Update editor preview screenshots – <YYYY-MM-DD>`
+- **Body**: Include a summary table with one row per editor showing:
+  - Editor name
+  - URL
+  - HTTP status (✅ 200 / ❌ <status code>)
+  - Embedded screenshot (if available)
+
+Example body:
+
+```markdown
+## Editor Health Report – <date>
+
+| Editor | URL | Status | Preview |
+|--------|-----|--------|---------|
+| Compiler Playground | https://github.github.com/gh-aw/editor/ | ✅ 200 | ![preview](<url>) |
+| Agentic Prompt Generator | https://ashleywolf.github.io/agentic-prompt-generator/ | ✅ 200 | ![preview](<url>) |
+| Graphical Workflow Editor | https://mossaka.github.io/gh-aw-editor-visualizer/ | ✅ 200 | ![preview](<url>) |
+```
+
+## Error Handling
+
+- If a URL is unreachable (non-200 status or connection error), skip the screenshot step for that editor but still include the editor in the PR body with its error status.
+- If a screenshot cannot be taken (Playwright error), log the error and continue with the remaining editors.
+- If no screenshots were successfully taken and no documentation changes are needed, do **not** open a pull request. Instead, exit successfully after logging the results.
+- Always attempt all editors before deciding whether to create a PR.
