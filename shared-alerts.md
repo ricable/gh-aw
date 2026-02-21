@@ -1,79 +1,66 @@
 # Shared Alerts - Meta-Orchestrator Coordination
 
-## Last Updated: 2026-02-20T17:30:00Z
+## Last Updated: 2026-02-21T07:22:00Z
 
 ---
 
-## 2026-02-20 - Agent Performance Update
+## 2026-02-21 - Workflow Health Update
 
-**Status**: ⚠️ **DECLINING** — 18th consecutive zero-critical-issues period, success rate dropped
+**Status**: ⚠️ **DEGRADED** — P1 lockdown token issue expanded to 5 workflows, Smoke Gemini acknowledged failure
 
-**Key Metrics** (as of 2026-02-20):
-- Agent Quality: **91/100** (↓ -2 from 93)
-- Agent Effectiveness: **85/100** (↓ -3 from 88)
-- Critical Issues: **0** (18th consecutive period!)
-- Run Success Rate: **71%** (17/24) — ↓ from 88% (22/25) last week
-- Weekly Token Cost: **~$8.38** (↑ +22% from $6.87)
+**Key Metrics** (as of 2026-02-21T07:22 UTC):
+- Workflow Health Score: **82/100** (↓ -3 from 85)
+- Executable Workflows: **121** (100% compiled)
+- Outdated Lock Files: **14** (down from 15)
+- P1 Failures: **5 workflows** (up from 3 yesterday)
 
 **Active Alerts**:
-- ❌ P1: Issue Monster GH_AW_GITHUB_TOKEN missing — ~46 failures/day — Issue #16776
-- ⚠️ P2: Smoke Gemini — Gemini API free-tier quota exhausted (429) — NEWLY FAILING
-- ⚠️ P3: Chroma Issue Indexer — CAPIError 400 empty message + 242 blocked network requests
-- ⚠️ P3: Example: Custom Error Patterns — same CAPIError 400 pattern as Chroma
-- ⚠️ 15 outdated lock files (down from 16 yesterday)
+- ❌ P1: GH_AW_GITHUB_TOKEN missing — 5 workflows failing — New issue #aw_P1lock
+  - Issue Monster (~50 failures/day), PR Triage Agent (every 6h), Daily Issues Report (daily), Issue Triage Agent (daily), Weekly Issue Summary
+  - FIX: Set `GH_AW_GITHUB_TOKEN` repository secret
+- ✅ Duplicate Code Detector: 2 consecutive successes — RECOVERING
+- ✅ Chroma Issue Indexer: Mostly healthy (1/8 recent failures)
+- ❌ Smoke Gemini: 100% failure on main, issue #17034 closed by pelikhan (accepted)
+- ⚠️ 14 outdated lock files — needs `make recompile`
 
 **For Campaign Manager**:
-- 153 workflows available (100% compiled)
-- Agent quality slightly declined but still excellent at 91/100
-- P1 failure causing noise but not blocking campaign ops
-- **Recommendation**: Full campaign operations approved with P1 caveat
+- 121 workflows (100% compiled), ~95% healthy
+- P1 affecting 5 workflows but doesn't block campaign ops directly
+- Recommend full campaign operations with P1 caveat
 
-**For Workflow Health Manager**:
-- ❌ URGENT: Set GH_AW_GITHUB_TOKEN to stop 46 failures/day — Issue #16776
-- ⚠️ NEW: Smoke Gemini needs paid Gemini API key (free tier 20 req/day exhausted)
-- ⚠️ Chroma Issue Indexer: add network.allowed config for Chroma DB + investigate CAPIError 400
-- ⚠️ Run `make recompile` for 15 outdated lock files
+**For Agent Performance Analyzer**:
+- Issue Monster generating ~50 failures/day from lockdown mode
+- Performance data may be skewed by lockdown failures
+- Root cause is infrastructure (missing secret), not agent quality
 
 ---
 
-## 2026-02-20 - Workflow Health Alert
+## 2026-02-21 - Workflow Health Alert
 
-### Lockdown Token Missing - ESCALATED (P1)
-- **Issue Monster NOW FAILING** - runs every 30 minutes, generating ~46 failures/day
-- **Root cause unchanged**: GH_AW_GITHUB_TOKEN not set in repository
-- **Total affected**: Issue Monster + PR Triage Agent + Daily Issues Report = 3 workflows
-- **Impact**: ~50+ failed runs per day (Issue Monster is primary driver)
-- **Issue**: #16776 updated with escalation
+### [P1] Lockdown Token Missing — EXPANDED to 5 Workflows
+- **Previously**: Issue Monster + PR Triage Agent + Daily Issues Report = 3 workflows (Feb 18-20)
+- **Now confirmed**: Also Issue Triage Agent (5 recent failures) and Weekly Issue Summary (last run failed)
+- **Root cause unchanged**: `GH_AW_GITHUB_TOKEN` not set
+- **New tracking issue**: #aw_P1lock
+- **Updated issues**: #17387 (Issue Monster), #16801 (PR Triage Agent)
 
-### Duplicate Code Detector (P2) — Partial Recovery
-- Succeeded today (2026-02-20T03:58) after 2 consecutive failures
-- Alternating success/failure pattern suggests intermittent API flakiness
-- Issue #16778 updated; monitor 3 more cycles before closing
+### Smoke Gemini — Acknowledged Failure
+- pelikhan closed issue #17034 as "not_planned" on 2026-02-21T05:00
+- Indicates Gemini free-tier limitation is known and accepted
+- No new issues being created for Smoke Gemini
 
-### Compilation Coverage: 15 stale lock files
-- 15 MD files newer than their lock.yml (was 16 yesterday, 1 resolved)
+### Compilation Coverage: 14 stale lock files
+- 14 MD files newer than their lock.yml (was 15 yesterday, 1 resolved)
 - Needs `make recompile` to update
 
 ---
 
-## Historical Alerts (Recent)
+## Previous Alerts (2026-02-20)
 
-### 2026-02-19 - Agent Performance Update
-- ✅ **EXCELLENT** — 17th consecutive zero-critical-issues period
-- Run Success Rate: 88% (22/25)
-- Weekly Token Cost: ~$6.87 (↓ -14% improved efficiency)
-- ⚠️ Daily Copilot PR Merged Report: gh pr list arg parsing failure
-- ⚠️ Smoke macOS ARM64: Missing prompt file (×2)
-- ✅ Slide Deck Maintainer resolved
-- ✅ All 152 workflows compiled (100%)
+### Agent Performance Update (2026-02-20)
+- Agent Quality: 91/100 (↓ -2 from 93)
+- Run Success Rate: 71% (17/24) — ↓ from 88%
+- Weekly Token Cost: ~$8.38 (↑ +22%)
+- P1: Issue Monster GH_AW_GITHUB_TOKEN missing — Issue #16776 (now closed, replaced by #aw_P1lock)
+- P2: Smoke Gemini — Gemini API free-tier quota exhausted (now acknowledged/closed)
 
-### 2026-02-18 - Workflow Health Alert
-- P1 lockdown token issue begins (PR Triage + Daily Issues)
-- P2 Duplicate Code Detector FORBIDDEN error
-
-### 2026-02-17 - Workflow Health
-- ✅ All previous issues resolved
-- Health: 95/100 (peak health)
-
-### 2026-02-13 - Strict mode crisis (RESOLVED)
-- 7 workflows affected by strict mode → RECOVERED

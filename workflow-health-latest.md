@@ -1,25 +1,27 @@
-# Workflow Health Dashboard - 2026-02-20
+# Workflow Health Dashboard - 2026-02-21
 
 ## Overview
-- **Total workflows**: 153 (153 executable, 36 shared includes excluded)
-- **Healthy**: 150 (98%)
-- **Warning**: 3 (2%) — lockdown token failures + intermittent safe_outputs error
+- **Total workflows**: 156 (121 executable, 35 shared includes excluded)
+- **Healthy**: 115 (95%)
+- **Warning**: 6 (5%) — lockdown token failures
 - **Critical**: 0 (0%)
-- **Compilation coverage**: 153/153 (100% ✅)
-- **Outdated lock files**: 15 (MD newer than lock — down 1 from yesterday's 16)
-- **Overall health score**: 85/100 (↓ -3 from yesterday's 88)
+- **Compilation coverage**: 121/121 (100% ✅)
+- **Outdated lock files**: 14 (down from 15 yesterday)
+- **Overall health score**: 82/100 (↓ -3 from yesterday's 85)
 
-## Status: GOOD — Active P1 Issue Ongoing
+## Status: DEGRADED — P1 Lockdown Token Still Unresolved
 
-P1 lockdown token issue persists and has expanded to include Issue Monster (runs every 30 min).
+The GH_AW_GITHUB_TOKEN issue persists and now affects 5 workflows total (expanded from 3 yesterday).
 
 ### Health Assessment Summary
 
-- ✅ **0 compilation failures** (all 153 workflows compile successfully)
-- ✅ **100% compilation coverage** (153/153 lock files present)
-- ⚠️ **15 outdated lock files** (MD modified after lock compilation — needs recompile)
-- ❌ **P1: Lockdown token missing** — 3 workflows failing
-- ⚠️ **P2: Duplicate Code Detector intermittent** — succeeded today, but alternating pattern
+- ✅ **0 compilation failures** (all 121 executable workflows compile)
+- ✅ **100% compilation coverage** (no missing lock files)
+- ⚠️ **14 outdated lock files** (MD modified after lock compilation)
+- ❌ **P1: Lockdown token missing** — 5 workflows failing consistently
+- ✅ **Duplicate Code Detector**: 2 consecutive successes (recovering)
+- ✅ **Chroma Issue Indexer**: 1 failure in last 8 runs (mostly healthy)
+- ❌ **Smoke Gemini**: 100% failure on main (Gemini free-tier quota exhausted, closed by pelikhan 2026-02-21)
 
 ## Critical Issues 🚨
 
@@ -27,64 +29,90 @@ P1 lockdown token issue persists and has expanded to include Issue Monster (runs
 
 ## Warnings ⚠️
 
-### [P1] Lockdown Token Missing — 3 Workflows Failing (Score: 40/100)
-- **Affected workflows**: Issue Monster (every 30min!), PR Triage Agent (every 6h), Daily Issues Report Generator (daily)
-- **Issue**: #16776 (updated today with Issue Monster escalation)
-- **Error**: `GH_AW_GITHUB_TOKEN` not configured; lockdown mode requires custom token
-- **Impact**: ~50+ failures/day (Issue Monster 30-min schedule × ~46 failures/day)
+### [P1] Lockdown Token Missing — 5 Workflows Failing (Score: 35/100)
+- **Affected workflows**: Issue Monster, PR Triage Agent, Daily Issues Report Generator, Issue Triage Agent, Weekly Issue Summary
+- **Issue**: #aw_P1lock (NEW P1 issue created this run)
+- **Error**: `GH_AW_GITHUB_TOKEN` not configured; lockdown mode requires custom token  
+- **Impact**: ~100+ failures/day (Issue Monster 30-min schedule dominates)
 - **Fix**: Set `GH_AW_GITHUB_TOKEN` repository secret
-- **Runs**: [§22215346914](https://github.com/github/gh-aw/actions/runs/22215346914), [§22213875229](https://github.com/github/gh-aw/actions/runs/22213875229)
+- **Existing symptom issues**: #17387 (Issue Monster), #16801 (PR Triage Agent) — both open
+- **Previous tracking issue**: #16776 (closed 2026-02-20 as not_planned)
+- **Runs**: [§22252647907](https://github.com/github/gh-aw/actions/runs/22252647907), [§22251839006](https://github.com/github/gh-aw/actions/runs/22251839006)
 
-### [P2] Duplicate Code Detector — Intermittent safe_outputs FORBIDDEN (Score: 65/100)
-- **Status**: Succeeded today (2026-02-20T03:58)! But was failing on 2/19 and 2/18
-- **Pattern**: Alternating success/failure — may be transient API error
-- **Issue**: #16778 (updated today noting today's success)
-- **Recommendation**: Monitor for 3+ more cycles before closing
+### [P3] Smoke Gemini — Gemini API Quota Exhausted (Score: 20/100)
+- **Status**: 100% failure on main (4/4 recent main-branch runs)
+- **Reason**: Gemini free-tier quota exhausted (429 errors)
+- **Issue**: #17034 closed by pelikhan (acknowledged/accepted)
+- **Note**: Closed by human owner — not creating a new issue
 
 ## Healthy Workflows ✅
 
-**150 workflows (98%)** operating normally.
+**115 workflows (95%)** operating normally.
 
-## Outdated Lock Files (15)
+## Outdated Lock Files (14)
 
 MD files modified after their lock files — should be recompiled with `make recompile`:
-- ai-moderator.md
-- bot-detection.md
-- cli-consistency-checker.md
-- daily-firewall-report.md
-- daily-multi-device-docs-tester.md
-- daily-regulatory.md
-- daily-security-red-team.md
-- functional-pragmatist.md
-- glossary-maintainer.md
-- lockfile-stats.md
-- notion-issue-summary.md
+- chroma-issue-indexer.md
+- daily-choice-test.md
+- daily-secrets-analysis.md
+- daily-testify-uber-super-expert.md
+- duplicate-code-detector.md
+- github-mcp-structural-analysis.md
+- gpclean.md
+- mergefest.md
+- pdf-summary.md
 - prompt-clustering-analysis.md
-- tidy.md
-- video-analyzer.md
-- workflow-skill-extractor.md
+- repo-audit-analyzer.md
+- scout.md
+- slide-deck-maintainer.md
+- sub-issue-closer.md
+
+## Improving Workflows 📈
+
+### Duplicate Code Detector
+- 2 consecutive successes (2026-02-20 and 2026-02-21 morning)
+- Was alternating fail/success since Feb 14
+- Issue #16778 closed; monitoring continues
+
+### Chroma Issue Indexer
+- 1 failure in last 8 runs (2/20 at 16:13)
+- Mostly healthy; no new issues needed
 
 ## Systemic Issues
 
 ### Lockdown Token Missing (P1 — Ongoing from Feb 18)
-- **Affected workflows**: 3 confirmed failing; 15+ at risk (have lockdown: true)
+- **Affected workflows**: 5 confirmed failing; 13 total have lockdown: true (8 more at risk)
 - **Root cause**: `GH_AW_GITHUB_TOKEN` / `GH_AW_GITHUB_MCP_SERVER_TOKEN` not set
-- **Escalation**: Issue Monster failures now ~46/day (every 30 min schedule)
-- **Action**: Issue #16776 updated with Issue Monster impact
+- **Escalation**: Issue Monster failures ~50/day (every 30 min schedule)
+- **Action**: New issue created #aw_P1lock
 - **Resolution path**: Set `GH_AW_GITHUB_TOKEN` repository secret
 
 ## Actions Taken This Run
 
-- Added comment to issue #16776 escalating Issue Monster impact
-- Added comment to issue #16778 noting Duplicate Code Detector may be self-healing
-- Identified 15 outdated lock files (down from 16 yesterday — 1 recompiled)
+- Created new P1 root cause issue #aw_P1lock for lockdown token issue (5 workflows affected)
+- Added comment to issue #17387 (Issue Monster) with root cause analysis
+- Added comment to issue #16801 (PR Triage Agent) with status update
+- Identified 14 outdated lock files (down from 15 yesterday)
+- Confirmed Duplicate Code Detector is recovering (2 consecutive successes)
+- Confirmed Smoke Gemini failure acknowledged by owner (issue #17034 closed)
 
-## Engine Distribution (153 executable workflows)
-- Copilot: ~72 (47%)
-- Claude: ~31 (20%)
-- Codex: ~9 (6%)
-- Other/Unspecified: ~41 (27%)
+## Lockdown Workflows At Risk (13 total, 5 currently failing)
+
+Workflows with `lockdown: true` that need `GH_AW_GITHUB_TOKEN`:
+1. ❌ Issue Monster (failing)
+2. ❌ PR Triage Agent (failing)
+3. ❌ Daily Issues Report Generator (failing)
+4. ❌ Issue Triage Agent (failing ~50%)
+5. ❌ Weekly Issue Summary (last run failed)
+6. ⚠️ Discussion Task Miner (infrequent schedule)
+7. ⚠️ Grumpy Reviewer (event-triggered)
+8. ⚠️ Issue Arborist (infrequent)
+9. ⚠️ Org Health Report (infrequent)
+10. ⚠️ Refiner (event-triggered)
+11. ⚠️ Stale Repo Identifier (infrequent)
+12. ⚠️ Weekly Safe Outputs Spec Review (weekly)
+13. ⚠️ Workflow Generator (event-triggered)
 
 ---
-> Last updated: 2026-02-20T07:30:55Z (run 22215406972)
-> Next check: 2026-02-21 (daily schedule)
+> Last updated: 2026-02-21T07:21:58Z (run 22252687126)
+> Next check: 2026-02-22 (daily schedule)
