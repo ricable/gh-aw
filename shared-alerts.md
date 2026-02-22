@@ -1,31 +1,31 @@
 # Shared Alerts - Meta-Orchestrator Coordination
 
-## Last Updated: 2026-02-21T07:22:00Z
+## Last Updated: 2026-02-22T07:25:00Z
 
 ---
 
-## 2026-02-21 - Workflow Health Update
+## 2026-02-22 - Workflow Health Update
 
-**Status**: ⚠️ **DEGRADED** — P1 lockdown token issue expanded to 5 workflows, Smoke Gemini acknowledged failure
+**Status**: ⚠️ **DEGRADED** — P1 lockdown token issue persists, 3 workflows failing
 
-**Key Metrics** (as of 2026-02-21T07:22 UTC):
-- Workflow Health Score: **82/100** (↓ -3 from 85)
-- Executable Workflows: **121** (100% compiled)
-- Outdated Lock Files: **14** (down from 15)
-- P1 Failures: **5 workflows** (up from 3 yesterday)
+**Key Metrics** (as of 2026-02-22T07:25 UTC):
+- Workflow Health Score: **83/100** (→ stable)
+- Executable Workflows: **158** (100% compiled)
+- Outdated Lock Files: **0** (✅ all current)
+- P1 Failures: **3 workflows** (stable from yesterday)
 
 **Active Alerts**:
-- ❌ P1: GH_AW_GITHUB_TOKEN missing — 5 workflows failing — New issue #aw_P1lock
-  - Issue Monster (~50 failures/day), PR Triage Agent (every 6h), Daily Issues Report (daily), Issue Triage Agent (daily), Weekly Issue Summary
+- ❌ P1: GH_AW_GITHUB_TOKEN missing — 3 workflows failing — Issue #17414 (open)
+  - Issue Monster (~50 failures/day), PR Triage Agent (every 6h), Daily Issues Report (daily)
   - FIX: Set `GH_AW_GITHUB_TOKEN` repository secret
-- ✅ Duplicate Code Detector: 2 consecutive successes — RECOVERING
-- ✅ Chroma Issue Indexer: Mostly healthy (1/8 recent failures)
-- ❌ Smoke Gemini: 100% failure on main, issue #17034 closed by pelikhan (accepted)
-- ⚠️ 14 outdated lock files — needs `make recompile`
+- ✅ Duplicate Code Detector: healthy, continuing success
+- ✅ Chroma Issue Indexer: 2/2 recent runs successful
+- ✅ Smoke Gemini: 1/1 success in recent window (may have recovered)
+- ✅ 0 outdated lock files (improved from 14 yesterday)
 
 **For Campaign Manager**:
-- 121 workflows (100% compiled), ~95% healthy
-- P1 affecting 5 workflows but doesn't block campaign ops directly
+- 158 workflows (100% compiled), ~98% healthy
+- P1 affecting 3 workflows but doesn't block campaign ops directly
 - Recommend full campaign operations with P1 caveat
 
 **For Agent Performance Analyzer**:
@@ -41,7 +41,7 @@
 - **Previously**: Issue Monster + PR Triage Agent + Daily Issues Report = 3 workflows (Feb 18-20)
 - **Now confirmed**: Also Issue Triage Agent (5 recent failures) and Weekly Issue Summary (last run failed)
 - **Root cause unchanged**: `GH_AW_GITHUB_TOKEN` not set
-- **New tracking issue**: #aw_P1lock
+- **New tracking issue**: #17414
 - **Updated issues**: #17387 (Issue Monster), #16801 (PR Triage Agent)
 
 ### Smoke Gemini — Acknowledged Failure
@@ -49,45 +49,5 @@
 - Indicates Gemini free-tier limitation is known and accepted
 - No new issues being created for Smoke Gemini
 
-### Compilation Coverage: 14 stale lock files
-- 14 MD files newer than their lock.yml (was 15 yesterday, 1 resolved)
-- Needs `make recompile` to update
-
----
-
-## Previous Alerts (2026-02-20)
-
-### Agent Performance Update (2026-02-20)
-- Agent Quality: 91/100 (↓ -2 from 93)
-- Run Success Rate: 71% (17/24) — ↓ from 88%
-- Weekly Token Cost: ~$8.38 (↑ +22%)
-- P1: Issue Monster GH_AW_GITHUB_TOKEN missing — Issue #16776 (now closed, replaced by #aw_P1lock)
-- P2: Smoke Gemini — Gemini API free-tier quota exhausted (now acknowledged/closed)
-
-
----
-
-## 2026-02-21 - Agent Performance Update (afternoon run)
-
-**Status**: ✅ **IMPROVING** — Success rate recovered to 89%; 19th consecutive zero-critical-issues period
-
-**Key Metrics**:
-- Agent Quality: **92/100** (↑ +1 from 91)
-- Agent Effectiveness: **88/100** (↑ +3 from 85)
-- Run Success Rate: **89%** (16/18) — ↑ from 71% last week
-- P1 Failures: **3 Issue Monster** (same infrastructure issue)
-
-**Key Findings**:
-- ✅ Great Escapi successfully blocked prompt injection attack
-- ✅ AI Moderator: 3 efficient runs (2 turns each), very healthy
-- ✅ CI Failure Doctor: 5 successful CI diagnoses today
-- ❌ P1: Issue Monster GH_AW_GITHUB_TOKEN still missing (#17387)
-- ⚠️ CI Failure Doctor 5 runs/day suggests CI instability (for Workflow Health)
-
-**For Campaign Manager**:
-- Core agents healthy; success rate best in 2 weeks
-- P1 infrastructure issue persists but doesn't block campaign operations
-
-**For Workflow Health Manager**:
-- CI Failure Doctor firing frequently (5 runs today) — investigate CI stability
-- No new workflow failures introduced today
+### Compilation Coverage: 14 stale lock files (RESOLVED by 2026-02-22)
+- All 158 lock files now up-to-date
