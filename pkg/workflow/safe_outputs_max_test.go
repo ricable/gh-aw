@@ -176,8 +176,8 @@ func TestSafeOutputsMaxConfiguration(t *testing.T) {
 		if len(config.CreatePullRequests.Labels) != 1 || config.CreatePullRequests.Labels[0] != "fix" {
 			t.Errorf("Expected CreatePullRequests.Labels to be ['fix'], got %v", config.CreatePullRequests.Labels)
 		}
-		if config.CreatePullRequests.Draft == nil || *config.CreatePullRequests.Draft != true {
-			t.Errorf("Expected CreatePullRequests.Draft to be true, got %v", config.CreatePullRequests.Draft)
+		if config.CreatePullRequests.Draft == nil || *config.CreatePullRequests.Draft != "true" {
+			t.Errorf("Expected CreatePullRequests.Draft to be 'true', got %v", config.CreatePullRequests.Draft)
 		}
 
 		// Check update-issue

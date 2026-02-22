@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/github/gh-aw/pkg/constants"
 	"github.com/github/gh-aw/pkg/logger"
@@ -9,7 +10,7 @@ import (
 
 var createPRLog = logger.New("workflow:create_pull_request")
 
-// getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true)
+// getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true).
 func getFallbackAsIssue(config *CreatePullRequestsConfig) bool {
 	if config == nil || config.FallbackAsIssue == nil {
 		return true // Default
@@ -24,7 +25,7 @@ type CreatePullRequestsConfig struct {
 	Labels               []string `yaml:"labels,omitempty"`
 	AllowedLabels        []string `yaml:"allowed-labels,omitempty"`    // Optional list of allowed labels. If omitted, any labels are allowed (including creating new ones).
 	Reviewers            []string `yaml:"reviewers,omitempty"`         // List of users/bots to assign as reviewers to the pull request
-	Draft                *bool    `yaml:"draft,omitempty"`             // Pointer to distinguish between unset (nil) and explicitly false
+	Draft                *string  `yaml:"draft,omitempty"`             // Pointer to distinguish between unset (nil), literal bool, and expression values
 	IfNoChanges          string   `yaml:"if-no-changes,omitempty"`     // Behavior when no changes to push: "warn" (default), "error", or "ignore"
 	AllowEmpty           bool     `yaml:"allow-empty,omitempty"`       // Allow creating PR without patch file or with empty patch (useful for preparing feature branches)
 	TargetRepoSlug       string   `yaml:"target-repo,omitempty"`       // Target repository in format "owner/repo" for cross-repository pull requests
@@ -43,7 +44,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	}
 
 	if createPRLog.Enabled() {
-		draftValue := true // Default
+		draftValue := "true" // Default
 		if data.SafeOutputs.CreatePullRequests.Draft != nil {
 			draftValue = *data.SafeOutputs.CreatePullRequests.Draft
 		}
@@ -104,11 +105,17 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	customEnvVars = append(customEnvVars, buildLabelsEnvVar("GH_AW_PR_LABELS", data.SafeOutputs.CreatePullRequests.Labels)...)
 	customEnvVars = append(customEnvVars, buildLabelsEnvVar("GH_AW_PR_ALLOWED_LABELS", data.SafeOutputs.CreatePullRequests.AllowedLabels)...)
 	// Pass draft setting - default to true for backwards compatibility
-	draftValue := true // Default value
 	if data.SafeOutputs.CreatePullRequests.Draft != nil {
-		draftValue = *data.SafeOutputs.CreatePullRequests.Draft
+		draftVal := *data.SafeOutputs.CreatePullRequests.Draft
+		if strings.HasPrefix(draftVal, "${{") {
+			// Expression value - embed unquoted so GitHub Actions evaluates it
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %s\n", draftVal))
+		} else {
+			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %q\n", draftVal))
+		}
+	} else {
+		customEnvVars = append(customEnvVars, "          GH_AW_PR_DRAFT: \"true\"\n")
 	}
-	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_DRAFT: %q\n", fmt.Sprintf("%t", draftValue)))
 
 	// Pass the if-no-changes configuration
 	ifNoChanges := data.SafeOutputs.CreatePullRequests.IfNoChanges
@@ -124,8 +131,11 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_AUTO_MERGE: %q\n", fmt.Sprintf("%t", data.SafeOutputs.CreatePullRequests.AutoMerge)))
 
 	// Pass the fallback-as-issue configuration - default to true for backwards compatibility
-	fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
-	customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %q\n", fmt.Sprintf("%t", fallbackAsIssue)))
+	if data.SafeOutputs.CreatePullRequests.FallbackAsIssue != nil {
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: \"%t\"\n", *data.SafeOutputs.CreatePullRequests.FallbackAsIssue))
+	} else {
+		customEnvVars = append(customEnvVars, "          GH_AW_PR_FALLBACK_AS_ISSUE: \"true\"\n")
+	}
 
 	// Pass the maximum patch size configuration
 	maxPatchSize := 1024 // Default value
@@ -186,6 +196,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 	}
 
 	// Choose permissions based on fallback-as-issue setting
+	fallbackAsIssue := getFallbackAsIssue(data.SafeOutputs.CreatePullRequests)
 	var permissions *Permissions
 	if fallbackAsIssue {
 		// Default: include issues: write for fallback behavior
@@ -251,6 +262,13 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 				}
 			}
 		}
+	}
+
+	// Pre-process templatable bool fields: convert literal booleans to strings so that
+	// GitHub Actions expression strings (e.g. "${{ inputs.draft-prs }}") are also accepted.
+	if err := preprocessBoolFieldAsString(configData, "draft", createPRLog); err != nil {
+		createPRLog.Printf("Invalid draft value: %v", err)
+		return nil
 	}
 
 	// Unmarshal into typed config struct

@@ -4935,8 +4935,8 @@
                   "description": "Optional reviewer(s) to assign to the pull request. Accepts either a single string or an array of usernames. Use 'copilot' to request a code review from GitHub Copilot."
                 },
                 "draft": {
-                  "type": "boolean",
-                  "description": "Whether to create pull request as draft (defaults to true)",
+                  "allOf": [{ "$ref": "#/$defs/templatable_boolean" }],
+                  "description": "Whether to create pull request as draft (defaults to true). Accepts a boolean or a GitHub Actions expression.",
                   "default": true
                 },
                 "if-no-changes": {
@@ -6877,6 +6877,19 @@
     }
   ],
   "$defs": {
+    "templatable_boolean": {
+      "description": "A boolean value that may also be specified as a GitHub Actions expression string that resolves to a boolean at runtime (e.g. '${{ inputs.my-flag }}').",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "pattern": "^\\$\\{\\{.*\\}\\}$",
+          "description": "GitHub Actions expression that resolves to a boolean at runtime"
+        }
+      ]
+    },
     "engine_config": {
       "examples": [
         "claude",

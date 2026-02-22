@@ -15,6 +15,7 @@ const { replaceTemporaryIdReferences, isTemporaryId } = require("./temporary_id.
 const { resolveTargetRepoConfig, resolveAndValidateRepo } = require("./repo_helpers.cjs");
 const { addExpirationToFooter } = require("./ephemerals.cjs");
 const { generateWorkflowIdMarker } = require("./generate_footer.cjs");
+const { parseBoolTemplatable } = require("./templatable.cjs");
 const { generateFooterWithMessages } = require("./messages_footer.cjs");
 const { normalizeBranchName } = require("./normalize_branch_name.cjs");
 
@@ -92,7 +93,7 @@ async function main(config = {}) {
   // Extract configuration
   const titlePrefix = config.title_prefix || "";
   const envLabels = config.labels ? (Array.isArray(config.labels) ? config.labels : config.labels.split(",")).map(label => String(label).trim()).filter(label => label) : [];
-  const draftDefault = config.draft !== undefined ? config.draft : true;
+  const draftDefault = parseBoolTemplatable(config.draft, true);
   const ifNoChanges = config.if_no_changes || "warn";
   const allowEmpty = config.allow_empty || false;
   const autoMerge = config.auto_merge || false;

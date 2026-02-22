@@ -22,7 +22,7 @@ type CreateDiscussionsConfig struct {
 	CloseOlderDiscussions bool     `yaml:"close-older-discussions,omitempty"` // When true, close older discussions with same title prefix or labels as outdated
 	RequiredCategory      string   `yaml:"required-category,omitempty"`       // Required category for matching when close-older-discussions is enabled
 	Expires               int      `yaml:"expires,omitempty"`                 // Hours until the discussion expires and should be automatically closed
-	FallbackToIssue       *bool    `yaml:"fallback-to-issue,omitempty"`       // When true (default), fallback to create-issue if discussion creation fails due to permissions
+	FallbackToIssue       *bool    `yaml:"fallback-to-issue,omitempty"`       // When true (default), fallback to create-issue if discussion creation fails due to permissions.
 	Footer                *bool    `yaml:"footer,omitempty"`                  // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
 }
 
@@ -65,8 +65,8 @@ func (c *Compiler) parseDiscussionsConfig(outputMap map[string]any) *CreateDiscu
 
 	// Set default fallback-to-issue to true if not specified
 	if config.FallbackToIssue == nil {
-		trueValue := true
-		config.FallbackToIssue = &trueValue
+		trueVal := true
+		config.FallbackToIssue = &trueVal
 		discussionLog.Print("Using default fallback-to-issue: true")
 	}
 
@@ -140,7 +140,10 @@ func (c *Compiler) buildCreateOutputDiscussionJob(data *WorkflowData, mainJobNam
 	}
 
 	// Add fallback-to-issue flag
-	if data.SafeOutputs.CreateDiscussions.FallbackToIssue != nil && *data.SafeOutputs.CreateDiscussions.FallbackToIssue {
+	ftiVal := data.SafeOutputs.CreateDiscussions.FallbackToIssue
+	if ftiVal != nil {
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_DISCUSSION_FALLBACK_TO_ISSUE: \"%t\"\n", *ftiVal))
+	} else {
 		customEnvVars = append(customEnvVars, "          GH_AW_DISCUSSION_FALLBACK_TO_ISSUE: \"true\"\n")
 	}
 

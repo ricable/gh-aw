@@ -191,7 +191,7 @@ func TestComputePermissionsForSafeOutputs(t *testing.T) {
 			safeOutputs: &SafeOutputsConfig{
 				CreatePullRequests: &CreatePullRequestsConfig{
 					BaseSafeOutputConfig: BaseSafeOutputConfig{Max: 1},
-					FallbackAsIssue:      ptrBool(false),
+					FallbackAsIssue:      boolPtr(false),
 				},
 			},
 			expected: map[PermissionScope]PermissionLevel{

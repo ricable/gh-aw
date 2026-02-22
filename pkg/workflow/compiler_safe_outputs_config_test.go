@@ -132,7 +132,7 @@ func TestAddHandlerManagerConfigEnvVar(t *testing.T) {
 					},
 					TitlePrefix: "[PR] ",
 					Labels:      []string{"automated"},
-					Draft:       testBoolPtr(true),
+					Draft:       testStringPtr("true"),
 					IfNoChanges: "skip",
 					AllowEmpty:  true,
 					Expires:     7,
@@ -153,7 +153,7 @@ func TestAddHandlerManagerConfigEnvVar(t *testing.T) {
 					},
 					Reviewers: []string{"user1", "user2"},
 					Labels:    []string{"automated"},
-					Draft:     testBoolPtr(false),
+					Draft:     testStringPtr("false"),
 				},
 			},
 			checkContains: []string{
@@ -418,6 +418,7 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 		safeOutputs *SafeOutputsConfig
 		checkField  string
 		checkKey    string
+		expected    any // expected value in JSON (bool or string)
 	}{
 		{
 			name: "hide older comments",
@@ -428,6 +429,7 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 			},
 			checkField: "add_comment",
 			checkKey:   "hide_older_comments",
+			expected:   true,
 		},
 		{
 			name: "close older discussions",
@@ -438,6 +440,7 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 			},
 			checkField: "create_discussion",
 			checkKey:   "close_older_discussions",
+			expected:   true,
 		},
 		{
 			name: "allow empty PR",
@@ -448,16 +451,18 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 			},
 			checkField: "create_pull_request",
 			checkKey:   "allow_empty",
+			expected:   true,
 		},
 		{
 			name: "draft PR",
 			safeOutputs: &SafeOutputsConfig{
 				CreatePullRequests: &CreatePullRequestsConfig{
-					Draft: testBoolPtr(true),
+					Draft: testStringPtr("true"),
 				},
 			},
 			checkField: "create_pull_request",
 			checkKey:   "draft",
+			expected:   true, // AddTemplatableBool converts "true" string to JSON boolean
 		},
 	}
 
@@ -491,7 +496,7 @@ func TestHandlerConfigBooleanFields(t *testing.T) {
 
 						val, ok := fieldConfig[tt.checkKey]
 						require.True(t, ok, "Expected key: "+tt.checkKey)
-						assert.Equal(t, true, val)
+						assert.Equal(t, tt.expected, val)
 					}
 				}
 			}
@@ -694,6 +699,11 @@ func TestHandlerConfigPatchSize(t *testing.T) {
 // testBoolPtr is a helper function for bool pointers in config tests
 func testBoolPtr(b bool) *bool {
 	return &b
+}
+
+// testStringPtr is a helper function for string pointers in config tests
+func testStringPtr(s string) *string {
+	return &s
 }
 
 // TestAutoEnabledHandlers tests that missing_tool and missing_data
