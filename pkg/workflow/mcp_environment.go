@@ -153,13 +153,12 @@ func collectMCPEnvironmentVariables(tools map[string]any, mcpTools []string, wor
 		}
 	}
 	if hasPlaywright {
-		// Extract all expressions from playwright arguments using ExpressionExtractor
+		// Extract all expressions from playwright custom args using ExpressionExtractor
 		if playwrightTool, ok := tools["playwright"]; ok {
 			playwrightConfig := parsePlaywrightTool(playwrightTool)
-			allowedDomains := generatePlaywrightAllowedDomains(playwrightConfig)
 			customArgs := getPlaywrightCustomArgs(playwrightConfig)
-			playwrightAllowedDomainsSecrets := extractExpressionsFromPlaywrightArgs(allowedDomains, customArgs)
-			for envVarName, originalExpr := range playwrightAllowedDomainsSecrets {
+			playwrightArgSecrets := extractExpressionsFromPlaywrightArgs(customArgs)
+			for envVarName, originalExpr := range playwrightArgSecrets {
 				envVars[envVarName] = originalExpr
 			}
 		}
