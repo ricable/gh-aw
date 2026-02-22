@@ -2,10 +2,13 @@
   "get_me": "users",
   "get_teams": "context",
   "get_team_members": "context",
+  "get_copilot_space": "context",
+  "github_support_docs_search": "context",
+  "list_copilot_spaces": "context",
 
   "get_repository": "repos",
   "get_file_contents": "repos",
-  "search_code": "repos",
+  "search_code": "search",
   "list_commits": "repos",
   "get_commit": "repos",
   "get_latest_release": "repos",
@@ -14,20 +17,22 @@
   "get_tag": "repos",
   "list_tags": "repos",
   "list_branches": "repos",
+  "get_repository_tree": "repos",
 
   "issue_read": "issues",
   "list_issues": "issues",
   "create_issue": "issues",
   "update_issue": "issues",
-  "search_issues": "issues",
+  "search_issues": "search",
   "add_reaction": "issues",
   "create_issue_comment": "issues",
+  "list_issue_types": "issues",
 
   "pull_request_read": "pull_requests",
   "list_pull_requests": "pull_requests",
   "get_pull_request": "pull_requests",
   "create_pull_request": "pull_requests",
-  "search_pull_requests": "pull_requests",
+  "search_pull_requests": "search",
 
   "list_workflows": "actions",
   "list_workflow_runs": "actions",
@@ -37,33 +42,59 @@
   "list_workflow_jobs": "actions",
   "get_job_logs": "actions",
   "list_workflow_run_artifacts": "actions",
+  "actions_get": "actions",
+  "actions_list": "actions",
 
   "list_code_scanning_alerts": "code_security",
   "get_code_scanning_alert": "code_security",
   "create_code_scanning_alert": "code_security",
 
+  "get_dependabot_alert": "dependabot",
+  "list_dependabot_alerts": "dependabot",
+
   "list_discussions": "discussions",
   "create_discussion": "discussions",
+  "get_discussion": "discussions",
+  "get_discussion_comments": "discussions",
+  "list_discussion_categories": "discussions",
 
   "create_gist": "gists",
+  "get_gist": "gists",
   "list_gists": "gists",
 
   "get_label": "labels",
+  "list_label": "labels",
   "list_labels": "labels",
   "create_label": "labels",
 
   "list_notifications": "notifications",
   "mark_notifications_read": "notifications",
+  "get_notification_details": "notifications",
 
   "get_organization": "orgs",
   "list_organizations": "orgs",
+  "list_org_repository_security_advisories": "orgs",
+
+  "get_project": "projects",
+  "get_project_field": "projects",
+  "get_project_item": "projects",
+  "list_project_fields": "projects",
+  "list_project_items": "projects",
+  "list_projects": "projects",
 
   "list_secret_scanning_alerts": "secret_protection",
   "get_secret_scanning_alert": "secret_protection",
+
+  "get_global_security_advisory": "security_advisories",
+  "list_global_security_advisories": "security_advisories",
+  "list_repository_security_advisories": "security_advisories",
+
+  "list_starred_repositories": "stargazers",
 
   "get_user": "users",
   "list_users": "users",
 
   "search_repositories": "search",
-  "search_users": "search"
+  "search_users": "search",
+  "search_orgs": "search"
 }
