@@ -32,17 +32,16 @@ permissions:
 tools:
   playwright:
   bash:
-    - "mkdir*"
-    - "npm*"
+    - "mkdir *"
+    - "npm *"
+    - "kill *"
+    - "sleep *"
+    - "curl *"
 safe-outputs:
   upload-asset:
   create-issue:
     title-prefix: "[screenshot] "
     labels: [screenshot, automated]
-network:
-  allowed:
-    - defaults
-    - node
 ---
 
 # Take Website Screenshots
@@ -54,7 +53,7 @@ Build and serve the site locally, then take a screenshot and post the result in 
 Use the bash tool to create a directory for screenshots:
 
 ```bash
-mkdir -p /tmp/screenshots
+mkdir -p /tmp/gh-aw
 ```
 
 ## Step 2: Build and serve
@@ -65,18 +64,18 @@ npm run build
 npm run preview &
 ```
 
-Wait a few seconds for the server to start on `http://localhost:4321`.
+Wait for the server to start on `http://localhost:4321`. Use `curl` to verify it is ready.
 
 ## Step 3: Take screenshots
 
 Use the Playwright MCP tools to navigate to the site and take a screenshot:
 
 1. Navigate to `http://localhost:4321`
-2. Take a full-page screenshot and save it to `/tmp/screenshots/homepage.png`
+2. Take a full-page screenshot and save it to `/tmp/gh-aw/homepage.png`
 
 ## Step 4: Upload the screenshot
 
-Use the `upload_asset` tool to upload `/tmp/screenshots/homepage.png`.
+Use the `upload_asset` tool to upload `/tmp/gh-aw/homepage.png`.
 Collect the returned URL.
 
 ## Step 5: Create issue
@@ -135,7 +134,7 @@ safe-outputs:
 In the workflow body, instruct the agent to call `upload_asset` with the file path:
 
 ```markdown
-Upload `/tmp/screenshots/homepage.png` using the `upload_asset` tool and save the returned URL.
+Upload `/tmp/gh-aw/homepage.png` using the `upload_asset` tool and save the returned URL.
 ```
 
 > [!IMPORTANT]
@@ -186,17 +185,16 @@ permissions:
 tools:
   playwright:
   bash:
-    - "mkdir*"
-    - "npm*"
+    - "mkdir *"
+    - "npm *"
+    - "kill *"
+    - "sleep *"
+    - "curl *"
 safe-outputs:
   upload-asset:
   create-issue:
     title-prefix: "[screenshot] "
     labels: [screenshot, automated]
-network:
-  allowed:
-    - defaults
-    - node
 ---
 
 # Website Screenshot Report
@@ -205,18 +203,18 @@ Build and serve the site locally, take a screenshot, and create a GitHub issue w
 
 ## Steps
 
-1. Run `mkdir -p /tmp/screenshots` using the bash tool.
+1. Run `mkdir -p /tmp/gh-aw` using the bash tool.
 
 2. Build and start the local server:
    ```bash
    npm install && npm run build && npm run preview &
    ```
-   Wait a few seconds for the server to be ready.
+   Use `curl` to verify the server is ready on `http://localhost:4321`.
 
 3. Use Playwright to navigate to `http://localhost:4321` and save a full-page
-   screenshot to `/tmp/screenshots/homepage.png`.
+   screenshot to `/tmp/gh-aw/homepage.png`.
 
-4. Upload `/tmp/screenshots/homepage.png` using the `upload_asset` tool.
+4. Upload `/tmp/gh-aw/homepage.png` using the `upload_asset` tool.
    Save the returned URL as `SCREENSHOT_URL`.
 
 5. Create a GitHub issue using `create_issue` with the following body:
