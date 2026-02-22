@@ -20,7 +20,7 @@
 //   - Safe Outputs: GH_AW_SAFE_OUTPUTS_*, GH_AW_ASSETS_*
 //   - Safe Inputs: GH_AW_SAFE_INPUTS_PORT, GH_AW_SAFE_INPUTS_API_KEY
 //   - Serena: GH_AW_SERENA_PORT (local mode only)
-//   - Playwright: Domain secrets from allowed_domains expressions
+//   - Playwright: Secrets from custom args expressions
 //   - HTTP MCP: Custom secrets from headers and env sections
 //
 // Token precedence for GitHub MCP:

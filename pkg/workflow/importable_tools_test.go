@@ -26,9 +26,6 @@ description: "Shared playwright configuration"
 tools:
   playwright:
     version: "v1.41.0"
-    allowed_domains:
-      - "example.com"
-      - "github.com"
 network:
   allowed:
     - playwright
@@ -283,8 +280,6 @@ tools:
     - go
   playwright:
     version: "v1.41.0"
-    allowed_domains:
-      - "example.com"
 permissions:
   actions: read
 network:
@@ -452,8 +447,6 @@ description: "Shared playwright with custom args"
 tools:
   playwright:
     version: "v1.41.0"
-    allowed_domains:
-      - "example.com"
     args:
       - "--custom-flag"
       - "value"
