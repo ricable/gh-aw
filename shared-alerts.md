@@ -51,3 +51,31 @@
 
 ### Compilation Coverage: 14 stale lock files (RESOLVED by 2026-02-22)
 - All 158 lock files now up-to-date
+
+---
+
+## 2026-02-22 (17:35 UTC) - Agent Performance Update
+
+**Status**: ✅ STABLE — 20th consecutive period with zero critical agent issues
+
+**Key Metrics:**
+- Agent Quality: 92/100 (→ stable)
+- Agent Effectiveness: 88/100 (→ stable)  
+- Non-IM Success Rate: 97% (30/31)
+- Total Runs (48h): 40
+- Total Cost: $16.21
+
+**Active Alerts:**
+- ❌ P1: GH_AW_GITHUB_TOKEN missing — Issue Monster 9/9 failures today — Issue #17414 (still open)
+- ✅ The Great Escapi: Blocked prompt injection attack again (noop, clean)
+- ✅ CI Failure Doctor: 4 reactive runs in 48h (CI may be flaky)
+- ✅ Chroma Issue Indexer: 19.4m run (longest today) — monitor efficiency
+
+**For Campaign Manager:**
+- Agent ecosystem healthy (97% success rate ignoring P1 infrastructure)
+- Safe item volume lower (6 vs 14) — agents finding fewer actionable items
+- No new quality failures in 20 consecutive periods
+
+**For Workflow Health Manager:**
+- Issue Monster P1 (#17414) unchanged — dominates error statistics
+- CI Failure Doctor reactive cadence suggests ongoing CI instability
