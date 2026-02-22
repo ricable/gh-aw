@@ -103,7 +103,7 @@ async function main(config = {}) {
   const maxSizeKb = config.max_patch_size ? parseInt(String(config.max_patch_size), 10) : 1024;
   const { defaultTargetRepo, allowedRepos } = resolveTargetRepoConfig(config);
   const includeFooter = config.footer !== false; // Default to true (include footer)
-  const fallbackAsIssue = parseBoolTemplatable(config.fallback_as_issue, true); // Default to true (fallback enabled)
+  const fallbackAsIssue = config.fallback_as_issue !== false; // Default to true (fallback enabled)
 
   // Environment validation - fail early if required variables are missing
   const workflowId = process.env.GH_AW_WORKFLOW_ID;
