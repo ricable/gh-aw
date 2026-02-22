@@ -19,7 +19,6 @@ const {
   neutralizeGitHubReferences,
   removeXmlComments,
   convertXmlTags,
-  neutralizeBotTriggers,
   applyTruncation,
   hardenUnicodeText,
 } = require("./sanitize_content_core.cjs");
@@ -101,9 +100,6 @@ function sanitizeContent(content, maxLengthOrOptions) {
 
   // Neutralize GitHub references if restrictions are configured
   sanitized = neutralizeGitHubReferences(sanitized, allowedGitHubRefs);
-
-  // Neutralize bot triggers
-  sanitized = neutralizeBotTriggers(sanitized);
 
   // Balance markdown code regions to fix improperly nested fences
   // This repairs markdown where AI models generate nested code blocks at the same indentation

@@ -50,9 +50,14 @@ const mockCore = {
             const result = sanitizeContentFunction("Check `@user` in code and @realuser outside");
             (expect(result).toContain("`@user`"), expect(result).toContain("`@realuser`"));
           }),
-          it("should neutralize bot trigger phrases", () => {
+          it("should not escape issue-closing keywords", () => {
             const result = sanitizeContentFunction("This fixes #123 and closes #456. Also resolves #789");
-            (expect(result).toContain("`fixes #123`"), expect(result).toContain("`closes #456`"), expect(result).toContain("`resolves #789`"));
+            (expect(result).toContain("fixes #123"),
+              expect(result).toContain("closes #456"),
+              expect(result).toContain("resolves #789"),
+              expect(result).not.toContain("`fixes #123`"),
+              expect(result).not.toContain("`closes #456`"),
+              expect(result).not.toContain("`resolves #789`"));
           }),
           it("should remove control characters except newlines and tabs", () => {
             const result = sanitizeContentFunction("Hello\0world\f\nNext line\tbad");
@@ -169,7 +174,8 @@ const mockCore = {
                 "\n# Issue Report by @user\n\nThis fixes #123 and has links:\n- HTTP: http://bad.com (should be blocked)\n- HTTPS: https://github.com/repo (should be preserved)\n- JavaScript: javascript:alert('xss') (should be blocked)\n\n<script>alert(\"xss\")<\/script>\n\nSpecial chars: \0 & \"quotes\" 'apostrophes'\n      ".trim(),
               result = sanitizeContentFunction(input);
             (expect(result).toContain("`@user`"),
-              expect(result).toContain("`fixes #123`"),
+              expect(result).not.toContain("`fixes #123`"),
+              expect(result).toContain("fixes #123"),
               expect(result).toContain("(redacted)"),
               expect(result).toContain("https://github.com/repo"),
               expect(result).not.toContain("http://bad.com"),
@@ -207,9 +213,15 @@ const mockCore = {
             const result = sanitizeContentFunction("Code: `@user.method()` and normal @user mention");
             (expect(result).toContain("`@user.method()`"), expect(result).toContain("`@user`"));
           }),
-          it("should handle various bot trigger phrase formats", () => {
+          it("should not escape various issue-closing phrase formats", () => {
             const result = sanitizeContentFunction("Fix #123, close #abc, FIXES #XYZ, resolves #456, fixes    #789");
-            (expect(result).toContain("`Fix #123`"), expect(result).toContain("`close #abc`"), expect(result).toContain("`FIXES #XYZ`"), expect(result).toContain("`resolves #456`"), expect(result).toContain("`fixes #789`"));
+            (expect(result).toContain("Fix #123"),
+              expect(result).toContain("close #abc"),
+              expect(result).toContain("FIXES #XYZ"),
+              expect(result).toContain("resolves #456"),
+              expect(result).toContain("fixes    #789"),
+              expect(result).not.toContain("`Fix #123`"),
+              expect(result).not.toContain("`close #abc`"));
           }),
           it("should handle edge cases in protocol filtering", () => {
             const result = sanitizeContentFunction(
@@ -355,7 +367,8 @@ const mockCore = {
             expect(outputCall).toBeDefined();
             const sanitizedOutput = outputCall[1];
             (expect(sanitizedOutput).toContain("`@user`"),
-              expect(sanitizedOutput).toContain("`fixes #123`"),
+              expect(sanitizedOutput).not.toContain("`fixes #123`"),
+              expect(sanitizedOutput).toContain("fixes #123"),
               expect(sanitizedOutput).toContain("/redacted"),
               expect(sanitizedOutput).toContain("https://github.com/repo"),
               fs.unlinkSync(testFile));

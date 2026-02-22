@@ -50,9 +50,9 @@ const mockCore = {
             const result = sanitizeIncomingTextFunction("Hello @user and @org/team");
             (expect(result).toContain("`@user`"), expect(result).toContain("`@org/team`"));
           }),
-          it("should neutralize bot trigger phrases", () => {
+          it("should not escape issue-closing keywords in incoming text", () => {
             const result = sanitizeIncomingTextFunction("This fixes #123 and closes #456");
-            (expect(result).toContain("`fixes #123`"), expect(result).toContain("`closes #456`"));
+            (expect(result).toContain("fixes #123"), expect(result).toContain("closes #456"), expect(result).not.toContain("`fixes #123`"), expect(result).not.toContain("`closes #456`"));
           }),
           it("should remove control characters", () => {
             const result = sanitizeIncomingTextFunction("Hello\0\bworld");
@@ -203,7 +203,7 @@ const mockCore = {
           it("should sanitize extracted text before output", async () => {
             ((mockContext.eventName = "issues"), (mockContext.payload = { issue: { title: "Test @user fixes #123", body: "Visit https://evil.com" } }), await testMain());
             const outputCall = mockCore.setOutput.mock.calls[0];
-            (expect(outputCall[1]).toContain("`@user`"), expect(outputCall[1]).toContain("`fixes #123`"), expect(outputCall[1]).toContain("/redacted"));
+            (expect(outputCall[1]).toContain("`@user`"), expect(outputCall[1]).not.toContain("`fixes #123`"), expect(outputCall[1]).toContain("fixes #123"), expect(outputCall[1]).toContain("/redacted"));
           }),
           it("should handle missing title and body gracefully", async () => {
             ((mockContext.eventName = "issues"),

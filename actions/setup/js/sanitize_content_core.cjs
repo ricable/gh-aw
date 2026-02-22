@@ -767,9 +767,6 @@ function sanitizeContentCore(content, maxLength) {
   // Neutralize GitHub references if restrictions are configured
   sanitized = neutralizeGitHubReferences(sanitized, allowedGitHubRefs);
 
-  // Neutralize common bot trigger phrases
-  sanitized = neutralizeBotTriggers(sanitized);
-
   // Neutralize template syntax delimiters (defense-in-depth)
   // This prevents potential issues if content is processed by downstream template engines
   sanitized = neutralizeTemplateDelimiters(sanitized);

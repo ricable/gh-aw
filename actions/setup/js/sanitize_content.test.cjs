@@ -745,33 +745,33 @@ describe("sanitize_content.cjs", () => {
     });
   });
 
-  describe("bot trigger neutralization", () => {
-    it("should neutralize 'fixes #123' patterns", () => {
+  describe("bot trigger passthrough", () => {
+    it("should not escape 'fixes #123' patterns", () => {
       const result = sanitizeContent("This fixes #123");
-      expect(result).toBe("This `fixes #123`");
+      expect(result).toBe("This fixes #123");
     });
 
-    it("should neutralize 'closes #456' patterns", () => {
+    it("should not escape 'closes #456' patterns", () => {
       const result = sanitizeContent("PR closes #456");
-      expect(result).toBe("PR `closes #456`");
+      expect(result).toBe("PR closes #456");
     });
 
-    it("should neutralize 'resolves #789' patterns", () => {
+    it("should not escape 'resolves #789' patterns", () => {
       const result = sanitizeContent("This resolves #789");
-      expect(result).toBe("This `resolves #789`");
+      expect(result).toBe("This resolves #789");
     });
 
-    it("should handle various bot trigger verbs", () => {
+    it("should not escape various issue-closing verbs", () => {
       const triggers = ["fix", "fixes", "close", "closes", "resolve", "resolves"];
       triggers.forEach(verb => {
         const result = sanitizeContent(`This ${verb} #123`);
-        expect(result).toBe(`This \`${verb} #123\``);
+        expect(result).toBe(`This ${verb} #123`);
       });
     });
 
-    it("should neutralize alphanumeric issue references", () => {
+    it("should not escape alphanumeric issue references", () => {
       const result = sanitizeContent("fixes #abc123def");
-      expect(result).toBe("`fixes #abc123def`");
+      expect(result).toBe("fixes #abc123def");
     });
   });
 
@@ -1063,7 +1063,8 @@ describe("sanitize_content.cjs", () => {
       expect(result).toContain("https://github.com");
       expect(result).not.toContain("<script>");
       expect(result).toContain("(script)");
-      expect(result).toContain("`fixes #123`");
+      expect(result).not.toContain("`fixes #123`");
+      expect(result).toContain("fixes #123");
       expect(result).not.toContain("\x1b[31m");
       expect(result).toContain("Red text");
     });
