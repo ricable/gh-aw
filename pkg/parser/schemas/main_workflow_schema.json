@@ -6885,6 +6885,7 @@
         },
         {
           "type": "string",
+          "pattern": "^\\$\\{\\{.*\\}\\}$",
           "description": "GitHub Actions expression that resolves to a boolean at runtime"
         }
       ]

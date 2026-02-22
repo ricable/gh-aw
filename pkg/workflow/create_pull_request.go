@@ -276,8 +276,14 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 
 	// Pre-process templatable bool fields: convert literal booleans to strings so that
 	// GitHub Actions expression strings (e.g. "${{ inputs.draft-prs }}") are also accepted.
-	preprocessBoolFieldAsString(configData, "draft", createPRLog)
-	preprocessBoolFieldAsString(configData, "fallback-as-issue", createPRLog)
+	if err := preprocessBoolFieldAsString(configData, "draft", createPRLog); err != nil {
+		createPRLog.Printf("Invalid draft value: %v", err)
+		return nil
+	}
+	if err := preprocessBoolFieldAsString(configData, "fallback-as-issue", createPRLog); err != nil {
+		createPRLog.Printf("Invalid fallback-as-issue value: %v", err)
+		return nil
+	}
 
 	// Unmarshal into typed config struct
 	var config CreatePullRequestsConfig

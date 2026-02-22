@@ -43,7 +43,10 @@ func (c *Compiler) parseDiscussionsConfig(outputMap map[string]any) *CreateDiscu
 
 	// Pre-process the fallback-to-issue field: convert literal booleans to strings so that
 	// GitHub Actions expression strings are also accepted by the *string field.
-	preprocessBoolFieldAsString(configData, "fallback-to-issue", discussionLog)
+	if err := preprocessBoolFieldAsString(configData, "fallback-to-issue", discussionLog); err != nil {
+		discussionLog.Printf("Invalid fallback-to-issue value: %v", err)
+		return nil
+	}
 
 	// Unmarshal into typed config struct
 	var config CreateDiscussionsConfig

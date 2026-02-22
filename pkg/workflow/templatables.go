@@ -11,7 +11,8 @@
 //
 // preprocessBoolFieldAsString must be called before YAML unmarshaling so
 // that a struct field typed as *string can store both literal booleans
-// ("true"/"false") and raw expression strings.
+// ("true"/"false") and GitHub Actions expression strings.  Free-form
+// string literals that are not expressions are rejected with an error.
 //
 // # JS side
 //
@@ -20,22 +21,30 @@
 
 package workflow
 
-import "github.com/github/gh-aw/pkg/logger"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/github/gh-aw/pkg/logger"
+)
 
 // preprocessBoolFieldAsString converts the value of a boolean config field
 // to a string before YAML unmarshaling.  This lets struct fields typed as
 // *string accept both literal boolean values (true/false) and GitHub Actions
 // expression strings (e.g. "${{ inputs.draft-prs }}").
 //
-// If the value is already a string (e.g. an expression) it is left
-// unchanged.  If it is a bool it is converted to "true" or "false".
-func preprocessBoolFieldAsString(configData map[string]any, fieldName string, log *logger.Logger) {
+// If the value is a bool it is converted to "true" or "false".
+// If the value is a string it must be a GitHub Actions expression (starts
+// with "${{" and ends with "}}"); any other free-form string is rejected
+// and an error is returned.
+func preprocessBoolFieldAsString(configData map[string]any, fieldName string, log *logger.Logger) error {
 	if configData == nil {
-		return
+		return nil
 	}
 	if val, exists := configData[fieldName]; exists {
-		if boolVal, ok := val.(bool); ok {
-			if boolVal {
+		switch v := val.(type) {
+		case bool:
+			if v {
 				configData[fieldName] = "true"
 			} else {
 				configData[fieldName] = "false"
@@ -43,8 +52,14 @@ func preprocessBoolFieldAsString(configData map[string]any, fieldName string, lo
 			if log != nil {
 				log.Printf("Converted %s bool to string before unmarshaling", fieldName)
 			}
+		case string:
+			if !strings.HasPrefix(v, "${{") || !strings.HasSuffix(v, "}}") {
+				return fmt.Errorf("field %q must be a boolean or a GitHub Actions expression (e.g. '${{ inputs.flag }}'), got string %q", fieldName, v)
+			}
+			// expression string is already in the correct form
 		}
 	}
+	return nil
 }
 
 // AddTemplatableBool adds a templatable boolean field to the handler config.
