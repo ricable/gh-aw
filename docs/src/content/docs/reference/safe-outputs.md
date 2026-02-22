@@ -1276,6 +1276,44 @@ safe-outputs:
 
 **Variables**: `{workflow_name}`, `{run_url}`, `{triggering_number}`, `{workflow_source}`, `{workflow_source_url}`, `{event_type}`, `{status}`, `{operation}`
 
+### Templatable Fields
+
+Certain safe output configuration fields are **templatable**: they accept either a literal value of the expected type or a GitHub Actions expression (e.g., `${{ inputs.foo }}`) that is evaluated at runtime. This lets you control behavior dynamically through workflow inputs, environments, or other GitHub Actions context values—without recompiling the workflow.
+
+> [!NOTE]
+> A free-form string that is not a valid GitHub Actions expression (`${{ ... }}`) is rejected with a compile-time error.
+
+#### Templatable boolean fields
+
+The following fields accept `true`, `false`, or a GitHub Actions expression:
+
+`footer`, `group`, `close-older-issues`, `hide-older-comments`, `close-older-discussions`, `draft`, `allow-empty`, `auto-merge`, `report-as-issue`, `unassign-first`
+
+```yaml wrap
+safe-outputs:
+  create-issue:
+    group: ${{ inputs.group-issues }}        # boolean expression
+    close-older-issues: true                 # literal boolean
+  create-pull-request:
+    draft: ${{ inputs.draft-pr }}            # boolean expression
+```
+
+A non-boolean runtime value is treated as `false`.
+
+#### Templatable integer fields
+
+The `max` field on all safe output types accepts a positive integer or a GitHub Actions expression:
+
+```yaml wrap
+safe-outputs:
+  create-issue:
+    max: ${{ inputs.max-issues }}   # integer expression
+  add-comment:
+    max: 3                          # literal integer
+```
+
+A non-integer runtime value causes the operation to fail with a descriptive error.
+
 ## Related Documentation
 
 - [Threat Detection Guide](/gh-aw/reference/threat-detection/) - Complete threat detection documentation and examples
