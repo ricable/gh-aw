@@ -729,7 +729,7 @@ This workflow tests the create-pull-request with fallback-as-issue disabled.
 		t.Fatal("Expected fallback-as-issue to be set")
 	}
 
-	if *workflowData.SafeOutputs.CreatePullRequests.FallbackAsIssue != "false" {
+	if *workflowData.SafeOutputs.CreatePullRequests.FallbackAsIssue {
 		t.Error("Expected fallback-as-issue to be false")
 	}
 

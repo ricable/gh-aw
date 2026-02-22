@@ -11,16 +11,11 @@ import (
 var createPRLog = logger.New("workflow:create_pull_request")
 
 // getFallbackAsIssue returns the effective fallback-as-issue setting (defaults to true).
-// When the value is exactly "false", returns false.
-// For any other value — including "true", GitHub Actions expressions like
-// "${{ inputs.fallback }}", or nil — returns true. This ensures the required
-// issues:write permission is always requested at compile time when the value is
-// dynamic.
 func getFallbackAsIssue(config *CreatePullRequestsConfig) bool {
 	if config == nil || config.FallbackAsIssue == nil {
 		return true // Default
 	}
-	return *config.FallbackAsIssue != "false"
+	return *config.FallbackAsIssue
 }
 
 // CreatePullRequestsConfig holds configuration for creating GitHub pull requests from agent output
@@ -39,7 +34,7 @@ type CreatePullRequestsConfig struct {
 	AutoMerge            bool     `yaml:"auto-merge,omitempty"`        // Enable auto-merge for the pull request when all required checks pass
 	BaseBranch           string   `yaml:"base-branch,omitempty"`       // Base branch for the pull request (defaults to github.ref_name if not specified)
 	Footer               *bool    `yaml:"footer,omitempty"`            // Controls whether AI-generated footer is added. When false, visible footer is omitted but XML markers are kept.
-	FallbackAsIssue      *string  `yaml:"fallback-as-issue,omitempty"` // When true (default), creates an issue if PR creation fails. When false, no fallback occurs and issues: write permission is not requested. Accepts a boolean or a GitHub Actions expression.
+	FallbackAsIssue      *bool    `yaml:"fallback-as-issue,omitempty"` // When true (default), creates an issue if PR creation fails. When false, no fallback occurs and issues: write permission is not requested.
 }
 
 // buildCreateOutputPullRequestJob creates the create_pull_request job
@@ -137,12 +132,7 @@ func (c *Compiler) buildCreateOutputPullRequestJob(data *WorkflowData, mainJobNa
 
 	// Pass the fallback-as-issue configuration - default to true for backwards compatibility
 	if data.SafeOutputs.CreatePullRequests.FallbackAsIssue != nil {
-		faiVal := *data.SafeOutputs.CreatePullRequests.FallbackAsIssue
-		if strings.HasPrefix(faiVal, "${{") {
-			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %s\n", faiVal))
-		} else {
-			customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: %q\n", faiVal))
-		}
+		customEnvVars = append(customEnvVars, fmt.Sprintf("          GH_AW_PR_FALLBACK_AS_ISSUE: \"%t\"\n", *data.SafeOutputs.CreatePullRequests.FallbackAsIssue))
 	} else {
 		customEnvVars = append(customEnvVars, "          GH_AW_PR_FALLBACK_AS_ISSUE: \"true\"\n")
 	}
@@ -278,10 +268,6 @@ func (c *Compiler) parsePullRequestsConfig(outputMap map[string]any) *CreatePull
 	// GitHub Actions expression strings (e.g. "${{ inputs.draft-prs }}") are also accepted.
 	if err := preprocessBoolFieldAsString(configData, "draft", createPRLog); err != nil {
 		createPRLog.Printf("Invalid draft value: %v", err)
-		return nil
-	}
-	if err := preprocessBoolFieldAsString(configData, "fallback-as-issue", createPRLog); err != nil {
-		createPRLog.Printf("Invalid fallback-as-issue value: %v", err)
 		return nil
 	}
 
