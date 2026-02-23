@@ -47,6 +47,14 @@ var npmValidationLog = logger.New("workflow:npm_validation")
 
 // validateNpxPackages validates that npx packages are available on npm registry
 func (c *Compiler) validateNpxPackages(workflowData *WorkflowData) error {
+	// Allow skipping npm validation via environment variable.
+	// This is useful when npm is not in PATH (e.g., when the gh-aw MCP server starts
+	// with a restricted PATH that does not include the npm binary location).
+	if os.Getenv("GH_AW_SKIP_NPX_VALIDATION") == "true" {
+		npmValidationLog.Print("GH_AW_SKIP_NPX_VALIDATION=true, skipping npx package validation")
+		return nil
+	}
+
 	packages := extractNpxPackages(workflowData)
 	if len(packages) == 0 {
 		npmValidationLog.Print("No npx packages to validate")

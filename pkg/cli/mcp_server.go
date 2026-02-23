@@ -2,7 +2,9 @@ package cli
 
 import (
 	"context"
+	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/github/gh-aw/pkg/logger"
 	"github.com/github/gh-aw/pkg/workflow"
@@ -12,16 +14,52 @@ import (
 // execCmdFunc is the type for the command execution function passed to tool registrations.
 type execCmdFunc func(ctx context.Context, args ...string) *exec.Cmd
 
+// augmentEnvPath returns env (defaulting to os.Environ() when nil) with common
+// binary directories appended to PATH so that tools like npm are reachable even
+// when the MCP server was started with a restricted PATH.
+func augmentEnvPath(env []string) []string {
+	if env == nil {
+		env = os.Environ()
+	}
+	// Common binary directories where npm/node and other tools are typically installed.
+	commonDirs := []string{
+		"/usr/local/bin",
+		"/opt/homebrew/bin",
+		"/home/linuxbrew/.linuxbrew/bin",
+	}
+	for i, e := range env {
+		if suffix, ok := strings.CutPrefix(e, "PATH="); ok {
+			current := suffix
+			for _, dir := range commonDirs {
+				if !strings.Contains(":"+current+":", ":"+dir+":") {
+					current += ":" + dir
+				}
+			}
+			env[i] = "PATH=" + current
+			return env
+		}
+	}
+	// No PATH entry found; create one from the common dirs.
+	env = append(env, "PATH="+strings.Join(commonDirs, ":"))
+	return env
+}
+
 // createMCPServer creates and configures the MCP server with all tools
 func createMCPServer(cmdPath string, actor string, validateActor bool) *mcp.Server {
-	// Helper function to execute command with proper path
+	// Helper function to execute command with proper path.
+	// PATH is augmented so that tools like npm are reachable even when the MCP
+	// server was started with a restricted PATH (e.g. by a Copilot client).
 	execCmd := func(ctx context.Context, args ...string) *exec.Cmd {
+		var cmd *exec.Cmd
 		if cmdPath != "" {
 			// Use custom command path
-			return exec.CommandContext(ctx, cmdPath, args...)
+			cmd = exec.CommandContext(ctx, cmdPath, args...)
+		} else {
+			// Use default gh aw command with proper token handling
+			cmd = workflow.ExecGHContext(ctx, append([]string{"aw"}, args...)...)
 		}
-		// Use default gh aw command with proper token handling
-		return workflow.ExecGHContext(ctx, append([]string{"aw"}, args...)...)
+		cmd.Env = augmentEnvPath(cmd.Env)
+		return cmd
 	}
 
 	// Log actor and validation settings
