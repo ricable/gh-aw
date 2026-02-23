@@ -51,14 +51,14 @@ func (c *Compiler) generateRateLimitCheck(data *WorkflowData, steps []string) []
 	// Set max (default: 5)
 	max := constants.DefaultRateLimitMax
 	if data.RateLimit.Max > 0 {
-		max = data.RateLimit.Max
+		max = constants.RunCount(data.RateLimit.Max)
 	}
 	steps = append(steps, fmt.Sprintf("          GH_AW_RATE_LIMIT_MAX: \"%d\"\n", max))
 
 	// Set window (default: 60 minutes)
 	window := constants.DefaultRateLimitWindow
 	if data.RateLimit.Window > 0 {
-		window = data.RateLimit.Window
+		window = constants.Minutes(data.RateLimit.Window)
 	}
 	steps = append(steps, fmt.Sprintf("          GH_AW_RATE_LIMIT_WINDOW: \"%d\"\n", window))
 

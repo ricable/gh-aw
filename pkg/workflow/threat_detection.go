@@ -207,9 +207,8 @@ func (c *Compiler) buildDownloadArtifactStep(mainJobName string) []string {
 
 	// Download agent output artifact (still separate)
 	steps = append(steps, buildArtifactDownloadSteps(ArtifactDownloadConfig{
-		ArtifactName: constants.AgentOutputArtifactName,
+		ArtifactName: string(constants.AgentOutputArtifactName),
 		DownloadPath: "/tmp/gh-aw/threat-detection/",
-		SetupEnvStep: false,
 		StepName:     "Download agent output artifact",
 	})...)
 

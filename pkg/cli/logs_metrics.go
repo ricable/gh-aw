@@ -119,7 +119,7 @@ func extractLogMetrics(logDir string, verbose bool, workflowPath ...string) (Log
 		}
 		// If the file is not already in the logDir root, copy it for convenience
 		if filepath.Dir(agentOutputPath) != logDir {
-			rootCopy := filepath.Join(logDir, constants.AgentOutputArtifactName)
+			rootCopy := filepath.Join(logDir, string(constants.AgentOutputArtifactName))
 			if _, err := os.Stat(rootCopy); errors.Is(err, os.ErrNotExist) {
 				if copyErr := fileutil.CopyFile(agentOutputPath, rootCopy); copyErr == nil && verbose {
 					fmt.Fprintln(os.Stderr, console.FormatInfoMessage("Copied agent_output.json to run root for easy access"))
@@ -233,11 +233,11 @@ func extractMissingToolsFromRun(runDir string, run WorkflowRun, verbose bool) ([
 		}
 	} else {
 		// Try old structure: agent-output directory
-		agentOutputPath := filepath.Join(runDir, constants.AgentOutputArtifactName)
+		agentOutputPath := filepath.Join(runDir, string(constants.AgentOutputArtifactName))
 		if stat, err := os.Stat(agentOutputPath); err == nil {
 			if stat.IsDir() {
 				// Directory form – look for nested file
-				nested := filepath.Join(agentOutputPath, constants.AgentOutputArtifactName)
+				nested := filepath.Join(agentOutputPath, string(constants.AgentOutputArtifactName))
 				if _, nestedErr := os.Stat(nested); nestedErr == nil {
 					resolvedAgentOutputFile = nested
 					if verbose {
@@ -359,11 +359,11 @@ func extractNoopsFromRun(runDir string, run WorkflowRun, verbose bool) ([]NoopRe
 		}
 	} else {
 		// Try old structure: agent-output directory
-		agentOutputPath := filepath.Join(runDir, constants.AgentOutputArtifactName)
+		agentOutputPath := filepath.Join(runDir, string(constants.AgentOutputArtifactName))
 		if stat, err := os.Stat(agentOutputPath); err == nil {
 			if stat.IsDir() {
 				// Directory form – look for nested file
-				nested := filepath.Join(agentOutputPath, constants.AgentOutputArtifactName)
+				nested := filepath.Join(agentOutputPath, string(constants.AgentOutputArtifactName))
 				if _, nestedErr := os.Stat(nested); nestedErr == nil {
 					resolvedAgentOutputFile = nested
 					if verbose {
@@ -481,11 +481,11 @@ func extractMissingDataFromRun(runDir string, run WorkflowRun, verbose bool) ([]
 		}
 	} else {
 		// Try old structure: agent-output directory
-		agentOutputPath := filepath.Join(runDir, constants.AgentOutputArtifactName)
+		agentOutputPath := filepath.Join(runDir, string(constants.AgentOutputArtifactName))
 		if stat, err := os.Stat(agentOutputPath); err == nil {
 			if stat.IsDir() {
 				// Directory form – look for nested file
-				nested := filepath.Join(agentOutputPath, constants.AgentOutputArtifactName)
+				nested := filepath.Join(agentOutputPath, string(constants.AgentOutputArtifactName))
 				if _, nestedErr := os.Stat(nested); nestedErr == nil {
 					resolvedAgentOutputFile = nested
 					if verbose {

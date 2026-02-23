@@ -813,7 +813,7 @@ func runContainsSafeOutputType(runDir string, safeOutputType string, verbose boo
 	// Support both new flattened form and old directory form
 	if stat, err := os.Stat(agentOutputPath); err != nil || stat.IsDir() {
 		// Try old structure
-		oldPath := filepath.Join(runDir, constants.AgentOutputArtifactName, constants.AgentOutputArtifactName)
+		oldPath := filepath.Join(runDir, string(constants.AgentOutputArtifactName), string(constants.AgentOutputArtifactName))
 		if _, err := os.Stat(oldPath); err == nil {
 			agentOutputPath = oldPath
 		} else {

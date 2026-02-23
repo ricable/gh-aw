@@ -638,8 +638,29 @@ const AgentJobName JobName = "agent"
 const ActivationJobName JobName = "activation"
 const PreActivationJobName JobName = "pre_activation"
 const DetectionJobName JobName = "detection"
-const SafeOutputArtifactName = "safe-output"
-const AgentOutputArtifactName = "agent-output"
+
+// ArtifactName represents a GitHub Actions artifact name identifier.
+// This semantic type distinguishes artifact names from arbitrary strings,
+// making artifact references explicit and type-safe.
+//
+// Example usage:
+//
+//	const SafeOutputArtifactName ArtifactName = "safe-output"
+//	func DownloadArtifact(name ArtifactName) error { ... }
+type ArtifactName string
+
+// String returns the string representation of the artifact name
+func (a ArtifactName) String() string {
+	return string(a)
+}
+
+// IsValid returns true if the artifact name is non-empty
+func (a ArtifactName) IsValid() bool {
+	return len(a) > 0
+}
+
+const SafeOutputArtifactName ArtifactName = "safe-output"
+const AgentOutputArtifactName ArtifactName = "agent-output"
 
 // AgentOutputFilename is the filename of the agent output JSON file
 const AgentOutputFilename = "agent_output.json"
@@ -690,9 +711,49 @@ const SkipRolesOkOutput = "skip_roles_ok"
 const SkipBotsOkOutput = "skip_bots_ok"
 const ActivatedOutput = "activated"
 
+// RunCount represents a count of workflow runs.
+// This semantic type encodes the unit (runs) directly in the type name,
+// distinguishing run counts from arbitrary integers.
+//
+// Example usage:
+//
+//	const DefaultRateLimitMax RunCount = 5
+//	func SetRateLimit(max RunCount, window Minutes) { ... }
+type RunCount int
+
+// String returns the string representation of the run count
+func (r RunCount) String() string {
+	return fmt.Sprintf("%d", r)
+}
+
+// IsValid returns true if the run count is positive
+func (r RunCount) IsValid() bool {
+	return r > 0
+}
+
+// Minutes represents a duration in minutes.
+// This semantic type encodes the unit (minutes) directly in the type name,
+// preventing confusion with other integer durations (e.g., seconds, hours).
+//
+// Example usage:
+//
+//	const DefaultRateLimitWindow Minutes = 60
+//	func SetTimeWindow(window Minutes) { ... }
+type Minutes int
+
+// String returns the string representation of the minutes value
+func (m Minutes) String() string {
+	return fmt.Sprintf("%d", m)
+}
+
+// IsValid returns true if the minutes value is positive
+func (m Minutes) IsValid() bool {
+	return m > 0
+}
+
 // Rate limit defaults
-const DefaultRateLimitMax = 5     // Default maximum runs per time window
-const DefaultRateLimitWindow = 60 // Default time window in minutes (1 hour)
+const DefaultRateLimitMax RunCount = 5    // Default maximum runs per time window
+const DefaultRateLimitWindow Minutes = 60 // Default time window in minutes (1 hour)
 
 // Agentic engine name constants using EngineName type for type safety
 const (

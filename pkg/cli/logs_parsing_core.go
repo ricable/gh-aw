@@ -116,7 +116,7 @@ func findAgentOutputFile(logDir string) (string, bool) {
 		if err != nil || info == nil {
 			return nil
 		}
-		if !info.IsDir() && strings.EqualFold(info.Name(), constants.AgentOutputArtifactName) {
+		if !info.IsDir() && strings.EqualFold(info.Name(), string(constants.AgentOutputArtifactName)) {
 			foundPath = path
 			return errors.New("stop") // sentinel to stop walking early
 		}
