@@ -14,7 +14,12 @@ jobs:
       contents: read
     steps:
     - name: Install gh-aw extension
-      run: curl -fsSL https://raw.githubusercontent.com/github/gh-aw/refs/heads/main/install-gh-aw.sh | bash
+      # To update the checksum after changing install-gh-aw.sh, run:
+      #   sha256sum install-gh-aw.sh
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/github/gh-aw/refs/heads/main/install-gh-aw.sh -o /tmp/gh-aw-install.sh
+        echo "561f76eedd4b2c0448f21b0862a930784148ff4cc5491150f2bf5eb0bc6dd227  /tmp/gh-aw-install.sh" | sha256sum -c
+        bash /tmp/gh-aw-install.sh
     - name: Checkout code
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
     - name: Set up Node.js

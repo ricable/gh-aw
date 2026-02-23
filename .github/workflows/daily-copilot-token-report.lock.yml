@@ -299,7 +299,10 @@ jobs:
           cache-dependency-path: 'actions/setup/js/package-lock.json'
           package-manager-cache: false
       - name: Install gh-aw extension
-        run: curl -fsSL https://raw.githubusercontent.com/github/gh-aw/refs/heads/main/install-gh-aw.sh | bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/github/gh-aw/refs/heads/main/install-gh-aw.sh -o /tmp/gh-aw-install.sh
+          echo "561f76eedd4b2c0448f21b0862a930784148ff4cc5491150f2bf5eb0bc6dd227  /tmp/gh-aw-install.sh" | sha256sum -c
+          bash /tmp/gh-aw-install.sh
       - name: Install JavaScript dependencies
         run: cd actions/setup/js && npm ci
       - name: Install development dependencies
