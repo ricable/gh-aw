@@ -216,8 +216,8 @@ func (c *Compiler) ExtractEngineConfig(frontmatter map[string]any) (string, *Eng
 						}
 					}
 
-					// Extract log_level field (default: "debug")
-					if logLevel, hasLogLevel := firewallObj["log_level"]; hasLogLevel {
+					// Extract log-level field (default: "debug")
+					if logLevel, hasLogLevel := firewallObj["log-level"]; hasLogLevel {
 						if logLevelStr, ok := logLevel.(string); ok {
 							firewallConfig.LogLevel = logLevelStr
 						}

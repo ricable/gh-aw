@@ -699,6 +699,8 @@ func (c *Compiler) computeAllowedDomainsForSanitization(data *WorkflowData) stri
 		return GetCodexAllowedDomains(data.NetworkPermissions)
 	case "claude":
 		return GetClaudeAllowedDomains(data.NetworkPermissions)
+	case "gemini":
+		return GetGeminiAllowedDomainsWithToolsAndRuntimes(data.NetworkPermissions, data.Tools, data.Runtimes)
 	default:
 		// For other engines, use network permissions only
 		domains := GetAllowedDomains(data.NetworkPermissions)
