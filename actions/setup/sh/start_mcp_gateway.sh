@@ -66,11 +66,11 @@ if ! echo "$MCP_GATEWAY_DOCKER_COMMAND" | grep -qE -- '--network'; then
 fi
 
 # Start overall timing
-SCRIPT_START_TIME=$($(get_time_ms))
+SCRIPT_START_TIME=$(get_time_ms)
 
 # Read MCP configuration from stdin
 echo "Reading MCP configuration from stdin..."
-CONFIG_READ_START=$($(get_time_ms))
+CONFIG_READ_START=$(get_time_ms)
 MCP_CONFIG=$(cat)
 print_timing $CONFIG_READ_START "Configuration read from stdin"
 echo ""
@@ -82,7 +82,7 @@ echo "-------END MCP CONFIG-----------"
 echo ""
 
 # Validate configuration is valid JSON
-CONFIG_VALIDATION_START=$($(get_time_ms))
+CONFIG_VALIDATION_START=$(get_time_ms)
 if ! echo "$MCP_CONFIG" | jq empty 2>/tmp/gh-aw/mcp-config/jq-error.log; then
   echo "ERROR: Configuration is not valid JSON"
   echo ""
@@ -133,7 +133,7 @@ export MCP_GATEWAY_LOG_DIR="/tmp/gh-aw/mcp-logs/"
 echo "Starting gateway with container: $MCP_GATEWAY_DOCKER_COMMAND"
 echo "Full docker command: $MCP_GATEWAY_DOCKER_COMMAND"
 echo ""
-GATEWAY_START_TIME=$($(get_time_ms))
+GATEWAY_START_TIME=$(get_time_ms)
 # Note: MCP_GATEWAY_DOCKER_COMMAND is the full docker command with all flags, mounts, and image
 # Pass MCP_GATEWAY_LOG_DIR to the container via -e flag
 echo "$MCP_CONFIG" | MCP_GATEWAY_LOG_DIR="$MCP_GATEWAY_LOG_DIR" $MCP_GATEWAY_DOCKER_COMMAND \
@@ -181,7 +181,7 @@ echo ""
 # Note: Gateway may take 40-50 seconds when starting multiple MCP servers
 # (e.g., serena alone takes ~22 seconds to start)
 echo "Waiting for gateway to be ready..."
-HEALTH_CHECK_START=$($(get_time_ms))
+HEALTH_CHECK_START=$(get_time_ms)
 # Use localhost for health check since:
 # 1. This script runs on the host (not in a container)
 # 2. The gateway uses --network host, so it's accessible on localhost
@@ -209,10 +209,10 @@ CURL_EXIT_CODE=1
 echo "=== Health Check Progress ==="
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   RETRY_COUNT=$((RETRY_COUNT + 1))
-  RETRY_START=$($(get_time_ms))
+  RETRY_START=$(get_time_ms)
   
   # Calculate elapsed time since health check started
-  ELAPSED_MS=$(($($(get_time_ms)) - HEALTH_CHECK_START))
+  ELAPSED_MS=$(($(get_time_ms) - HEALTH_CHECK_START))
   ELAPSED_SEC=$((ELAPSED_MS / 1000))
   
   # Show progress every 10 retries or on first attempt
@@ -290,7 +290,7 @@ echo ""
 
 # Wait for gateway output (rewritten configuration)
 echo "Reading gateway output configuration..."
-OUTPUT_WAIT_START=$($(get_time_ms))
+OUTPUT_WAIT_START=$(get_time_ms)
 WAIT_ATTEMPTS=10
 WAIT_ATTEMPT=0
 while [ $WAIT_ATTEMPT -lt $WAIT_ATTEMPTS ]; do
@@ -335,7 +335,7 @@ fi
 
 # Convert gateway output to agent-specific format
 echo "Converting gateway configuration to agent format..."
-CONFIG_CONVERT_START=$($(get_time_ms))
+CONFIG_CONVERT_START=$(get_time_ms)
 export MCP_GATEWAY_OUTPUT=/tmp/gh-aw/mcp-config/gateway-output.json
 
 # Validate MCP_GATEWAY_API_KEY is set (required by converter scripts)
@@ -392,7 +392,7 @@ echo ""
 
 # Check MCP server functionality
 echo "Checking MCP server functionality..."
-MCP_CHECK_START=$($(get_time_ms))
+MCP_CHECK_START=$(get_time_ms)
 if [ -f /opt/gh-aw/actions/check_mcp_servers.sh ]; then
   echo "Running MCP server checks..."
   # Store check diagnostic logs in /tmp/gh-aw/mcp-logs/start-gateway.log for artifact upload
