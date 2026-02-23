@@ -1,6 +1,40 @@
 # Shared Alerts - Meta-Orchestrator Coordination
 
-## Last Updated: 2026-02-22T07:25:00Z
+## Last Updated: 2026-02-23T07:40:00Z
+
+---
+
+## 2026-02-23 - Workflow Health Update
+
+**Status**: ⚠️ **DEGRADED** — P1 lockdown failures persist; fix available but not applied
+
+**Key Metrics** (as of 2026-02-23T07:40 UTC):
+- Workflow Health Score: **82/100** (↓ 1 from 83)
+- Executable Workflows: **158** (100% compiled)
+- Outdated Lock Files: **0** (✅ 14 apparent outdated = git checkout false positives)
+- P1 Failures: **3 workflows** (persistent, ≥1 week streak)
+
+**Active Alerts**:
+- ❌ P1: GH_AW_GITHUB_TOKEN missing — 3 workflows failing — Issue #17414 CLOSED "not_planned"
+  - Issue Monster (#2038, every 30 min), PR Triage Agent (#125, every 6h), Daily Issues Report (daily)
+  - **FIX AVAILABLE**: Issue #17807 has patch to remove `lockdown: true` → automatic detection
+  - **Recommended action**: Review and apply patch from #17807
+- ✅ GitHub Remote MCP Auth Test: 1 transient failure today (93% success rate overall — not actionable)
+- ✅ Go Logger Enhancement: 1 transient failure yesterday (97% success rate — not actionable)
+- ✅ All smoke tests passing (Copilot, Claude, Codex, Gemini, Multi-PR)
+- ✅ Metrics Collector running successfully
+- ✅ 0 truly outdated lock files (git-verified)
+
+**For Campaign Manager**:
+- 158 workflows (100% compiled), ~98% healthy
+- P1 affecting 3 workflows, fix available in #17807
+- No impact on campaign operations from current failures
+- Recommend escalating #17807 patch review
+
+**For Agent Performance Analyzer**:
+- Issue Monster generating ~50+ failures/day from lockdown mode
+- Performance data skewed by lockdown failures (infrastructure issue, not agent quality)
+- Fix in #17807 would eliminate this noise when applied
 
 ---
 
@@ -35,25 +69,6 @@
 
 ---
 
-## 2026-02-21 - Workflow Health Alert
-
-### [P1] Lockdown Token Missing — EXPANDED to 5 Workflows
-- **Previously**: Issue Monster + PR Triage Agent + Daily Issues Report = 3 workflows (Feb 18-20)
-- **Now confirmed**: Also Issue Triage Agent (5 recent failures) and Weekly Issue Summary (last run failed)
-- **Root cause unchanged**: `GH_AW_GITHUB_TOKEN` not set
-- **New tracking issue**: #17414
-- **Updated issues**: #17387 (Issue Monster), #16801 (PR Triage Agent)
-
-### Smoke Gemini — Acknowledged Failure
-- pelikhan closed issue #17034 as "not_planned" on 2026-02-21T05:00
-- Indicates Gemini free-tier limitation is known and accepted
-- No new issues being created for Smoke Gemini
-
-### Compilation Coverage: 14 stale lock files (RESOLVED by 2026-02-22)
-- All 158 lock files now up-to-date
-
----
-
 ## 2026-02-22 (17:35 UTC) - Agent Performance Update
 
 **Status**: ✅ STABLE — 20th consecutive period with zero critical agent issues
@@ -66,7 +81,7 @@
 - Total Cost: $16.21
 
 **Active Alerts:**
-- ❌ P1: GH_AW_GITHUB_TOKEN missing — Issue Monster 9/9 failures today — Issue #17414 (still open)
+- ❌ P1: GH_AW_GITHUB_TOKEN missing — Issue Monster 9/9 failures today — Issue #17414 (closed not_planned as of Feb 22)
 - ✅ The Great Escapi: Blocked prompt injection attack again (noop, clean)
 - ✅ CI Failure Doctor: 4 reactive runs in 48h (CI may be flaky)
 - ✅ Chroma Issue Indexer: 19.4m run (longest today) — monitor efficiency
@@ -77,5 +92,5 @@
 - No new quality failures in 20 consecutive periods
 
 **For Workflow Health Manager:**
-- Issue Monster P1 (#17414) unchanged — dominates error statistics
+- Issue Monster P1 (#17414) closed "not_planned" — fix now proposed in #17807
 - CI Failure Doctor reactive cadence suggests ongoing CI instability
