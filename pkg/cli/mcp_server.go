@@ -21,11 +21,9 @@ func augmentEnvPath(env []string) []string {
 	if env == nil {
 		env = os.Environ()
 	}
-	// Common binary directories where npm/node and other tools are typically installed.
+	// Common binary directory where npm/node and other tools are typically installed.
 	commonDirs := []string{
 		"/usr/local/bin",
-		"/opt/homebrew/bin",
-		"/home/linuxbrew/.linuxbrew/bin",
 	}
 	for i, e := range env {
 		if suffix, ok := strings.CutPrefix(e, "PATH="); ok {

@@ -17,24 +17,24 @@ func TestAugmentEnvPath(t *testing.T) {
 		wantPaths []string // directories that must appear in the resulting PATH
 	}{
 		{
-			name:      "nil env gets common dirs appended",
+			name:      "nil env gets /usr/local/bin appended",
 			env:       nil,
-			wantPaths: []string{"/usr/local/bin", "/opt/homebrew/bin"},
+			wantPaths: []string{"/usr/local/bin"},
 		},
 		{
-			name:      "existing PATH gets common dirs appended",
+			name:      "existing PATH gets /usr/local/bin appended",
 			env:       []string{"PATH=/usr/bin:/bin", "HOME=/root"},
-			wantPaths: []string{"/usr/bin", "/bin", "/usr/local/bin", "/opt/homebrew/bin"},
+			wantPaths: []string{"/usr/bin", "/bin", "/usr/local/bin"},
 		},
 		{
-			name:      "PATH already containing common dir is not duplicated",
+			name:      "PATH already containing /usr/local/bin is not duplicated",
 			env:       []string{"PATH=/usr/local/bin:/usr/bin"},
 			wantPaths: []string{"/usr/local/bin", "/usr/bin"},
 		},
 		{
 			name:      "env without PATH entry gets PATH added",
 			env:       []string{"HOME=/root", "USER=runner"},
-			wantPaths: []string{"/usr/local/bin", "/opt/homebrew/bin"},
+			wantPaths: []string{"/usr/local/bin"},
 		},
 	}
 
