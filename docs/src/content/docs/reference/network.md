@@ -7,7 +7,7 @@ sidebar:
 
 Control network access for AI engines using the top-level `network` field to specify which domains and services your agentic workflows can access during execution.
 
-> **Note**: Network permissions are currently supported by the Claude engine and the Copilot engine (when using the [firewall feature](/gh-aw/reference/sandbox/)).
+> **Note**: Network permissions are supported by all four engines: Copilot, Claude, Codex, and Gemini (via the AWF firewall). See the [Implementation](#implementation) section for engine-specific details.
 
 If no `network:` permission is specified, it defaults to `network: defaults` which allows access to basic infrastructure domains (certificates, JSON schema, Ubuntu, common package mirrors, Microsoft sources).
 
@@ -37,7 +37,7 @@ network:
     - "api.example.com"      # Exact domain (also matches subdomains)
     - "*.cdn.example.com"    # Wildcard: matches any subdomain of cdn.example.com
 
-# Protocol-specific domain filtering (Copilot engine only)
+# Protocol-specific domain filtering (Copilot and Claude engines only)
 network:
   allowed:
     - "https://secure.api.example.com"   # HTTPS-only access
@@ -94,7 +94,7 @@ Network permissions follow the principle of least privilege with four access lev
 
 ## Protocol-Specific Domain Filtering
 
-Restrict domains to a specific protocol (HTTP or HTTPS only) for legacy systems, strict HTTPS enforcement, or gradual migration. Currently supported by the Copilot engine with AWF firewall enabled; domains without a protocol prefix allow both HTTP and HTTPS.
+Restrict domains to a specific protocol (HTTP or HTTPS only) for legacy systems, strict HTTPS enforcement, or gradual migration. Currently supported by the Copilot and Claude engines with AWF firewall enabled; domains without a protocol prefix allow both HTTP and HTTPS.
 
 ```yaml wrap
 engine: copilot
@@ -208,6 +208,84 @@ When enabled, AWF:
 - Supports wildcard patterns (e.g., `*.cdn.example.com` matches `img.cdn.example.com`)
 - Logs all network activity for audit purposes
 - Blocks access to domains not explicitly allowed
+
+### Claude Engine
+
+The Claude engine supports network permissions through AWF (Agent Workflow Firewall), the same firewall infrastructure used by the Copilot engine.
+
+Enable network permissions in your workflow:
+
+```yaml wrap
+engine: claude
+
+network:
+  allowed:
+    - defaults             # Basic infrastructure
+    - python              # Python ecosystem
+    - "api.example.com"   # Custom domain
+```
+
+**Default domain list** – the following domains are always allowed for Claude CLI authentication and operation:
+
+- `*.githubusercontent.com`
+- `anthropic.com`, `api.anthropic.com`, `statsig.anthropic.com`
+- `api.github.com`, `github.com`, `codeload.github.com`, `lfs.github.com`
+- `raw.githubusercontent.com`, `objects.githubusercontent.com`, `github-cloud.githubusercontent.com`, `github-cloud.s3.amazonaws.com`
+- `ghcr.io`
+- `cdn.playwright.dev`, `playwright.download.prss.microsoft.com`
+- `files.pythonhosted.org`, `pypi.org`
+- `registry.npmjs.org`
+- `packages.microsoft.com`, `packages.cloud.google.com`
+- `archive.ubuntu.com`, `azure.archive.ubuntu.com`, `security.ubuntu.com`, `keyserver.ubuntu.com`
+- `ppa.launchpad.net`, `api.snapcraft.io`, `packagecloud.io`
+- `json-schema.org`, `json.schemastore.org`
+- `sentry.io`
+- Various certificate authority domains (CRL/OCSP endpoints)
+
+### Codex Engine
+
+The Codex engine supports network permissions through AWF (Agent Workflow Firewall).
+
+Enable network permissions in your workflow:
+
+```yaml wrap
+engine: codex
+
+network:
+  allowed:
+    - defaults             # Basic infrastructure
+    - node                # Node.js ecosystem
+    - "api.example.com"   # Custom domain
+```
+
+**Default domain list** – the following domains are always allowed for Codex CLI operation:
+
+- `api.openai.com`, `openai.com` – OpenAI API endpoints
+- `host.docker.internal` – Docker host networking
+- `172.30.0.1` – AWF gateway IP (Codex resolves `host.docker.internal` to this IP for Rust DNS compatibility)
+
+### Gemini Engine
+
+The Gemini engine supports network permissions through AWF (Agent Workflow Firewall).
+
+Enable network permissions in your workflow:
+
+```yaml wrap
+engine: gemini
+
+network:
+  allowed:
+    - defaults             # Basic infrastructure
+    - node                # Node.js ecosystem
+    - "api.example.com"   # Custom domain
+```
+
+**Default domain list** – the following domains are always allowed for Gemini CLI authentication and operation:
+
+- `*.googleapis.com`, `generativelanguage.googleapis.com` – Google API endpoints
+- `github.com`, `raw.githubusercontent.com` – GitHub access
+- `host.docker.internal` – Docker host networking
+- `registry.npmjs.org` – npm registry
 
 ### Firewall Log Level
 
