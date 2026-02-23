@@ -60,8 +60,11 @@ if ! echo "$MCP_GATEWAY_DOCKER_COMMAND" | grep -qE -- '--rm'; then
   exit 1
 fi
 
-if ! echo "$MCP_GATEWAY_DOCKER_COMMAND" | grep -qE -- '--network'; then
-  echo "ERROR: MCP_GATEWAY_DOCKER_COMMAND must include --network flag for networking"
+# Validate networking - accept either --network or -p port mapping
+# (Some Docker versions/platforms don't support --network host)
+if ! echo "$MCP_GATEWAY_DOCKER_COMMAND" | grep -qE -- '--network' && \
+   ! echo "$MCP_GATEWAY_DOCKER_COMMAND" | grep -qE -- '-p [0-9]+:[0-9]+'; then
+  echo "ERROR: MCP_GATEWAY_DOCKER_COMMAND must include either --network or -p flag for networking"
   exit 1
 fi
 
