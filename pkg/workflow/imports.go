@@ -475,6 +475,28 @@ func hasSafeOutputType(config *SafeOutputsConfig, key string) bool {
 		return config.CreateAgentSessions != nil
 	case "update-project":
 		return config.UpdateProjects != nil
+	case "update-discussion":
+		return config.UpdateDiscussions != nil
+	case "mark-pull-request-as-ready-for-review":
+		return config.MarkPullRequestAsReadyForReview != nil
+	case "autofix-code-scanning-alert":
+		return config.AutofixCodeScanningAlert != nil
+	case "assign-to-user":
+		return config.AssignToUser != nil
+	case "unassign-from-user":
+		return config.UnassignFromUser != nil
+	case "create-project":
+		return config.CreateProjects != nil
+	case "create-project-status-update":
+		return config.CreateProjectStatusUpdates != nil
+	case "link-sub-issue":
+		return config.LinkSubIssue != nil
+	case "hide-comment":
+		return config.HideComment != nil
+	case "dispatch-workflow":
+		return config.DispatchWorkflow != nil
+	case "missing-data":
+		return config.MissingData != nil
 	case "missing-tool":
 		return config.MissingTool != nil
 	case "noop":
@@ -641,6 +663,23 @@ func mergeSafeOutputConfig(result *SafeOutputsConfig, config map[string]any, c *
 			// Merge individual message fields, main takes precedence
 			result.Messages = mergeMessagesConfig(result.Messages, importedConfig.Messages)
 		}
+	}
+
+	// Merge additional meta-configuration fields
+	if result.Footer == nil && importedConfig.Footer != nil {
+		result.Footer = importedConfig.Footer
+	}
+	if len(result.AllowGitHubReferences) == 0 && len(importedConfig.AllowGitHubReferences) > 0 {
+		result.AllowGitHubReferences = importedConfig.AllowGitHubReferences
+	}
+	if !result.GroupReports && importedConfig.GroupReports {
+		result.GroupReports = true
+	}
+	if result.MaxBotMentions == nil && importedConfig.MaxBotMentions != nil {
+		result.MaxBotMentions = importedConfig.MaxBotMentions
+	}
+	if result.Mentions == nil && importedConfig.Mentions != nil {
+		result.Mentions = importedConfig.Mentions
 	}
 
 	// NOTE: Jobs are NOT merged here. They are handled separately in compiler_orchestrator.go

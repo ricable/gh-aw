@@ -473,16 +473,16 @@ type BaseSafeOutputConfig struct {
 
 // SafeOutputsConfig holds configuration for automatic output routes
 type SafeOutputsConfig struct {
-	CreateIssues                    *CreateIssuesConfig                    `yaml:"create-issues,omitempty"`
-	CreateDiscussions               *CreateDiscussionsConfig               `yaml:"create-discussions,omitempty"`
+	CreateIssues                    *CreateIssuesConfig                    `yaml:"create-issue,omitempty"`
+	CreateDiscussions               *CreateDiscussionsConfig               `yaml:"create-discussion,omitempty"`
 	UpdateDiscussions               *UpdateDiscussionsConfig               `yaml:"update-discussion,omitempty"`
-	CloseDiscussions                *CloseDiscussionsConfig                `yaml:"close-discussions,omitempty"`
+	CloseDiscussions                *CloseDiscussionsConfig                `yaml:"close-discussion,omitempty"`
 	CloseIssues                     *CloseIssuesConfig                     `yaml:"close-issue,omitempty"`
 	ClosePullRequests               *ClosePullRequestsConfig               `yaml:"close-pull-request,omitempty"`
 	MarkPullRequestAsReadyForReview *MarkPullRequestAsReadyForReviewConfig `yaml:"mark-pull-request-as-ready-for-review,omitempty"`
-	AddComments                     *AddCommentsConfig                     `yaml:"add-comments,omitempty"`
-	CreatePullRequests              *CreatePullRequestsConfig              `yaml:"create-pull-requests,omitempty"`
-	CreatePullRequestReviewComments *CreatePullRequestReviewCommentsConfig `yaml:"create-pull-request-review-comments,omitempty"`
+	AddComments                     *AddCommentsConfig                     `yaml:"add-comment,omitempty"`
+	CreatePullRequests              *CreatePullRequestsConfig              `yaml:"create-pull-request,omitempty"`
+	CreatePullRequestReviewComments *CreatePullRequestReviewCommentsConfig `yaml:"create-pull-request-review-comment,omitempty"`
 	SubmitPullRequestReview         *SubmitPullRequestReviewConfig         `yaml:"submit-pull-request-review,omitempty"`           // Submit a PR review with status (APPROVE, REQUEST_CHANGES, COMMENT)
 	ReplyToPullRequestReviewComment *ReplyToPullRequestReviewCommentConfig `yaml:"reply-to-pull-request-review-comment,omitempty"` // Reply to existing review comments on PRs
 	ResolvePullRequestReviewThread  *ResolvePullRequestReviewThreadConfig  `yaml:"resolve-pull-request-review-thread,omitempty"`   // Resolve a review thread on a pull request
@@ -495,7 +495,7 @@ type SafeOutputsConfig struct {
 	AssignToAgent                   *AssignToAgentConfig                   `yaml:"assign-to-agent,omitempty"`
 	AssignToUser                    *AssignToUserConfig                    `yaml:"assign-to-user,omitempty"`     // Assign users to issues
 	UnassignFromUser                *UnassignFromUserConfig                `yaml:"unassign-from-user,omitempty"` // Remove assignees from issues
-	UpdateIssues                    *UpdateIssuesConfig                    `yaml:"update-issues,omitempty"`
+	UpdateIssues                    *UpdateIssuesConfig                    `yaml:"update-issue,omitempty"`
 	UpdatePullRequests              *UpdatePullRequestsConfig              `yaml:"update-pull-request,omitempty"` // Update GitHub pull request title/body
 	PushToPullRequestBranch         *PushToPullRequestBranchConfig         `yaml:"push-to-pull-request-branch,omitempty"`
 	UploadAssets                    *UploadAssetsConfig                    `yaml:"upload-asset,omitempty"`
